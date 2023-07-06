@@ -2,34 +2,37 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
 
 export class CreateChapterRequestDto {
-  @ApiProperty({ required: true })
+  @ApiProperty()
   @IsNumber()
   manga_id: number;
 
-  @ApiProperty({ required: true })
+  @ApiProperty()
   @IsString()
   chapter_name: string;
 
-  @ApiProperty({ required: true })
+  @ApiProperty()
   @IsNumber()
   chapter_number: number;
 
-  @ApiProperty({ required: true })
+  @ApiProperty()
   @IsString()
   chapter_type: string;
 
-  @ApiProperty({ required: true })
+  @ApiProperty()
   @IsString()
   chapter_images: string;
 
-  @ApiProperty({ required: true })
+  @ApiProperty()
   @IsString()
   pushlish_date: string;
 
-  @ApiProperty({ required: true })
+  @ApiProperty()
   @IsString()
   status: string;
 
-  @ApiProperty({ type: ['string'], format: 'binary', required: true })
+  @ApiProperty({ type: 'string', format: 'binary' })
+  thumbnail: Express.Multer.File;
+
+  @ApiProperty({ type: ['string'], format: 'binary' })
   files: Express.Multer.File[];
 }

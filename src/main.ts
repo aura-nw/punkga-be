@@ -11,13 +11,11 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Punkga')
     .setVersion('1.0')
-    // .addServer('/')
-    // .addServer('/api')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('documentation', app, document);
 
-  await app.listen(3003);
+  await app.listen(3004);
 }
 bootstrap();

@@ -1,0 +1,9 @@
+http:
+  host: 'localhost'
+  port: 3000
+aws:
+  region: 'ap-southeast-1'
+  keyid: 'xx'
+  secretAccessKey: 'xx'
+  bucketName: 'xx'
+  queryEndpoint:
