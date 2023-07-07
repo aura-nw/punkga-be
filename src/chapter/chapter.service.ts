@@ -3,7 +3,10 @@ import axios from 'axios';
 import * as decompress from 'decompress';
 import * as mmmagic from 'mmmagic';
 import * as _ from 'lodash';
-import { CreateChapterRequestDto } from './dto/create-chapter-request.dto';
+import {
+  ChapterImage,
+  CreateChapterRequestDto,
+} from './dto/create-chapter-request.dto';
 import {
   existsSync,
   mkdirSync,
@@ -16,6 +19,7 @@ import { ContextProvider } from '../providers/contex.provider';
 import { IChapterLanguages, IFileInfo, IUploadedFile } from './interfaces';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ChapterService {
@@ -35,8 +39,12 @@ export class ChapterService {
       chapter_type,
       pushlish_date,
       status,
+      // chapter_images,
     } = data;
-    const chapter_images = JSON.parse(data.chapter_images);
+    const chapter_images = plainToInstance(
+      ChapterImage,
+      JSON.parse(data.chapter_images),
+    );
 
     const thumbnailFileName = files.filter(
       (f) => f.fieldname === 'thumbnail',
@@ -122,12 +130,14 @@ export class ChapterService {
       uploadChapterResult,
       (chapter) => chapter.language_id,
     );
-    const chapterLanguages = chapter_images.chapter_languages.map((m: any) => ({
+    const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
       languageId: m.language_id,
-      detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
-        order: r.order,
-        image_path: r.image_path,
-      })),
+      detail: JSON.stringify(
+        groupLanguageChapter[`${m.language_id}`].map((r) => ({
+          order: r.order,
+          image_path: r.image_path,
+        })),
+      ),
     }));
 
     const result = await this.insertChapterLanguages(

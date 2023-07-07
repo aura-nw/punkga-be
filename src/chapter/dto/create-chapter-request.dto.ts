@@ -1,5 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
+import { ChapterStatus, ChapterType } from '../../common/enum';
+
+export class ChapterLanguage {
+  @ApiProperty()
+  @IsNumber()
+  language_id: number;
+
+  @ApiProperty({ example: 'BC - 1.zip' })
+  @IsString()
+  file_name: string;
+}
+export class ChapterImage {
+  @ApiProperty({ type: [ChapterLanguage] })
+  chapter_languages: ChapterLanguage[];
+}
 
 export class CreateChapterRequestDto {
   @ApiProperty()
@@ -14,21 +29,18 @@ export class CreateChapterRequestDto {
   @IsNumber()
   chapter_number: number;
 
-  @ApiProperty()
-  @IsString()
-  chapter_type: string;
+  @ApiProperty({ enum: ChapterType, enumName: 'ChapterType' })
+  chapter_type: ChapterType;
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({ type: ChapterImage })
   chapter_images: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: '2023-07-05T02:48:36.893251+00:00' })
   @IsString()
   pushlish_date: string;
 
-  @ApiProperty()
-  @IsString()
-  status: string;
+  @ApiProperty({ enum: ChapterStatus, enumName: 'ChapterStatus' })
+  status: ChapterStatus;
 
   @ApiProperty({ type: 'string', format: 'binary' })
   thumbnail: Express.Multer.File;
