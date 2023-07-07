@@ -6,6 +6,8 @@ import { ChapterModule } from './chapter/chapter.module';
 import { MangaModule } from './manga/manga.module';
 import configuration from './config/configuration';
 import { JwtModule } from '@nestjs/jwt';
+import { FilesModule } from './files/files.module';
+import { GraphqlModule } from './graphql/graphql.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { JwtModule } from '@nestjs/jwt';
       load: [configuration],
       isGlobal: true,
     }),
+    FilesModule,
+    GraphqlModule,
   ],
   controllers: [AppController],
   providers: [AppService],
