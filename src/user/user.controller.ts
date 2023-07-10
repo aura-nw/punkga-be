@@ -1,5 +1,5 @@
 import {
-  Body,
+  Query,
   Controller,
   Delete,
   UseGuards,
@@ -19,7 +19,7 @@ export class UserController {
   @ApiBearerAuth()
   @Delete()
   @UseInterceptors(AuthUserInterceptor)
-  delete(@Body() data: DeleteUserRequest) {
+  delete(@Query() data: DeleteUserRequest) {
     return this.userSvc.delete(data);
   }
 }
