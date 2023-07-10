@@ -32,29 +32,6 @@
               updated_at
             }
           }
-      - name: Admin - Query List Manga
-        query: |
-          query QueryListManga {
-            manga(order_by: {manga_languages_aggregate:{min:{title:asc}}}) {
-              id
-              status
-              release_date
-              manga_creators {
-                creator {
-                  name
-                }
-              }
-              chapters_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              manga_languages(where: {is_main_language:{_eq:true}}) {
-                id
-                title
-              }
-            }
-          }
       - name: Admin - Deactive Manga
         query: |
           mutation DeactiveManga ($id: Int = 10) {
@@ -586,5 +563,30 @@
               user_id
               ref_activity
               action_type
+            }
+          }
+      - name: Admin - Query List Manga
+        query: |
+          query QueryListManga {
+            manga(order_by: {created_at:desc}) {
+              id
+              status
+              release_date
+              publish_date
+              created_at
+              manga_creators {
+                creator {
+                  name
+                }
+              }
+              chapters_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              manga_languages(where: {is_main_language:{_eq:true}}) {
+                id
+                title
+              }
             }
           }

@@ -65,19 +65,19 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Query List Manga
+      query_name: Admin - Create Manga
   methods:
-    - GET
-  name: Admin - Query List Manga
+    - POST
+  name: Admin - Create Manga
   url: admin/manga
 - comment: ""
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Create Manga
+      query_name: Admin - Query List Manga
   methods:
-    - POST
-  name: Admin - Create Manga
+    - GET
+  name: Admin - Query List Manga
   url: admin/manga
 - comment: ""
   definition:
