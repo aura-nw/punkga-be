@@ -10,6 +10,7 @@ import {
 import { ContextProvider } from '../providers/contex.provider';
 import { FilesService } from '../files/files.service';
 import { GraphqlService } from '../graphql/graphql.service';
+import { UpdateMangaRequestDto } from './dto/update-manga-request.dto';
 
 @Injectable()
 export class MangaService {
@@ -89,6 +90,75 @@ export class MangaService {
       token,
       `mutation UpdateMangaByPK($banner: String = "", $poster: String = "", $id: Int = 10) {
         update_manga_by_pk(pk_columns: {id: $id}, _set: {banner: $banner, poster: $poster}) {
+          id
+          banner
+          poster
+          status
+          created_at
+        }
+      }`,
+      'UpdateMangaByPK',
+      udpateVariables,
+    );
+
+    return updateResponse;
+  }
+
+  async update(
+    mangaId: number,
+    data: UpdateMangaRequestDto,
+    files: Array<Express.Multer.File>,
+  ) {
+    const { token } = ContextProvider.getAuthUser();
+    const { status } = data;
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `query QueryMangaById($id: Int = 10) {
+        manga_by_pk(id: $id) {
+          id
+          poster
+          banner
+        }
+      }`,
+      'QueryMangaById',
+      {
+        id: mangaId,
+      },
+    );
+
+    if (result.errors && result.errors.length > 0) {
+      return result;
+    }
+
+    if (result.data.manga_by_pk === null) {
+      return result.data;
+    }
+
+    let { poster: posterUrl, banner: bannerUrl } = result.data.manga_by_pk;
+
+    // upload files
+    const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
+    if (bannerFile)
+      bannerUrl = await this.filesService.uploadImageToS3(mangaId, bannerFile);
+
+    const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
+    if (posterFile)
+      posterUrl = await this.filesService.uploadImageToS3(mangaId, posterFile);
+
+    // update manga in DB
+    const udpateVariables = {
+      id: mangaId,
+      banner: bannerUrl,
+      poster: posterUrl,
+      status,
+    };
+    const updateResponse = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `mutation UpdateMangaByPK($banner: String = "", $poster: String = "", $id: Int = 10, $status: String = "") {
+        update_manga_by_pk(pk_columns: {id: $id}, _set: {banner: $banner, poster: $poster, status: $status}) {
           id
           banner
           poster

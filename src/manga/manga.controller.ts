@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Param,
   Post,
   UploadedFiles,
   UseGuards,
@@ -12,6 +13,10 @@ import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CreateMangaRequestDto } from './dto/create-manga-request.dto';
+import {
+  UpdateMangaParamDto,
+  UpdateMangaRequestDto,
+} from './dto/update-manga-request.dto';
 
 @Controller('manga')
 export class MangaController {
@@ -28,5 +33,19 @@ export class MangaController {
   ) {
     // console.log(data);
     return this.mangaSvc.create(data, files);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Post(':mangaId')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  update(
+    @Param() param: UpdateMangaParamDto,
+    @Body() data: UpdateMangaRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    const { mangaId } = param;
+    return this.mangaSvc.update(mangaId, data, files);
   }
 }
