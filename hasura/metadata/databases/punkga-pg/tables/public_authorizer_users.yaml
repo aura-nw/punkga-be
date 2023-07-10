@@ -1,0 +1,46 @@
+table:
+  name: authorizer_users
+  schema: public
+array_relationships:
+  - name: authorizer_users_social_activities
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: social_activities
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - nickname
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - email_verified_at
+        - phone_number_verified_at
+        - revoked_timestamp
+        - updated_at
+        - is_multi_factor_auth_enabled
+        - id
+        - birthdate
+        - email
+        - family_name
+        - gender
+        - given_name
+        - key
+        - middle_name
+        - nickname
+        - password
+        - phone_number
+        - picture
+        - roles
+        - signup_methods
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true

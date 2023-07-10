@@ -6,9 +6,9 @@ export enum MangaStatus {
 }
 
 export enum ChapterStatus {
-  Uploading = 'Uploading',
-  Inactive = 'Inactive',
+  // Uploading = 'Uploading',
   Published = 'Published',
+  Inactive = 'Inactive',
 }
 
 export enum ChapterType {

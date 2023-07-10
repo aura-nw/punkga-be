@@ -1,0 +1,31 @@
+type Mutation {
+  delete_user(
+    email: String!
+  ): DeleteUserOutput
+}
+
+input DeleteUserInput {
+  email: String
+}
+
+type DeleteUserOutput {
+  error: Boolean
+  message: String
+}
+
+type LoginResponse {
+  accessToken: String!
+}
+
+type MyQueryOutput {
+  created_at: timestamptz
+  en_name: String
+  id: Int!
+  updated_at: timestamptz
+  vn_name: String
+}
+
+type TagsOutput {
+  tags: [MyQueryOutput]
+}
+

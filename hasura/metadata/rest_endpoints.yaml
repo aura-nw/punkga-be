@@ -1,0 +1,360 @@
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete chapter languages
+  methods:
+    - DELETE
+  name: Admin - Delete chapter languages
+  url: admin/chapter_languages/:chapter_id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Update chapter language
+  methods:
+    - PUT
+  name: Admin - Update chapter language
+  url: admin/chapter_languages/:chapter_id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Update chapter
+  methods:
+    - PUT
+  name: Admin - Update chapter
+  url: admin/chapters/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Add creator
+  methods:
+    - POST
+  name: Admin - Add creator
+  url: admin/creators
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Query creators
+  methods:
+    - GET
+  name: Admin - Query creators
+  url: admin/creators
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Deactive Creator By PK
+  methods:
+    - DELETE
+  name: Admin - Deactive Creator By PK
+  url: admin/creators/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Update creator by pk
+  methods:
+    - PUT
+  name: Admin - Update creator by pk
+  url: admin/creators/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Query List Manga
+  methods:
+    - GET
+  name: Admin - Query List Manga
+  url: admin/manga
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Create Manga
+  methods:
+    - POST
+  name: Admin - Create Manga
+  url: admin/manga
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Deactive Manga
+  methods:
+    - DELETE
+  name: Admin - Deactive Manga
+  url: admin/manga/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Update manga status
+  methods:
+    - PUT
+  name: Admin - Update manga status
+  url: admin/manga/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Get manga detail
+  methods:
+    - GET
+  name: Admin - Get manga detail
+  url: admin/manga/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Create Chapter
+  methods:
+    - POST
+  name: Admin - Create Chapter
+  url: admin/manga/:manga_id/chapters
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete chapter
+  methods:
+    - DELETE
+  name: Admin - Delete chapter
+  url: admin/manga/:manga_id/chapters/:chapter_number
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Create Manga Creators
+  methods:
+    - POST
+  name: Admin - Create Manga Creators
+  url: admin/manga_creators
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete manga creators
+  methods:
+    - DELETE
+  name: Admin - Delete manga creators
+  url: admin/manga_creators/:manga_id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Create manga languages
+  methods:
+    - POST
+  name: Admin - Create manga languages
+  url: admin/manga_languages
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete Manga Languages By Manga Id
+  methods:
+    - DELETE
+  name: Admin - Delete Manga Languages By Manga Id
+  url: admin/manga_languages/:manga_id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Create manga tags
+  methods:
+    - POST
+  name: Admin - Create manga tags
+  url: admin/manga_tags
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete manga tags
+  methods:
+    - DELETE
+  name: Admin - Delete manga tags
+  url: admin/manga_tags/:manga_id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Update tag languages many
+  methods:
+    - PUT
+  name: Admin - Update tag languages many
+  url: admin/tag_languages
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Create Tag
+  methods:
+    - POST
+  name: Admin - Create Tag
+  url: admin/tags
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Query all tags by main language
+  methods:
+    - GET
+  name: Admin - Query all tags by main language
+  url: admin/tags
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Delete tag
+  methods:
+    - DELETE
+  name: Delete tag
+  url: admin/tags/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Update tag by ID
+  methods:
+    - PUT
+  name: Admin - Update tag by ID
+  url: admin/tags/:tag_id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Get All Users
+  methods:
+    - GET
+  name: Admin - Get All Users
+  url: admin/users
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete User
+  methods:
+    - DELETE
+  name: Admin - Delete User
+  url: admin/users
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get Chapter Comments
+  methods:
+    - GET
+  name: Public - Get Chapter Comments
+  url: public/chapters/:chapter_id/comments
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Query all languages
+  methods:
+    - GET
+  name: Public - Query all languages
+  url: public/languages
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Query latest update manga
+  methods:
+    - GET
+  name: Public - Query latest update manga
+  url: public/latest
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get manga detail
+  methods:
+    - GET
+  name: Public - Get manga detail
+  url: public/manga/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get chapter detail
+  methods:
+    - GET
+  name: Public - Get chapter detail
+  url: public/manga/:manga_id/chapters/:chapter_number
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Query all tags
+  methods:
+    - GET
+  name: Public - Query all tags
+  url: public/tags
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Query tag by ID
+  methods:
+    - GET
+  name: Public - Query tag by ID
+  url: public/tags/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get trending manga
+  methods:
+    - GET
+  name: Public - Get trending manga
+  url: public/trending
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Add comment in chapter
+  methods:
+    - POST
+  name: User - Add comment in chapter
+  url: user/chapters/:$chapter_id/comments
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Like chapter
+  methods:
+    - POST
+  name: User - Like chapter
+  url: user/chapters/:$chapter_id/likes
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Unlike chapter
+  methods:
+    - DELETE
+  name: User - Unlike chapter
+  url: user/chapters/:chapter_id/likes
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Subscribe manga
+  methods:
+    - POST
+  name: User - Subscribe manga
+  url: user/manga/:manga_id/subscribe
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Unsubscribe manga
+  methods:
+    - DELETE
+  name: User - Unsubscribe manga
+  url: user/manga/:manga_id/subscribe

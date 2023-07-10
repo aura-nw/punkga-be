@@ -1,0 +1,55 @@
+table:
+  name: subscribers
+  schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      set:
+        user_id: x-hasura-User-Id
+      columns:
+        - id
+        - manga_id
+        - user_id
+        - created_at
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - manga_id
+        - user_id
+        - created_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - id
+        - manga_id
+        - user_id
+        - created_at
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - manga_id
+        - user_id
+        - created_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
+      set:
+        user_id: x-hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

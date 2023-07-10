@@ -1,0 +1,587 @@
+- name: allowed-queries
+  definition:
+    queries:
+      - name: Admin - Add creator
+        query: |
+          mutation AddCreator ($name: String, $bio: String, $socials: jsonb = null) {
+            insert_creators_one(object: {name:$name,bio:$bio,socials:$socials}) {
+              id
+              name
+              socials
+              created_at
+              bio
+            }
+          }
+      - name: Admin - Deactive Creator By PK
+        query: |
+          mutation DeactiveCreatorByPk ($id: Int = 10) {
+            update_creators_by_pk(pk_columns: {id:$id}, _set: {isActive:false}) {
+              id
+              name
+              isActive
+            }
+          }
+      - name: Admin - Update creator by pk
+        query: |
+          mutation UpdateCreator ($id: Int = 10, $name: String = "", $bio: String = "", $socials: jsonb = "") {
+            update_creators_by_pk(pk_columns: {id:$id}, _set: {name:$name,bio:$bio,socials:$socials}) {
+              id
+              name
+              bio
+              socials
+              updated_at
+            }
+          }
+      - name: Admin - Query List Manga
+        query: |
+          query QueryListManga {
+            manga(order_by: {manga_languages_aggregate:{min:{title:asc}}}) {
+              id
+              status
+              release_date
+              manga_creators {
+                creator {
+                  name
+                }
+              }
+              chapters_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              manga_languages(where: {is_main_language:{_eq:true}}) {
+                id
+                title
+              }
+            }
+          }
+      - name: Admin - Deactive Manga
+        query: |
+          mutation DeactiveManga ($id: Int = 10) {
+            update_manga_by_pk(pk_columns: {id:$id}, _set: {status:"Removed"}) {
+              id
+              status
+              updated_at
+            }
+          }
+      - name: Admin - Update manga status
+        query: |
+          mutation UpdateMangaStatus ($id: Int! = 10, $status: String! = "") {
+            update_manga_by_pk(pk_columns: {id:$id}, _set: {status:$status}) {
+              id
+              updated_at
+              status
+            }
+          }
+      - name: Admin - Delete chapter
+        query: |
+          mutation DeleteChapter ($manga_id: Int = 10, $chapter_number: Int = 10) {
+            delete_chapter_languages(where: {chapter:{_and:{manga_id:{_eq:$manga_id},chapter_number:{_eq:$chapter_number}}}}) {
+              affected_rows
+            }
+            delete_chapters(where: {_and:{manga_id:{_eq:$manga_id},chapter_number:{_eq:$chapter_number}}}) {
+              affected_rows
+            }
+          }
+      - name: Admin - Create Manga Creators
+        query: |
+          mutation CreateMangaCreators ($manga_creators: [manga_creator_insert_input!] = [{creator_id:10,manga_id:10}]) {
+            insert_manga_creator(objects: $manga_creators) {
+              affected_rows
+            }
+          }
+      - name: Admin - Delete manga creators
+        query: |
+          mutation DeleteMangaCreators ($manga_id: Int = 10, $creator_ids: [Int!] = [10]) {
+            delete_manga_creator(where: {_and:{manga_id:{_eq:$manga_id},creator_id:{_in:$creator_ids}}}) {
+              affected_rows
+            }
+          }
+      - name: Admin - Create manga languages
+        query: |
+          mutation InsertMangaLanguages ($manga_languages: [manga_languages_insert_input!] = {manga_id:10,language_id:10,is_main_language:false,title:"",description:""}) {
+            insert_manga_languages(objects: $manga_languages) {
+              affected_rows
+            }
+          }
+      - name: Admin - Delete Manga Languages By Manga Id
+        query: |
+          mutation DeleteMangaLanguagesByMangaId ($manga_id: Int = 10, $language_ids: [Int!] = [10]) {
+            delete_manga_languages(where: {_and:{manga_id:{_eq:$manga_id},language_id:{_in:$language_ids}}}) {
+              affected_rows
+            }
+          }
+      - name: Admin - Delete manga tags
+        query: |
+          mutation DeleteMangaTags ($manga_id: Int = 10, $tag_ids: [Int!] = [10]) {
+            delete_manga_tag(where: {_and:{manga_id:{_eq:$manga_id},tag_id:{_in:$tag_ids}}}) {
+              affected_rows
+            }
+          }
+      - name: Admin - Get All Users
+        query: |
+          query GetAllUsers {
+            authorizer_users(order_by: {updated_at:desc}) {
+              id
+              nickname
+              email
+              created_at
+              updated_at
+            }
+          }
+      - name: User - Add comment in chapter
+        query: |
+          mutation AddUserComment ($chapter_id: Int = 21, $ref_activity: Int, $content: String = "") {
+            insert_social_activities_one(object: {chapter_id:$chapter_id,content:$content,ref_activity:$ref_activity,action_type:"COMMENT"}) {
+              id
+              content
+              user_id
+              ref_activity
+              action_type
+            }
+          }
+      - name: Public - Get Chapter Comments
+        query: |
+          query GetChapterComments ($chapter_id: Int = 10) {
+            social_activities(where: {_and:{action_type:{_eq:"COMMENT"},ref_activity:{_is_null:true},chapter_id:{_eq:$chapter_id}}}) {
+              id
+              social_activities_authorizer_user {
+                id
+                nickname
+              }
+              content
+              created_at
+              replies: social_activities {
+                social_activities_authorizer_user {
+                  id
+                  nickname
+                }
+                content
+                created_at
+              }
+            }
+          }
+      - name: User - Like chapter
+        query: |
+          mutation UserLikeChapter ($chapter_id: Int = 10) {
+            insert_likes_one(object: {chapter_id:$chapter_id}) {
+              id
+              user_id
+              chapter_id
+              created_at
+            }
+          }
+      - name: User - Unlike chapter
+        query: |
+          mutation UserUnLikeChapter ($chapter_id: Int = 10, $_eq: Int = 10) {
+            delete_likes(where: {chapter_id:{_eq:$chapter_id}}) {
+              affected_rows
+            }
+          }
+      - name: User - Subscribe manga
+        query: |
+          mutation UserSubscribeManga ($manga_id: Int = 10) {
+            insert_subscribers_one(object: {manga_id:$manga_id}) {
+              id
+              user_id
+              manga_id
+              created_at
+            }
+          }
+      - name: User - Unsubscribe manga
+        query: |
+          mutation UserUnsubscribeManga ($manga_id: Int = 10) {
+            delete_subscribers(where: {manga_id:{_eq:$manga_id}}) {
+              affected_rows
+            }
+          }
+      - name: Public - Get manga detail
+        query: |
+          query GetMangaReadingDetail ($id: Int = 18) {
+            manga_by_pk(id: $id) {
+              id
+              poster
+              banner
+              manga_languages {
+                title
+                description
+                is_main_language
+                language_id
+              }
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    views
+                  }
+                  count
+                }
+              }
+              chapters(order_by: {chapter_number:desc_nulls_last}) {
+                id
+                chapter_number
+                chapter_name
+                chapter_type
+                thumbnail_url
+                pushlish_date
+                status
+              }
+              manga_subscribers_aggregate {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+      - name: Admin - Create Tag
+        query: |
+          mutation CreateTag ($tag_languages: [tag_languages_insert_input!] = [{language_id:1,value:""}]) {
+            insert_tags(objects: {tag_languages:{data:$tag_languages}}) {
+              affected_rows
+              returning {
+                id
+                created_at
+                tag_languages {
+                  id
+                  value
+                  tag_id
+                  language_id
+                }
+              }
+            }
+          }
+      - name: Admin - Update tag by ID
+        query: |
+          mutation UpdateTag ($tag_id: Int! = 10, $language_id: Int! = 10, $value: String! = "") {
+            update_tag_languages(where: {_and:{tag_id:{_eq:$tag_id},language_id:{_eq:$language_id}}}, _set: {value:$value}) {
+              affected_rows
+              returning {
+                tag_id
+                language_id
+                value
+              }
+            }
+          }
+      - name: Admin - Create manga tags
+        query: |
+          mutation AddMangaTag ($manga_tags: [manga_tag_insert_input!] = [{manga_id:10,tag_id:10}]) {
+            insert_manga_tag(objects: $manga_tags) {
+              affected_rows
+              returning {
+                manga {
+                  id
+                  status
+                }
+                tag {
+                  id
+                  tag_languages {
+                    tag_id
+                    language_id
+                    value
+                  }
+                }
+              }
+            }
+          }
+      - name: Delete tag
+        query: |
+          mutation DeleteTag ($id: Int = 10) {
+            delete_tag_languages(where: {tag_id:{_eq:$id}}) {
+              affected_rows
+            }
+            delete_tags(where: {id:{_eq:$id}}) {
+              affected_rows
+            }
+          }
+      - name: Admin - Update chapter
+        query: |
+          mutation UpdateChapterByPK ($id: Int!, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String) {
+            update_chapters_by_pk(pk_columns: {id:$id}, _set: {chapter_name:$chapter_name,chapter_type:$chapter_type,thumbnail_url:$thumbnail_url,chapter_number:$chapter_number}) {
+              id
+              chapter_name
+              chapter_number
+              chapter_type
+              thumbnail_url
+              updated_at
+              manga_id
+            }
+          }
+      - name: Admin - Delete chapter languages
+        query: |
+          mutation DeleteChapterLanguague ($chapter_id: Int = 10, $language_ids: [Int!] = [1]) {
+            delete_chapter_languages(where: {_and:{chapter_id:{_eq:$chapter_id},language_id:{_in:$language_ids}}}) {
+              affected_rows
+            }
+          }
+      - name: Public - Query latest update manga
+        query: |
+          query GetLatestUpdatedManga ($title: String = "%%") {
+            manga(order_by: {chapters_aggregate:{min:{updated_at:desc_nulls_last}}}, limit: 6, where: {manga_languages:{title:{_like:$title}}}) {
+              id
+              manga_creators {
+                creator {
+                  id
+                  name
+                }
+              }
+              status
+              chapters(limit: 1, order_by: {updated_at:desc}) {
+                id
+                chapter_number
+                updated_at
+              }
+              manga_tags {
+                tag {
+                  id
+                  tag_languages {
+                    language_id
+                    tag_id
+                    value
+                  }
+                }
+              }
+              manga_languages {
+                title
+                description
+                is_main_language
+                language_id
+              }
+              banner
+              poster
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    views
+                    likes
+                  }
+                }
+              }
+            }
+          }
+      - name: Public - Get trending manga
+        query: |
+          query GetTrendingManga {
+            manga(order_by: {chapters_aggregate:{sum:{views:desc_nulls_last}}}) {
+              id
+              chapters(limit: 1, order_by: {updated_at:desc}) {
+                id
+                chapter_number
+                updated_at
+              }
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    views
+                    likes
+                  }
+                }
+              }
+              manga_languages {
+                title
+                language_id
+                is_main_language
+                description
+              }
+              banner
+              poster
+              manga_creators {
+                creator {
+                  name
+                  id
+                }
+              }
+            }
+          }
+      - name: Public - Get chapter detail
+        query: |
+          query GetChapterReadingDetail ($manga_id: Int = 18, $chapter_number: Int = 1, $language_id: Int = 1) {
+            chapters(where: {_and:[{manga_id:{_eq:$manga_id}},{chapter_number:{_eq:$chapter_number}}]}) {
+              id
+              chapter_number
+              chapter_name
+              chapter_type
+              chapter_languages(where: {language_id:{_eq:$language_id}}) {
+                language_id
+                detail
+              }
+              comments: social_activities_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              views
+              chapters_likes_aggregate {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+      - name: Admin - Update chapter language
+        query: |
+          mutation UpdateChapterLanguague ($chapter_id: Int!, $language_id: Int!, $detail: jsonb! = "") {
+            update_chapter_languages(where: {_and:{chapter_id:{_eq:$chapter_id},language_id:{_eq:$language_id}}}, _set: {detail:$detail}) {
+              affected_rows
+            }
+          }
+      - name: Admin - Create Chapter
+        query: |
+          mutation AddChapter ($manga_id: Int = 10, $chapter_name: String = "", $chapter_number: Int = 10, $chapter_type: String = "", $thumbnail_url: String = "", $pushlish_date: date, $chapter_languages: [chapter_languages_insert_input!] = {language_id:10,detail:""}) {
+            insert_chapters_one(object: {chapter_name:$chapter_name,chapter_number:$chapter_number,chapter_type:$chapter_type,thumbnail_url:$thumbnail_url,manga_id:$manga_id,status:"CREATED",pushlish_date:$pushlish_date,chapter_languages:{data:$chapter_languages}}) {
+              id
+              chapter_name
+              chapter_number
+              pushlish_date
+              status
+              created_at
+            }
+          }
+      - name: Admin - Delete User
+        query: |
+          mutation DeleteUser ($email: String!) {
+            delete_user(email: $email) {
+              message
+              error
+            }
+          }
+      - name: Admin - Query creators
+        query: |
+          query QueryCreators {
+            creators(where: {isActive:{_eq:true}}, order_by: {created_at:desc}) {
+              id
+              name
+              manga_creators_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              subcribers
+              created_at
+              socials
+              isActive
+              bio
+            }
+          }
+      - name: Admin - Get manga detail
+        query: |
+          query GetMangaReadingDetail ($id: Int = 1) {
+            manga_by_pk(id: $id) {
+              id
+              poster
+              banner
+              status
+              publish_date
+              created_at
+              manga_languages {
+                title
+                description
+                is_main_language
+                language_id
+              }
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    views
+                    likes
+                  }
+                  count
+                }
+              }
+              manga_subscribers_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              manga_tags {
+                tag {
+                  tag_languages {
+                    tag_id
+                    language_id
+                    value
+                  }
+                }
+              }
+              chapters(order_by: {chapter_number:desc_nulls_last}) {
+                id
+                chapter_number
+                chapter_name
+                chapter_type
+                thumbnail_url
+                pushlish_date
+                status
+              }
+              manga_creators {
+                creator {
+                  id
+                  name
+                }
+              }
+            }
+          }
+      - name: Admin - Update tag languages many
+        query: |
+          mutation UpdateTagLanguages ($updates: [tag_languages_updates!] = {where:{id:{_eq:1}},_set:{value:""}}) {
+            update_tag_languages_many(updates: $updates) {
+              affected_rows
+            }
+          }
+      - name: Public - Query all tags
+        query: |
+          query QueryTags {
+            tags(order_by: {id:desc}) {
+              id
+              created_at
+              tag_languages {
+                id
+                tag_id
+                language_id
+                value
+              }
+            }
+          }
+      - name: Public - Query tag by ID
+        query: |
+          query QueryTagById ($id: Int = 10) {
+            tags_by_pk(id: $id) {
+              id
+              tag_languages {
+                id
+                tag_id
+                language_id
+                value
+              }
+            }
+          }
+      - name: Admin - Create Manga
+        query: |
+          mutation CreateNewManga ($status: String = "", $banner: String = "", $poster: String = "", $manga_languages: [manga_languages_insert_input!] = {language_id:10,is_main_language:false,description:"",title:""}, $manga_creators: [manga_creator_insert_input!] = {creator_id:10}, $manga_tags: [manga_tag_insert_input!] = {tag_id:10}) {
+            insert_manga_one(object: {status:$status,manga_creators:{data:$manga_creators},banner:$banner,poster:$poster,manga_languages:{data:$manga_languages},manga_tags:{data:$manga_tags}}) {
+              id
+              created_at
+              status
+            }
+          }
+      - name: Public - Query all languages
+        query: |
+          query QueryAllLanguages {
+            languages {
+              id
+              symbol
+              description
+              icon
+              is_main
+            }
+          }
+      - name: Admin - Query all tags by main language
+        query: |
+          query QueryTagsByMainLanguage ($main_language_id: Int = 1) {
+            tags(order_by: {id:desc}) {
+              id
+              created_at
+              tag_languages(where: {language_id:{_eq:$main_language_id}}) {
+                id
+                tag_id
+                language_id
+                value
+              }
+            }
+          }

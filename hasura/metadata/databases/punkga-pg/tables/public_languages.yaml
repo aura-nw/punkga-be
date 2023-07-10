@@ -1,0 +1,32 @@
+table:
+  name: languages
+  schema: public
+array_relationships:
+  - name: chapter_images
+    using:
+      foreign_key_constraint_on:
+        column: language_id
+        table:
+          name: chapter_languages
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - description
+        - icon
+        - id
+        - is_main
+        - symbol
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - description
+        - icon
+        - id
+        - is_main
+        - symbol
+      filter: {}
+      allow_aggregations: true

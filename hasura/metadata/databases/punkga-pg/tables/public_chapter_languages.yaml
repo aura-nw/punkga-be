@@ -1,0 +1,29 @@
+table:
+  name: chapter_languages
+  schema: public
+object_relationships:
+  - name: chapter
+    using:
+      foreign_key_constraint_on: chapter_id
+  - name: language
+    using:
+      foreign_key_constraint_on: language_id
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - chapter_id
+        - detail
+        - id
+        - language_id
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - chapter_id
+        - detail
+        - id
+        - language_id
+      filter: {}
+      allow_aggregations: true

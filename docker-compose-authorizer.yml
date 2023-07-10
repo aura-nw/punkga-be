@@ -1,0 +1,18 @@
+version: '3.6'
+services:
+  authorizer:
+    image: lakhansamani/authorizer:latest
+    restart: always
+    ports:
+      - '8089:8080'
+    environment:
+      ENV: production
+      DATABASE_TYPE: postgres
+      DATABASE_URL: postgres://postgres:pkmrmf9Rh4GPaXMx@postgres:5432/postgres
+      ADMIN_SECRET: BtfpvmBDJ8b3SGsw
+      ORGANIZATION_NAME: AuraNetwork
+      ORGANIZATION_LOGO: 'https://aura-explorer-assets.s3.ap-southeast-1.amazonaws.com/aura.png'
+      DEFAULT_ROLES: user
+      PROTECTED_ROLES: admin
+      ACCESS_TOKEN_EXPIRY_TIME: 3h
+      CUSTOM_ACCESS_TOKEN_SCRIPT: function(user,tokenPayload) {var data = tokenPayload;  data['https://hasura.io/jwt/claims'] = {'x-hasura-user-id':user.id,'x-hasura-default-role':tokenPayload.allowed_roles[0], 'x-hasura-allowed-roles':user.roles  };  return data;}

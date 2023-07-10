@@ -1,0 +1,68 @@
+table:
+  name: chapters
+  schema: public
+object_relationships:
+  - name: manga
+    using:
+      foreign_key_constraint_on: manga_id
+array_relationships:
+  - name: chapter_languages
+    using:
+      foreign_key_constraint_on:
+        column: chapter_id
+        table:
+          name: chapter_languages
+          schema: public
+  - name: chapters_likes
+    using:
+      foreign_key_constraint_on:
+        column: chapter_id
+        table:
+          name: likes
+          schema: public
+  - name: social_activities
+    using:
+      foreign_key_constraint_on:
+        column: chapter_id
+        table:
+          name: social_activities
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - chapter_name
+        - chapter_number
+        - chapter_type
+        - created_at
+        - id
+        - likes
+        - manga_id
+        - pushlish_date
+        - release_date
+        - status
+        - thumbnail_url
+        - updated_at
+        - views
+      filter: {}
+      limit: 20
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - chapter_name
+        - chapter_number
+        - chapter_type
+        - created_at
+        - id
+        - likes
+        - manga_id
+        - pushlish_date
+        - release_date
+        - status
+        - thumbnail_url
+        - updated_at
+        - views
+      filter: {}
+      limit: 19
+      allow_aggregations: true

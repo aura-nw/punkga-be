@@ -1,0 +1,29 @@
+table:
+  name: tag_languages
+  schema: public
+object_relationships:
+  - name: tag_languages_language
+    using:
+      foreign_key_constraint_on: language_id
+  - name: tag_languages_tag
+    using:
+      foreign_key_constraint_on: tag_id
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - language_id
+        - tag_id
+        - value
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - id
+        - language_id
+        - tag_id
+        - value
+      filter: {}
+      allow_aggregations: true

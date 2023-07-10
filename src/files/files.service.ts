@@ -2,7 +2,7 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { readFileSync } from 'fs';
-import * as mmmagic from 'mmmagic';
+import { MAGIC_MIME_TYPE, Magic } from 'mmmagic';
 import * as decompress from 'decompress';
 import { IFileInfo } from '../chapter/interfaces';
 
@@ -33,7 +33,6 @@ export class FilesService {
   ): Promise<IFileInfo> {
     return new Promise((resolve, reject) => {
       const file = `${filePath}/${fileName}`;
-      const { MAGIC_MIME_TYPE, Magic } = mmmagic;
 
       const magic = new Magic(MAGIC_MIME_TYPE);
       magic.detectFile(file, (err, result) => {

@@ -1,0 +1,1 @@
+CREATE TABLE "public"."likes" ("id" serial NOT NULL, "chapter_id" integer NOT NULL, "user_id" integer NOT NULL, "created_at" timestamptz NOT NULL DEFAULT now(), PRIMARY KEY ("id") , FOREIGN KEY ("chapter_id") REFERENCES "public"."chapters"("id") ON UPDATE restrict ON DELETE restrict, UNIQUE ("chapter_id", "user_id"));

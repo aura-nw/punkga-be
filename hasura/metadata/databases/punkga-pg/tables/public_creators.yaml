@@ -1,0 +1,41 @@
+table:
+  name: creators
+  schema: public
+array_relationships:
+  - name: manga_creators
+    using:
+      foreign_key_constraint_on:
+        column: creator_id
+        table:
+          name: manga_creator
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - isActive
+        - id
+        - subcribers
+        - socials
+        - avatar_url
+        - bio
+        - name
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - isActive
+        - id
+        - subcribers
+        - socials
+        - avatar_url
+        - bio
+        - name
+        - created_at
+        - updated_at
+      filter: {}
+      limit: 20
+      allow_aggregations: true

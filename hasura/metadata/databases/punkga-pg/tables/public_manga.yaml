@@ -1,0 +1,80 @@
+table:
+  name: manga
+  schema: public
+array_relationships:
+  - name: bookshelves
+    using:
+      foreign_key_constraint_on:
+        column: manga_id
+        table:
+          name: bookshelf
+          schema: public
+  - name: chapters
+    using:
+      foreign_key_constraint_on:
+        column: manga_id
+        table:
+          name: chapters
+          schema: public
+  - name: manga_creators
+    using:
+      foreign_key_constraint_on:
+        column: manga_id
+        table:
+          name: manga_creator
+          schema: public
+  - name: manga_languages
+    using:
+      foreign_key_constraint_on:
+        column: manga_id
+        table:
+          name: manga_languages
+          schema: public
+  - name: manga_subscribers
+    using:
+      foreign_key_constraint_on:
+        column: manga_id
+        table:
+          name: subscribers
+          schema: public
+  - name: manga_tags
+    using:
+      foreign_key_constraint_on:
+        column: manga_id
+        table:
+          name: manga_tag
+          schema: public
+  - name: social_activities
+    using:
+      foreign_key_constraint_on:
+        column: manga_id
+        table:
+          name: social_activities
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - banner
+        - created_at
+        - id
+        - poster
+        - publish_date
+        - release_date
+        - status
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - banner
+        - created_at
+        - id
+        - poster
+        - publish_date
+        - release_date
+        - status
+        - updated_at
+      filter: {}
+      allow_aggregations: true

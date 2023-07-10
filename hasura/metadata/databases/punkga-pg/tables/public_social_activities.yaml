@@ -1,0 +1,85 @@
+table:
+  name: social_activities
+  schema: public
+object_relationships:
+  - name: chapter
+    using:
+      foreign_key_constraint_on: chapter_id
+  - name: manga
+    using:
+      foreign_key_constraint_on: manga_id
+  - name: social_activities_authorizer_user
+    using:
+      foreign_key_constraint_on: user_id
+array_relationships:
+  - name: social_activities
+    using:
+      manual_configuration:
+        column_mapping:
+          id: ref_activity
+        insertion_order: null
+        remote_table:
+          name: social_activities
+          schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      set:
+        user_id: x-hasura-User-Id
+      columns:
+        - chapter_id
+        - id
+        - manga_id
+        - ref_activity
+        - action_type
+        - content
+        - user_id
+        - created_at
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - chapter_id
+        - id
+        - manga_id
+        - ref_activity
+        - action_type
+        - content
+        - user_id
+        - created_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - id
+        - chapter_id
+        - manga_id
+        - action_type
+        - content
+        - created_at
+        - user_id
+        - ref_activity
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - chapter_id
+        - id
+        - manga_id
+        - ref_activity
+        - action_type
+        - content
+        - user_id
+        - created_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id

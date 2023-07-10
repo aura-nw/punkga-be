@@ -14,7 +14,7 @@ export const PROPOSAL_STATUS = {
 };
 
 export const CHAPTER_STATUS = {
-  UPLOADING: 'Uploading',
+  // UPLOADING: 'Uploading',
   INACTIVE: 'Inactive',
   PUBLISHED: 'Published',
 };
