@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import { GraphqlService } from '../graphql/graphql.service';
 import { FilesService } from '../files/files.service';
+import { rimraf } from 'rimraf';
 
 @Injectable()
 export class ChapterService {
@@ -132,6 +133,9 @@ export class ChapterService {
       chapterId,
       chapterLanguages,
     );
+
+    // remove files
+    rimraf.sync(storageFolder);
 
     if (updateResult.errors && updateResult.errors.length > 0) {
       return updateResult;
