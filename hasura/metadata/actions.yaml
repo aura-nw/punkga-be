@@ -2,7 +2,7 @@ actions:
   - name: delete_user
     definition:
       kind: synchronous
-      handler: http://api.dev.punkga.me/admin/UserService
+      handler: http://api.dev.punkga.me/user
       forward_client_headers: true
       request_transform:
         method: DELETE

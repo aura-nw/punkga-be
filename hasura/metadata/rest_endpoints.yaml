@@ -317,20 +317,20 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: User - Add comment in chapter
-  methods:
-    - POST
-  name: User - Add comment in chapter
-  url: user/chapters/:$chapter_id/comments
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: User - Like chapter
   methods:
     - POST
   name: User - Like chapter
   url: user/chapters/:$chapter_id/likes
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Add comment in chapter
+  methods:
+    - POST
+  name: User - Add comment in chapter
+  url: user/chapters/:chapter_id/comments
 - comment: ""
   definition:
     query:

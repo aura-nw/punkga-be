@@ -129,17 +129,6 @@
               updated_at
             }
           }
-      - name: User - Add comment in chapter
-        query: |
-          mutation AddUserComment ($chapter_id: Int = 21, $ref_activity: Int, $content: String = "") {
-            insert_social_activities_one(object: {chapter_id:$chapter_id,content:$content,ref_activity:$ref_activity,action_type:"COMMENT"}) {
-              id
-              content
-              user_id
-              ref_activity
-              action_type
-            }
-          }
       - name: Public - Get Chapter Comments
         query: |
           query GetChapterComments ($chapter_id: Int = 10) {
@@ -586,5 +575,16 @@
                   description
                 }
               }
+            }
+          }
+      - name: User - Add comment in chapter
+        query: |
+          mutation AddUserComment ($chapter_id: Int = 21, $ref_activity: Int, $content: String = "") {
+            insert_social_activities_one(object: {chapter_id:$chapter_id,content:$content,ref_activity:$ref_activity,action_type:"COMMENT"}) {
+              id
+              content
+              user_id
+              ref_activity
+              action_type
             }
           }
