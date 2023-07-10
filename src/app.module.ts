@@ -8,6 +8,7 @@ import configuration from './config/configuration';
 import { JwtModule } from '@nestjs/jwt';
 import { FilesModule } from './files/files.module';
 import { GraphqlModule } from './graphql/graphql.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { GraphqlModule } from './graphql/graphql.module';
     }),
     FilesModule,
     GraphqlModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
