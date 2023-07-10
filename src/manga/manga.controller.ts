@@ -3,6 +3,7 @@ import {
   Controller,
   Param,
   Post,
+  Put,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -37,7 +38,7 @@ export class MangaController {
 
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @Post(':mangaId')
+  @Put(':mangaId')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   update(
