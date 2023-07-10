@@ -538,19 +538,6 @@
               }
             }
           }
-      - name: Public - Query tag by ID
-        query: |
-          query QueryTagById ($id: Int = 10) {
-            tags_by_pk(id: $id) {
-              id
-              tag_languages {
-                id
-                tag_id
-                language_id
-                value
-              }
-            }
-          }
       - name: Admin - Create Manga
         query: |
           mutation CreateNewManga ($status: String = "", $banner: String = "", $poster: String = "", $manga_languages: [manga_languages_insert_input!] = {language_id:10,is_main_language:false,description:"",title:""}, $manga_creators: [manga_creator_insert_input!] = {creator_id:10}, $manga_tags: [manga_tag_insert_input!] = {tag_id:10}) {
@@ -582,6 +569,22 @@
                 tag_id
                 language_id
                 value
+              }
+            }
+          }
+      - name: Public - Query tag by ID
+        query: |
+          query QueryTagById ($id: Int = 10) {
+            tags_by_pk(id: $id) {
+              id
+              tag_languages {
+                id
+                tag_id
+                language_id
+                value
+                tag_languages_language {
+                  description
+                }
               }
             }
           }
