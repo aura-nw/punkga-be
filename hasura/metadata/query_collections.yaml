@@ -616,3 +616,71 @@
               }
             }
           }
+      - name: Public - Get subscribe list
+        query: |
+          query GetSubscribeList ($user_id: String = "") {
+            subscribers(order_by: {created_at:desc}, where: {user_id:{_eq:$user_id}}) {
+              subscribers_manga {
+                banner
+                manga_languages {
+                  is_main_language
+                  language_id
+                  title
+                }
+                manga_creators {
+                  creator {
+                    id
+                    name
+                    isActive
+                  }
+                }
+                chapters(order_by: {pushlish_date:desc_nulls_last}, limit: 1) {
+                  chapter_number
+                  id
+                  pushlish_date
+                }
+                chapters_aggregate {
+                  aggregate {
+                    sum {
+                      likes
+                      views
+                    }
+                  }
+                }
+              }
+              user_id
+            }
+          }
+      - name: Public - Get manga list by list id
+        query: |
+          query GetListMangaById ($id: [Int!]) {
+            manga(where: {id:{_in:$id}}) {
+              id
+              banner
+              manga_languages {
+                is_main_language
+                language_id
+                title
+              }
+              manga_creators {
+                creator {
+                  id
+                  name
+                  isActive
+                }
+              }
+              chapters(order_by: {pushlish_date:desc_nulls_last}, limit: 1) {
+                chapter_number
+                id
+                pushlish_date
+              }
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    likes
+                    views
+                  }
+                }
+              }
+            }
+          }

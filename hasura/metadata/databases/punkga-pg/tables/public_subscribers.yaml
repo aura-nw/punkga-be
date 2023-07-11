@@ -1,6 +1,10 @@
 table:
   name: subscribers
   schema: public
+object_relationships:
+  - name: subscribers_manga
+    using:
+      foreign_key_constraint_on: manga_id
 insert_permissions:
   - role: user
     permission:

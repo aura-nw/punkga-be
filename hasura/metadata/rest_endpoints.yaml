@@ -272,6 +272,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Get manga list by list id
+  methods:
+    - GET
+  name: Public - Get manga list by list id
+  url: public/list_manga
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Get manga detail
   methods:
     - GET
@@ -286,6 +295,15 @@
     - GET
   name: Public - Get chapter detail
   url: public/manga/:manga_id/chapters/:chapter_number
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get subscribe list
+  methods:
+    - GET
+  name: Public - Get subscribe list
+  url: public/profiles/:user_id/subscribe
 - comment: ""
   definition:
     query:
