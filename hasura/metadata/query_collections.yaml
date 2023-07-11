@@ -127,23 +127,6 @@
               }
             }
           }
-      - name: User - Like chapter
-        query: |
-          mutation UserLikeChapter ($chapter_id: Int = 10) {
-            insert_likes_one(object: {chapter_id:$chapter_id}) {
-              id
-              user_id
-              chapter_id
-              created_at
-            }
-          }
-      - name: User - Unlike chapter
-        query: |
-          mutation UserUnLikeChapter ($chapter_id: Int = 10, $_eq: Int = 10) {
-            delete_likes(where: {chapter_id:{_eq:$chapter_id}}) {
-              affected_rows
-            }
-          }
       - name: User - Subscribe manga
         query: |
           mutation UserSubscribeManga ($manga_id: Int = 10) {
@@ -573,6 +556,9 @@
               chapter_number
               chapter_name
               chapter_type
+              thumbnail_url
+              status
+              pushlish_date
               chapter_languages(where: {language_id:{_eq:$language_id}}) {
                 language_id
                 detail
@@ -594,5 +580,22 @@
                 user_id
                 chapter_id
               }
+            }
+          }
+      - name: User - Unlike chapter
+        query: |
+          mutation UserUnLikeChapter ($chapter_id: Int!) {
+            delete_likes(where: {chapter_id:{_eq:$chapter_id}}) {
+              affected_rows
+            }
+          }
+      - name: User - Like chapter
+        query: |
+          mutation UserLikeChapter ($chapter_id: Int!) {
+            insert_likes_one(object: {chapter_id:$chapter_id}) {
+              id
+              user_id
+              chapter_id
+              created_at
             }
           }
