@@ -1,4 +1,4 @@
-name: Deploy hasura - dev
+name: Deploy hasura - staging
 on:
   push:
     branches:
