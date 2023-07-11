@@ -226,7 +226,9 @@ export class ChapterService {
     );
 
     const uploadFiles = allowedFiles.map((f) => {
-      const keyName = `manga-${mangaId}/chapter-${chapterNumber}/lang-${f.languageId}/${f.fileName}`;
+      const s3SubFolder =
+        this.configService.get<string>('aws.s3SubFolder') || 'images';
+      const keyName = `${s3SubFolder}/manga-${mangaId}/chapter-${chapterNumber}/lang-${f.languageId}/${f.fileName}`;
       return {
         name: f.fileName,
         key_name: keyName,
