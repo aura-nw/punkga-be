@@ -57,7 +57,9 @@ export class FilesService {
     if (!thumbnail.type.includes('image')) {
       throw Error('thumbnail not valid');
     }
-    const keyName = `manga-${mangaId}/chapter-${chapterNumber}/thumbnail.${thumbnail.fileName
+    const s3SubFolder =
+      this.configService.get<string>('aws.s3SubFolder') || 'images';
+    const keyName = `${s3SubFolder}/manga-${mangaId}/chapter-${chapterNumber}/thumbnail.${thumbnail.fileName
       .split('.')
       .pop()}`;
     const filePath = thumbnail.fullPath;
@@ -81,7 +83,9 @@ export class FilesService {
     // const keyName = `manga-${mangaId}/${f.fieldname}.${f.originalname
     //   .split('.')
     //   .pop()}`;
-    const keyName = `manga-${mangaId}/${f.originalname}`;
+    const s3SubFolder =
+      this.configService.get<string>('aws.s3SubFolder') || 'images';
+    const keyName = `${s3SubFolder}/manga-${mangaId}/${f.originalname}`;
 
     await this.uploadToS3(keyName, f.buffer);
     return new URL(keyName, this.configService.get<string>('aws.queryEndpoint'))
