@@ -78,9 +78,10 @@ export class FilesService {
     if (!f.mimetype.includes('image')) {
       throw Error('file type is not valid');
     }
-    const keyName = `manga-${mangaId}/${f.fieldname}.${f.originalname
-      .split('.')
-      .pop()}`;
+    // const keyName = `manga-${mangaId}/${f.fieldname}.${f.originalname
+    //   .split('.')
+    //   .pop()}`;
+    const keyName = `manga-${mangaId}/${f.originalname}`;
 
     await this.uploadToS3(keyName, f.buffer);
     return new URL(keyName, this.configService.get<string>('aws.queryEndpoint'))
