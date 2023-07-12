@@ -117,32 +117,34 @@ export class ChapterService {
       })),
     });
 
-    // insert to DB
-    const groupLanguageChapter = _.groupBy(
-      uploadChapterResult,
-      (chapter) => chapter.language_id,
-    );
-    const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
-      languageId: m.language_id,
-      detail: JSON.stringify(
-        groupLanguageChapter[`${m.language_id}`].map((r) => ({
-          order: r.order,
-          image_path: r.image_path,
-        })),
-      ),
-    }));
-
-    const updateResult = await this.insertChapterLanguages(
-      token,
-      chapterId,
-      chapterLanguages,
-    );
-
     // remove files
     rimraf.sync(storageFolder);
 
-    if (updateResult.errors && updateResult.errors.length > 0) {
-      return updateResult;
+    // insert to DB
+    if (uploadChapterResult.length > 0) {
+      const groupLanguageChapter = _.groupBy(
+        uploadChapterResult,
+        (chapter) => chapter.language_id,
+      );
+      const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
+        languageId: m.language_id,
+        detail: JSON.stringify(
+          groupLanguageChapter[`${m.language_id}`].map((r) => ({
+            order: r.order,
+            image_path: r.image_path,
+          })),
+        ),
+      }));
+
+      const updateResult = await this.insertChapterLanguages(
+        token,
+        chapterId,
+        chapterLanguages,
+      );
+
+      if (updateResult.errors && updateResult.errors.length > 0) {
+        return updateResult;
+      }
     }
 
     return result.data;
@@ -259,27 +261,29 @@ export class ChapterService {
       })),
     });
 
-    // insert to DB
-    const groupLanguageChapter = _.groupBy(
-      uploadChapterResult,
-      (chapter) => chapter.language_id,
-    );
-    const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
-      languageId: m.language_id,
-      detail: JSON.stringify(
-        groupLanguageChapter[`${m.language_id}`].map((r) => ({
-          order: r.order,
-          image_path: r.image_path,
-        })),
-      ),
-    }));
-
-    await Promise.all(
-      this.updateChapterLanguages(token, chapter_id, chapterLanguages),
-    );
-
     // remove files
     rimraf.sync(storageFolder);
+
+    if (uploadChapterResult.length > 0) {
+      // insert to DB
+      const groupLanguageChapter = _.groupBy(
+        uploadChapterResult,
+        (chapter) => chapter.language_id,
+      );
+      const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
+        languageId: m.language_id,
+        detail: JSON.stringify(
+          groupLanguageChapter[`${m.language_id}`].map((r) => ({
+            order: r.order,
+            image_path: r.image_path,
+          })),
+        ),
+      }));
+
+      await Promise.all(
+        this.updateChapterLanguages(token, chapter_id, chapterLanguages),
+      );
+    }
 
     return result.data;
   }
