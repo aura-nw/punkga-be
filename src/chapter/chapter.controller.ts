@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Param,
   Post,
+  Put,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -12,6 +14,10 @@ import { CreateChapterRequestDto } from './dto/create-chapter-request.dto';
 import { ChapterService } from './chapter.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
+import {
+  UpdateChapterParamDto,
+  UpdateChapterRequestDto,
+} from './dto/update-chapter-request.dto';
 
 @Controller('chapter')
 export class ChapterController {
@@ -27,5 +33,18 @@ export class ChapterController {
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     return this.chapterSvc.create(data, files);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Put(':chapterId')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  update(
+    @Param() param: UpdateChapterParamDto,
+    @Body() data: UpdateChapterRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    return this.chapterSvc.update(param, data, files);
   }
 }
