@@ -1,19 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import * as _ from 'lodash';
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
+import * as path from 'path';
+import { ConfigService } from '@nestjs/config';
+import { plainToInstance } from 'class-transformer';
+import { rimraf } from 'rimraf';
 import {
   ChapterImage,
   CreateChapterRequestDto,
 } from './dto/create-chapter-request.dto';
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
-import * as path from 'path';
 import { ContextProvider } from '../providers/contex.provider';
 import { IChapterLanguages, IFileInfo, IUploadedFile } from './interfaces';
-import { ConfigService } from '@nestjs/config';
-import { plainToInstance } from 'class-transformer';
 import { GraphqlService } from '../graphql/graphql.service';
 import { FilesService } from '../files/files.service';
-import { rimraf } from 'rimraf';
+import {
+  UpdateChapterParamDto,
+  UpdateChapterRequestDto,
+} from './dto/update-chapter-request.dto';
 
 @Injectable()
 export class ChapterService {
@@ -144,6 +148,142 @@ export class ChapterService {
     return result.data;
   }
 
+  async update(
+    param: UpdateChapterParamDto,
+    data: UpdateChapterRequestDto,
+    files: Array<Express.Multer.File>,
+  ) {
+    const { chapterId: chapter_id } = param;
+    const { userId, token } = ContextProvider.getAuthUser();
+    const {
+      chapter_number,
+      chapter_name,
+      chapter_type,
+      pushlish_date,
+      status,
+    } = data;
+
+    // get chapter info
+    const chapter = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `query GetChapterInfo($id: Int!) {
+        chapters_by_pk(id: $id) {
+          manga_id
+          chapter_number
+          thumbnail_url
+        }
+      }`,
+      'GetChapterInfo',
+      {
+        id: chapter_id,
+      },
+    );
+    if (!chapter.data.chapters_by_pk || chapter.data.chapters_by_pk === null) {
+      throw Error('Not found');
+    }
+    const { manga_id } = chapter.data.chapters_by_pk;
+    let { thumbnail_url } = chapter.data.chapters_by_pk;
+
+    const chapter_images = plainToInstance(
+      ChapterImage,
+      JSON.parse(data.chapter_images),
+    );
+
+    const storageFolder = `./uploads/${userId}`;
+    if (!existsSync(storageFolder)) {
+      mkdirSync(storageFolder, { recursive: true });
+    }
+
+    files.forEach((file) => {
+      writeFileSync(`./uploads/${userId}/${file.originalname}`, file.buffer);
+    });
+
+    const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
+    if (thumbnail) {
+      const thumbnailFile = await this.filesService.detectFile(
+        `./uploads/${userId}`,
+        thumbnail.originalname,
+      );
+      thumbnail_url = await this.filesService.uploadThumbnailToS3(
+        manga_id,
+        chapter_number,
+        thumbnailFile,
+      );
+    }
+
+    // insert chapter to DB
+    const variables = {
+      id: chapter_id,
+      chapter_name,
+      chapter_number,
+      chapter_type,
+      pushlish_date,
+      status,
+      thumbnail_url,
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `mutation UpdateChapterByPK($id: Int!, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String, $status: String = "", $pushlish_date: timestamptz = "") {
+        update_chapters_by_pk(pk_columns: {id: $id}, _set: {chapter_name: $chapter_name, chapter_type: $chapter_type, thumbnail_url: $thumbnail_url, chapter_number: $chapter_number, status: $status, pushlish_date: $pushlish_date}) {
+          id
+          chapter_name
+          chapter_number
+          chapter_type
+          thumbnail_url
+          updated_at
+          manga_id
+        }
+      }`,
+      'UpdateChapterByPK',
+      variables,
+    );
+
+    if (result.errors && result.errors.length > 0) {
+      return result;
+    }
+
+    // const chapterId = result.data.insert_chapters_one.id;
+
+    // upload chapter languages
+    const uploadChapterResult = await this.uploadChapterLanguagesFiles({
+      userId,
+      mangaId: manga_id,
+      chapterNumber: chapter_number,
+      thumbnailPath: path.join(storageFolder, thumbnail.originalname),
+      chapterImagePaths: chapter_images.chapter_languages.map((m: any) => ({
+        languageId: m.language_id,
+        filePath: path.join(storageFolder, m.file_name),
+      })),
+    });
+
+    // insert to DB
+    const groupLanguageChapter = _.groupBy(
+      uploadChapterResult,
+      (chapter) => chapter.language_id,
+    );
+    const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
+      languageId: m.language_id,
+      detail: JSON.stringify(
+        groupLanguageChapter[`${m.language_id}`].map((r) => ({
+          order: r.order,
+          image_path: r.image_path,
+        })),
+      ),
+    }));
+
+    await Promise.all(
+      this.updateChapterLanguages(token, chapter_id, chapterLanguages),
+    );
+
+    // remove files
+    rimraf.sync(storageFolder);
+
+    return result.data;
+  }
+
   async insertChapterLanguages(
     token: string,
     chapterId: number,
@@ -171,6 +311,33 @@ export class ChapterService {
       'InsertChapterLanguages',
       variables,
     );
+  }
+
+  updateChapterLanguages(
+    token: string,
+    chapterId: number,
+    data: {
+      languageId: number;
+      detail: string;
+    }[],
+  ) {
+    return data.map((chapterLanguage) => {
+      return this.graphqlSvc.query(
+        this.configService.get<string>('graphql.endpoint'),
+        token,
+        `mutation UpdateChapterLanguague ($chapter_id: Int!, $language_id: Int!, $detail: jsonb! = "") {
+          update_chapter_languages(where: {_and:{chapter_id:{_eq:$chapter_id},language_id:{_eq:$language_id}}}, _set: {detail:$detail}) {
+            affected_rows
+          }
+        }`,
+        'UpdateChapterLanguague',
+        {
+          chapter_id: chapterId,
+          language_id: chapterLanguage.languageId,
+          detail: chapterLanguage.detail,
+        },
+      );
+    });
   }
 
   async uploadChapterLanguagesFiles(_payload: {
