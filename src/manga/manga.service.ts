@@ -67,17 +67,15 @@ export class MangaService {
 
     // upload files
     const mangaId = result.data.insert_manga_one.id;
+    let posterUrl = '';
+    let bannerUrl = '';
     const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
-    const bannerUrl = await this.filesService.uploadImageToS3(
-      mangaId,
-      bannerFile,
-    );
+    if (bannerFile)
+      bannerUrl = await this.filesService.uploadImageToS3(mangaId, bannerFile);
 
     const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
-    const posterUrl = await this.filesService.uploadImageToS3(
-      mangaId,
-      posterFile,
-    );
+    if (bannerFile)
+      posterUrl = await this.filesService.uploadImageToS3(mangaId, posterFile);
 
     // update manga in DB
     const udpateVariables = {
