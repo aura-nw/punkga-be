@@ -183,19 +183,6 @@
               affected_rows
             }
           }
-      - name: Admin - Update chapter
-        query: |
-          mutation UpdateChapterByPK ($id: Int!, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String) {
-            update_chapters_by_pk(pk_columns: {id:$id}, _set: {chapter_name:$chapter_name,chapter_type:$chapter_type,thumbnail_url:$thumbnail_url,chapter_number:$chapter_number}) {
-              id
-              chapter_name
-              chapter_number
-              chapter_type
-              thumbnail_url
-              updated_at
-              manga_id
-            }
-          }
       - name: Admin - Delete chapter languages
         query: |
           mutation DeleteChapterLanguague ($chapter_id: Int = 10, $language_ids: [Int!] = [1]) {
@@ -702,5 +689,18 @@
               content
               user_id
               ref_activity
+            }
+          }
+      - name: Admin - Update chapter
+        query: |
+          mutation UpdateChapterByPK ($id: Int!, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String, $status: String = "", $pushlish_date: timestamptz = "") {
+            update_chapters_by_pk(pk_columns: {id:$id}, _set: {chapter_name:$chapter_name,chapter_type:$chapter_type,thumbnail_url:$thumbnail_url,chapter_number:$chapter_number,status:$status,pushlish_date:$pushlish_date}) {
+              id
+              chapter_name
+              chapter_number
+              chapter_type
+              thumbnail_url
+              updated_at
+              manga_id
             }
           }
