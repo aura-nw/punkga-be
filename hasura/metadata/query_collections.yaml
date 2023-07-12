@@ -621,7 +621,9 @@
           query GetSubscribeList ($user_id: String = "") {
             subscribers(order_by: {created_at:desc}, where: {user_id:{_eq:$user_id}}) {
               subscribers_manga {
+                id
                 banner
+                status
                 manga_languages {
                   is_main_language
                   language_id
@@ -647,6 +649,15 @@
                     }
                   }
                 }
+                manga_tags {
+                  tag {
+                    id
+                    tag_languages {
+                      language_id
+                      value
+                    }
+                  }
+                }
               }
               user_id
             }
@@ -657,6 +668,7 @@
             manga(where: {id:{_in:$id}}) {
               id
               banner
+              status
               manga_languages {
                 is_main_language
                 language_id
@@ -679,6 +691,15 @@
                   sum {
                     likes
                     views
+                  }
+                }
+              }
+              manga_tags {
+                tag {
+                  id
+                  tag_languages {
+                    language_id
+                    value
                   }
                 }
               }
