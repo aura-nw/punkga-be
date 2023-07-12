@@ -140,18 +140,6 @@
               }
             }
           }
-      - name: Admin - Update tag by ID
-        query: |
-          mutation UpdateTag ($tag_id: Int! = 10, $language_id: Int! = 10, $value: String! = "") {
-            update_tag_languages(where: {_and:{tag_id:{_eq:$tag_id},language_id:{_eq:$language_id}}}, _set: {value:$value}) {
-              affected_rows
-              returning {
-                tag_id
-                language_id
-                value
-              }
-            }
-          }
       - name: Admin - Create manga tags
         query: |
           mutation AddMangaTag ($manga_tags: [manga_tag_insert_input!] = [{manga_id:10,tag_id:10}]) {
@@ -702,5 +690,21 @@
               thumbnail_url
               updated_at
               manga_id
+            }
+          }
+      - name: Admin - Update tag by ID
+        query: |
+          mutation UpdateTag ($tag_id: Int! = 10, $tag_languages: [tag_languages_insert_input!] = {language_id:1,value:""}) {
+            delete_tag_languages(where: {tag_id:{_eq:$tag_id}}) {
+              affected_rows
+            }
+            insert_tags(objects: {id:$tag_id,tag_languages:{data:$tag_languages}}, on_conflict: {constraint:tags_pkey,update_columns:id}) {
+              returning {
+                id
+                tag_languages {
+                  language_id
+                  value
+                }
+              }
             }
           }
