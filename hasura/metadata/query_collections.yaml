@@ -106,27 +106,6 @@
               updated_at
             }
           }
-      - name: Public - Get Chapter Comments
-        query: |
-          query GetChapterComments ($chapter_id: Int = 10) {
-            social_activities(where: {_and:{action_type:{_eq:"COMMENT"},ref_activity:{_is_null:true},chapter_id:{_eq:$chapter_id}}}) {
-              id
-              social_activities_authorizer_user {
-                id
-                nickname
-              }
-              content
-              created_at
-              replies: social_activities {
-                social_activities_authorizer_user {
-                  id
-                  nickname
-                }
-                content
-                created_at
-              }
-            }
-          }
       - name: User - Subscribe manga
         query: |
           mutation UserSubscribeManga ($manga_id: Int = 10) {
@@ -475,17 +454,6 @@
               }
             }
           }
-      - name: User - Add comment in chapter
-        query: |
-          mutation AddUserComment ($chapter_id: Int = 21, $ref_activity: Int, $content: String = "") {
-            insert_social_activities_one(object: {chapter_id:$chapter_id,content:$content,ref_activity:$ref_activity,action_type:"COMMENT"}) {
-              id
-              content
-              user_id
-              ref_activity
-              action_type
-            }
-          }
       - name: Public - Get chapter detail
         query: |
           query GetChapterReadingDetail ($manga_id: Int = 18, $chapter_number: Int = 1, $language_id: Int = 1, $user_id: String = "") {
@@ -703,5 +671,36 @@
                   }
                 }
               }
+            }
+          }
+      - name: Public - Get Chapter Comments
+        query: |
+          query GetChapterComments ($chapter_id: Int!) {
+            social_activities(where: {_and:{ref_activity:{_is_null:true},chapter_id:{_eq:$chapter_id}}}, order_by: {created_at:desc}) {
+              id
+              social_activities_authorizer_user {
+                id
+                nickname
+              }
+              content
+              created_at
+              replies: social_activities(order_by: {created_at:asc}) {
+                social_activities_authorizer_user {
+                  id
+                  nickname
+                }
+                content
+                created_at
+              }
+            }
+          }
+      - name: User - Add comment in chapter
+        query: |
+          mutation AddUserComment ($chapter_id: Int = 21, $ref_activity: Int, $content: String = "") {
+            insert_social_activities_one(object: {chapter_id:$chapter_id,content:$content,ref_activity:$ref_activity}) {
+              id
+              content
+              user_id
+              ref_activity
             }
           }

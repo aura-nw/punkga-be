@@ -43,10 +43,6 @@ export class ChapterService {
       JSON.parse(data.chapter_images),
     );
 
-    const thumbnailFileName = files.filter(
-      (f) => f.fieldname === 'thumbnail',
-    )[0].originalname;
-
     const storageFolder = `./uploads/${userId}`;
     if (!existsSync(storageFolder)) {
       mkdirSync(storageFolder, { recursive: true });
@@ -56,15 +52,19 @@ export class ChapterService {
       writeFileSync(`./uploads/${userId}/${file.originalname}`, file.buffer);
     });
 
-    const thumbnailFile = await this.filesService.detectFile(
-      `./uploads/${userId}`,
-      thumbnailFileName,
-    );
-    const thumbnailUrl = await this.filesService.uploadThumbnailToS3(
-      manga_id,
-      chapter_number,
-      thumbnailFile,
-    );
+    let thumbnailUrl = '';
+    const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
+    if (thumbnail) {
+      const thumbnailFile = await this.filesService.detectFile(
+        `./uploads/${userId}`,
+        thumbnail.originalname,
+      );
+      thumbnailUrl = await this.filesService.uploadThumbnailToS3(
+        manga_id,
+        chapter_number,
+        thumbnailFile,
+      );
+    }
 
     // insert chapter to DB
     const variables = {
@@ -106,7 +106,7 @@ export class ChapterService {
       userId,
       mangaId: manga_id,
       chapterNumber: chapter_number,
-      thumbnailPath: path.join(storageFolder, thumbnailFileName),
+      thumbnailPath: path.join(storageFolder, thumbnail.originalname),
       chapterImagePaths: chapter_images.chapter_languages.map((m: any) => ({
         languageId: m.language_id,
         filePath: path.join(storageFolder, m.file_name),
