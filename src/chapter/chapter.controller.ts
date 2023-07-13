@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Param,
+  Patch,
   Post,
   Put,
   UploadedFiles,
@@ -18,6 +19,7 @@ import {
   UpdateChapterParamDto,
   UpdateChapterRequestDto,
 } from './dto/update-chapter-request.dto';
+import { IncreaseChapterViewParamDto } from './dto/increase-chapter-view-request.dto';
 
 @Controller('chapter')
 export class ChapterController {
@@ -46,5 +48,10 @@ export class ChapterController {
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     return this.chapterSvc.update(param, data, files);
+  }
+
+  @Patch(':chapterId/increase')
+  increaseView(@Param() { chapterId }: IncreaseChapterViewParamDto) {
+    return this.chapterSvc.increase(chapterId);
   }
 }

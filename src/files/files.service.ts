@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { readFileSync } from 'fs';
 import { MAGIC_MIME_TYPE, Magic } from 'mmmagic';
-import * as decompress from 'decompress';
+import decompress from 'decompress';
 import { IFileInfo } from '../chapter/interfaces';
 
 @Injectable()

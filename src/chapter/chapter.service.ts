@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import * as _ from 'lodash';
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
-import { rimraf } from 'rimraf';
+import rimraf from 'rimraf';
 import {
   ChapterImage,
   CreateChapterRequestDto,
@@ -18,6 +18,7 @@ import {
   UpdateChapterParamDto,
   UpdateChapterRequestDto,
 } from './dto/update-chapter-request.dto';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class ChapterService {
@@ -27,6 +28,7 @@ export class ChapterService {
     private configService: ConfigService,
     private graphqlSvc: GraphqlService,
     private filesService: FilesService,
+    private redisClientService: RedisService,
   ) {}
 
   async create(
@@ -110,7 +112,6 @@ export class ChapterService {
       userId,
       mangaId: manga_id,
       chapterNumber: chapter_number,
-      thumbnailPath: path.join(storageFolder, thumbnail.originalname),
       chapterImagePaths: chapter_images.chapter_languages.map((m: any) => ({
         languageId: m.language_id,
         filePath: path.join(storageFolder, m.file_name),
@@ -157,6 +158,9 @@ export class ChapterService {
   ) {
     const { chapterId: chapter_id } = param;
     const { userId, token } = ContextProvider.getAuthUser();
+
+    const storageFolder = `./uploads/${userId}`;
+
     const {
       chapter_number,
       chapter_name,
@@ -184,6 +188,11 @@ export class ChapterService {
     if (!chapter.data.chapters_by_pk || chapter.data.chapters_by_pk === null) {
       throw Error('Not found');
     }
+
+    if (!existsSync(storageFolder)) {
+      mkdirSync(storageFolder, { recursive: true });
+    }
+
     const { manga_id } = chapter.data.chapters_by_pk;
     let { thumbnail_url } = chapter.data.chapters_by_pk;
 
@@ -191,11 +200,6 @@ export class ChapterService {
       ChapterImage,
       JSON.parse(data.chapter_images),
     );
-
-    const storageFolder = `./uploads/${userId}`;
-    if (!existsSync(storageFolder)) {
-      mkdirSync(storageFolder, { recursive: true });
-    }
 
     files.forEach((file) => {
       writeFileSync(`./uploads/${userId}/${file.originalname}`, file.buffer);
@@ -254,7 +258,6 @@ export class ChapterService {
       userId,
       mangaId: manga_id,
       chapterNumber: chapter_number,
-      thumbnailPath: path.join(storageFolder, thumbnail.originalname),
       chapterImagePaths: chapter_images.chapter_languages.map((m: any) => ({
         languageId: m.language_id,
         filePath: path.join(storageFolder, m.file_name),
@@ -286,6 +289,43 @@ export class ChapterService {
     }
 
     return result.data;
+  }
+
+  //PATCH
+  async increase(chapterId: number) {
+    // get chapter info
+    const { data } = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query GetChapter($id: Int!) {
+        chapters_by_pk(id: $id) {
+          id
+          status
+        }
+      }`,
+      'GetChapter',
+      {
+        id: chapterId,
+      },
+    );
+
+    if (!data.chapters_by_pk || data.chapters_by_pk === null) {
+      throw new NotFoundException('chapter not found');
+    }
+
+    // set chapter to set
+    this.redisClientService.client.sAdd(
+      ['punkga', 'dev', 'chapters'].join(':'),
+      chapterId.toString(),
+    );
+
+    // increase
+    this.redisClientService.client.incr(
+      ['punkga', 'dev', 'chapter', chapterId.toString(), 'view'].join(':'),
+    );
+    return {
+      success: true,
+    };
   }
 
   async insertChapterLanguages(
@@ -348,7 +388,6 @@ export class ChapterService {
     userId: string;
     mangaId: number;
     chapterNumber: number;
-    thumbnailPath: string;
     chapterImagePaths: IChapterLanguages[];
   }): Promise<IUploadedFile[]> {
     const { userId, mangaId, chapterNumber, chapterImagePaths } = _payload;
