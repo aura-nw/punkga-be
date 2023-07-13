@@ -59,9 +59,7 @@ export class FilesService {
     }
     const s3SubFolder =
       this.configService.get<string>('aws.s3SubFolder') || 'images';
-    const keyName = `${s3SubFolder}/manga-${mangaId}/chapter-${chapterNumber}/thumbnail.${thumbnail.fileName
-      .split('.')
-      .pop()}`;
+    const keyName = `${s3SubFolder}/manga-${mangaId}/chapter-${chapterNumber}/${thumbnail.fileName}`;
     const filePath = thumbnail.fullPath;
     const result = await this.uploadToS3(keyName, filePath);
 
