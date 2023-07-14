@@ -1,33 +1,30 @@
-FROM node:18.16 AS build-stage
+FROM node:lts-alpine AS build-stage
 WORKDIR /usr/src/app/
-COPY package.json ./
+COPY package.json yarn.lock ./
 
-RUN yarn install
+RUN yarn install --ignore-scripts
 
-COPY . .
+COPY ./src ./src
+COPY ./*.json ./
 
-# COPY ./src ./src
-# COPY ./*.json ./
+RUN yarn build:prod
 
-# RUN yarn build:prod
+FROM node:lts-alpine AS install-dependencies-stage
+WORKDIR /usr/src/app/
+COPY package.json yarn.lock ./
 
-# FROM node:18.16-alpine AS install-dependencies-stage
-# WORKDIR /usr/src/app/
-# COPY package.json yarn.lock ./
+RUN yarn install --prod --ignore-scripts
 
-# RUN yarn install --prod --ignore-scripts
+# Run-time stage
+FROM node:lts-alpine AS run-stage
+USER node
+ARG PORT=3000
 
-# # Run-time stage
-# FROM node:18.16-alpine AS run-stage
-# USER node
-# ARG PORT=3000
+WORKDIR /usr/src/app/
 
-# WORKDIR /usr/src/app/
+COPY --from=build-stage /usr/src/app/dist ./dist
+COPY --from=install-dependencies-stage /usr/src/app/node_modules ./node_modules
+COPY *.json /usr/src/app/
 
-# COPY --from=build-stage /usr/src/app/dist ./dist
-# COPY --from=install-dependencies-stage /usr/src/app/node_modules ./node_modules
-# COPY . /usr/src/app/
-
-EXPOSE 3000
-CMD [ "yarn", "start" ]
-# CMD [ "tail",  "-f","/dev/null" ]
+EXPOSE $PORT
+CMD [ "yarn", "start:prod" ]
