@@ -129,12 +129,10 @@ export class ChapterService {
       );
       const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
         languageId: m.language_id,
-        detail: JSON.stringify(
-          groupLanguageChapter[`${m.language_id}`].map((r) => ({
-            order: r.order,
-            image_path: r.image_path,
-          })),
-        ),
+        detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
+          order: r.order,
+          image_path: r.image_path,
+        })),
       }));
 
       const updateResult = await this.insertChapterLanguages(
@@ -275,12 +273,10 @@ export class ChapterService {
       );
       const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
         languageId: m.language_id,
-        detail: JSON.stringify(
-          groupLanguageChapter[`${m.language_id}`].map((r) => ({
-            order: r.order,
-            image_path: r.image_path,
-          })),
-        ),
+        detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
+          order: r.order,
+          image_path: r.image_path,
+        })),
       }));
 
       await Promise.all(
@@ -333,7 +329,7 @@ export class ChapterService {
     chapterId: number,
     data: {
       languageId: number;
-      detail: string;
+      detail: any;
     }[],
   ) {
     const variables = {
@@ -362,7 +358,7 @@ export class ChapterService {
     chapterId: number,
     data: {
       languageId: number;
-      detail: string;
+      detail: any;
     }[],
   ) {
     return data.map((chapterLanguage) => {
