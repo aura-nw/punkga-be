@@ -11,7 +11,7 @@ import {
 import { MangaService } from './manga.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
-import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
+import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CreateMangaRequestDto } from './dto/create-manga-request.dto';
 import {

@@ -12,7 +12,7 @@ import {
 import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { AuthGuard } from '../auth/auth.guard';
-import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
+import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '../auth/role.enum';

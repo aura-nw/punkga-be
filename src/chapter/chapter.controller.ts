@@ -14,7 +14,7 @@ import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { CreateChapterRequestDto } from './dto/create-chapter-request.dto';
 import { ChapterService } from './chapter.service';
 import { AuthGuard } from '../auth/auth.guard';
-import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
+import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
 import {
   UpdateChapterParamDto,
   UpdateChapterRequestDto,
@@ -23,6 +23,7 @@ import { IncreaseChapterViewParamDto } from './dto/increase-chapter-view-request
 import { Role } from '../auth/role.enum';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/role.guard';
+import { SetRequestTimeout } from '../decorators/set-timeout.decorator';
 
 @Controller('chapter')
 export class ChapterController {
@@ -33,6 +34,7 @@ export class ChapterController {
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @SetRequestTimeout()
   @Roles(Role.Admin)
   create(
     @Body() data: CreateChapterRequestDto,

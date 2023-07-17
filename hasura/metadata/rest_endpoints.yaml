@@ -274,7 +274,7 @@
       collection_name: allowed-queries
       query_name: Public - Get manga list by list id
   methods:
-    - GET
+    - POST
   name: Public - Get manga list by list id
   url: public/list_manga
 - comment: ""
