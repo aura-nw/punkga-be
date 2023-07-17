@@ -18,13 +18,17 @@ import {
   UpdateMangaParamDto,
   UpdateMangaRequestDto,
 } from './dto/update-manga-request.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/role.enum';
+import { RolesGuard } from '../auth/role.guard';
 
 @Controller('manga')
 export class MangaController {
   constructor(private readonly mangaSvc: MangaService) {}
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.Admin)
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
@@ -36,8 +40,9 @@ export class MangaController {
     return this.mangaSvc.create(data, files);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.Admin)
   @Put(':mangaId')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())

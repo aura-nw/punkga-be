@@ -14,7 +14,7 @@ export class TasksService {
   ) {}
 
   @Cron(CronExpression.EVERY_5_MINUTES)
-  async updateViews() {
+  async updateChapterViews() {
     // set chapter to set
     const chapters = await this.redisClientService.client.sPop(
       [
@@ -75,6 +75,69 @@ export class TasksService {
       );
 
       this.logger.debug('Update chapter views', updates);
+    }
+  }
+
+  @Cron(CronExpression.EVERY_5_SECONDS)
+  async updateChapterLikes() {
+    // set chapter to set
+    const chapter = await this.redisClientService.client.sPop(
+      [
+        this.configService.get<string>('app.name'),
+        this.configService.get<string>('app.env'),
+        'chapter-likes',
+      ].join(':'),
+      10,
+    );
+    if (chapter.length > 0) {
+      const likes = await Promise.all(
+        chapter.map((chapterId: string) => {
+          // get chapter view
+          const key = [
+            this.configService.get<string>('app.name'),
+            this.configService.get<string>('app.env'),
+            'chapters',
+            chapterId.toString(),
+            'like',
+          ].join(':');
+          return this.redisClientService.client.getDel(key);
+        }),
+      );
+
+      const updates = chapter
+        .map((chapterId: string, index: number) => ({
+          where: {
+            id: {
+              _eq: chapterId,
+            },
+          },
+          _inc: {
+            likes: Number(likes[index]),
+          },
+        }))
+        .filter((u) => u._inc.likes !== 0);
+
+      const updateResult = await this.graphqlSvc.query(
+        this.configService.get<string>('graphql.endpoint'),
+        '',
+        `mutation UpdateChapterLikes($updates: [chapters_updates!] = {where: {id: {_eq: 10}}, _inc: {likes: 10}}) {
+          update_chapters_many(updates: $updates) {
+            affected_rows
+          }
+        }`,
+        'UpdateChapterLikes',
+        {
+          updates,
+        },
+        {
+          'x-hasura-admin-secret': this.configService.get<string>(
+            'graphql.adminSecret',
+          ),
+        },
+      );
+
+      this.logger.debug('Update chapter likes');
+      this.logger.debug(updateResult);
     }
   }
 }

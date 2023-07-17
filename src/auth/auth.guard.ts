@@ -31,15 +31,11 @@ export class AuthGuard implements CanActivate {
         'x-hasura-user-id': userId,
         'x-hasura-allowed-roles': allowedRoles,
       } = payload['https://hasura.io/jwt/claims'];
-      if (allowedRoles.includes('admin')) {
-        request['user'] = {
-          userId,
-          allowedRoles,
-          token,
-        };
-      } else {
-        throw new UnauthorizedException();
-      }
+      request['user'] = {
+        userId,
+        roles: allowedRoles,
+        token,
+      };
     } catch (e) {
       console.log(e);
       throw new UnauthorizedException();

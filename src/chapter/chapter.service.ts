@@ -311,13 +311,25 @@ export class ChapterService {
 
     // set chapter to set
     this.redisClientService.client.sAdd(
-      ['punkga', 'dev', 'chapters'].join(':'),
+      [
+        this.configService.get<string>('app.name'),
+        this.configService.get<string>('app.env'),
+        ,
+        'chapters',
+      ].join(':'),
       chapterId.toString(),
     );
 
     // increase
     this.redisClientService.client.incr(
-      ['punkga', 'dev', 'chapter', chapterId.toString(), 'view'].join(':'),
+      [
+        this.configService.get<string>('app.name'),
+        this.configService.get<string>('app.env'),
+        ,
+        'chapter',
+        chapterId.toString(),
+        'view',
+      ].join(':'),
     );
     return {
       success: true,

@@ -1,11 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { Authorizer } from '@authorizerdev/authorizer-js';
+import { LikeChapterParam } from './dto/like-chapter-request.dto';
+import { GraphqlService } from '../graphql/graphql.service';
+import { ContextProvider } from '../providers/contex.provider';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class UserService {
-  constructor(private config: ConfigService) {}
+  private readonly logger = new Logger(UserService.name);
+  constructor(
+    private configService: ConfigService,
+    private graphqlSvc: GraphqlService,
+    private redisClientService: RedisService,
+  ) {}
 
   async delete(data: DeleteUserRequest) {
     const { email } = data;
@@ -19,15 +28,15 @@ export class UserService {
     };
 
     const headers = {
-      'x-authorizer-admin-secret': this.config.get<string>(
+      'x-authorizer-admin-secret': this.configService.get<string>(
         'authorizer.adminSecret',
       ),
     };
 
     const authRef = new Authorizer({
-      redirectURL: this.config.get<string>('authorizer.redirectUrl'), // window.location.origin
-      authorizerURL: this.config.get<string>('authorizer.authorizerUrl'),
-      clientID: this.config.get<string>('authorizer.clientId'), // obtain your client id from authorizer dashboard
+      redirectURL: this.configService.get<string>('authorizer.redirectUrl'), // window.location.origin
+      authorizerURL: this.configService.get<string>('authorizer.authorizerUrl'),
+      clientID: this.configService.get<string>('authorizer.clientId'), // obtain your client id from authorizer dashboard
     });
 
     try {
@@ -46,5 +55,55 @@ export class UserService {
         message: error.message,
       };
     }
+  }
+
+  async likeChapter({ chapterId }: LikeChapterParam) {
+    const { token, userId } = ContextProvider.getAuthUser();
+
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `mutation UserLikeChapter ($chapter_id: Int!) {
+        insert_likes_one(object: {chapter_id:$chapter_id}) {
+          id
+          user_id
+          chapter_id
+          created_at
+        }
+      }`,
+      'UserLikeChapter',
+      {
+        chapter_id: chapterId,
+      },
+    );
+
+    // success
+    if (
+      result.data?.insert_likes_one &&
+      result.data?.insert_likes_one !== null
+    ) {
+      this.logger.log(`User ${userId} like chapter ${chapterId}`);
+      // add to redis
+      this.redisClientService.client.sAdd(
+        [
+          this.configService.get<string>('app.name'),
+          this.configService.get<string>('app.env'),
+          'chapter-likes',
+        ].join(':'),
+        chapterId.toString(),
+      );
+
+      // increase
+      this.redisClientService.client.incr(
+        [
+          this.configService.get<string>('app.name'),
+          this.configService.get<string>('app.env'),
+          'chapters',
+          chapterId.toString(),
+          'like',
+        ].join(':'),
+      );
+    }
+    return result;
   }
 }

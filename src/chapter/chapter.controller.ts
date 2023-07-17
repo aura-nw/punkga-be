@@ -20,16 +20,20 @@ import {
   UpdateChapterRequestDto,
 } from './dto/update-chapter-request.dto';
 import { IncreaseChapterViewParamDto } from './dto/increase-chapter-view-request.dto';
+import { Role } from '../auth/role.enum';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/role.guard';
 
 @Controller('chapter')
 export class ChapterController {
   constructor(private readonly chapterSvc: ChapterService) {}
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @Roles(Role.Admin)
   create(
     @Body() data: CreateChapterRequestDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
@@ -37,8 +41,9 @@ export class ChapterController {
     return this.chapterSvc.create(data, files);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.Admin)
   @Put(':chapterId')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
