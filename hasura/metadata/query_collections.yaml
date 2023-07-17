@@ -571,49 +571,6 @@
               user_id
             }
           }
-      - name: Public - Get manga list by list id
-        query: |
-          query GetListMangaById ($id: [Int!]) {
-            manga(where: {id:{_in:$id}}) {
-              id
-              banner
-              status
-              manga_languages {
-                is_main_language
-                language_id
-                title
-              }
-              manga_creators {
-                creator {
-                  id
-                  name
-                  isActive
-                }
-              }
-              chapters(order_by: {pushlish_date:desc_nulls_last}, limit: 1) {
-                chapter_number
-                id
-                pushlish_date
-              }
-              chapters_aggregate {
-                aggregate {
-                  sum {
-                    likes
-                    views
-                  }
-                }
-              }
-              manga_tags {
-                tag {
-                  id
-                  tag_languages {
-                    language_id
-                    value
-                  }
-                }
-              }
-            }
-          }
       - name: Public - Get Chapter Comments
         query: |
           query GetChapterComments ($chapter_id: Int!) {
@@ -705,6 +662,50 @@
                 created_at
                 user_id
                 chapter_id
+              }
+            }
+          }
+      - name: Public - Get manga list by list id
+        query: |
+          query GetListMangaById ($id: [Int!]) {
+            manga(where: {id:{_in:$id}}) {
+              id
+              banner
+              poster
+              status
+              manga_languages {
+                is_main_language
+                language_id
+                title
+              }
+              manga_creators {
+                creator {
+                  id
+                  name
+                  isActive
+                }
+              }
+              chapters(order_by: {pushlish_date:desc_nulls_last}, limit: 1) {
+                chapter_number
+                id
+                pushlish_date
+              }
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    likes
+                    views
+                  }
+                }
+              }
+              manga_tags {
+                tag {
+                  id
+                  tag_languages {
+                    language_id
+                    value
+                  }
+                }
               }
             }
           }

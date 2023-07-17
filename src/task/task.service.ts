@@ -78,7 +78,7 @@ export class TasksService {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async updateChapterLikes() {
     // set chapter to set
     const chapter = await this.redisClientService.client.sPop(

@@ -5,8 +5,11 @@ import {
   UseGuards,
   UseInterceptors,
   Patch,
+  Put,
+  Body,
+  UploadedFiles,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
@@ -15,6 +18,8 @@ import { Roles } from '../auth/roles.decorator';
 import { Role } from '../auth/role.enum';
 import { RolesGuard } from '../auth/role.guard';
 import { LikeChapterParam } from './dto/like-chapter-request.dto';
+import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
@@ -36,5 +41,18 @@ export class UserController {
   @UseInterceptors(AuthUserInterceptor)
   likeChapter(@Query() data: LikeChapterParam) {
     return this.userSvc.likeChapter(data);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Put('update-profile')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  updateProfile(
+    @Body() data: UpdateProfileRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    return this.userSvc.updateProfile(data, files);
   }
 }

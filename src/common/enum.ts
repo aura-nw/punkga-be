@@ -15,3 +15,8 @@ export enum ChapterType {
   Free = 'Free',
   'Account only' = 'Account only',
 }
+
+export enum Gender {
+  Male = 'Male',
+  Femail = 'Female',
+}

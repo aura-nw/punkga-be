@@ -6,6 +6,9 @@ import { LikeChapterParam } from './dto/like-chapter-request.dto';
 import { GraphqlService } from '../graphql/graphql.service';
 import { ContextProvider } from '../providers/contex.provider';
 import { RedisService } from '../redis/redis.service';
+import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
+import { IUpdateProfile } from './interfaces/update-profile.interface';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class UserService {
@@ -14,7 +17,56 @@ export class UserService {
     private configService: ConfigService,
     private graphqlSvc: GraphqlService,
     private redisClientService: RedisService,
+    private filesService: FilesService,
   ) {}
+
+  async updateProfile(
+    data: UpdateProfileRequestDto,
+    files: Array<Express.Multer.File>,
+  ) {
+    const { birthdate, gender, bio } = data;
+    const { token, userId } = ContextProvider.getAuthUser();
+
+    const variables: IUpdateProfile = {
+      id: userId,
+      _set: {
+        bio,
+        gender,
+        birthdate,
+      },
+    };
+
+    const pictureFile = files.filter((f) => f.fieldname === 'picture')[0];
+    if (pictureFile) {
+      const pictureUrl = await this.filesService.uploadImageToS3(
+        `user-${userId}`,
+        pictureFile,
+      );
+
+      variables._set.picture = pictureUrl;
+    }
+
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `mutation UpdateUserProfile($id: bpchar = "", $_set: authorizer_users_set_input = {bio: "", nickname: ""}) {
+        update_authorizer_users(where: {id: {_eq: $id}}, _set: $_set) {
+          affected_rows
+          returning {
+            email
+            bio
+            picture
+            birthdate
+          }
+        }
+      }
+      `,
+      'UpdateUserProfile',
+      variables,
+    );
+
+    return result;
+  }
 
   async delete(data: DeleteUserRequest) {
     const { email } = data;
