@@ -709,3 +709,61 @@
               }
             }
           }
+      - name: Public - Search manga
+        query: |
+          query SearchManga ($text: String = "%%") {
+            manga(where: {_or:[{manga_languages:{title:{_ilike:$text}}},{manga_creators:{creator:{name:{_ilike:$text}}}}]}, limit: 20) {
+              id
+              manga_creators {
+                creator {
+                  id
+                  name
+                }
+              }
+              status
+              chapters(limit: 1, order_by: {updated_at:desc}) {
+                id
+                chapter_number
+                updated_at
+              }
+              manga_tags {
+                tag {
+                  id
+                  tag_languages {
+                    language_id
+                    tag_id
+                    value
+                  }
+                }
+              }
+              manga_languages {
+                title
+                description
+                is_main_language
+                language_id
+              }
+              banner
+              poster
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    views
+                    likes
+                  }
+                }
+              }
+            }
+          }
+      - name: User - Get Profile
+        query: |
+          query GetUserProfile {
+            authorizer_users {
+              id
+              email
+              bio
+              birthdate
+              gender
+              nickname
+              picture
+            }
+          }

@@ -308,6 +308,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Search manga
+  methods:
+    - GET
+  name: Public - Search manga
+  url: public/search_manga
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Query all tags
   methods:
     - GET
@@ -376,3 +385,12 @@
     - DELETE
   name: User - Unsubscribe manga
   url: user/manga/:manga_id/subscribe
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Get Profile
+  methods:
+    - GET
+  name: User - Get Profile
+  url: user/profile
