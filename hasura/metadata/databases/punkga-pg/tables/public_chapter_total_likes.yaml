@@ -1,0 +1,18 @@
+table:
+  name: chapter_total_likes
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - chapter_id
+        - likes
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - chapter_id
+        - likes
+      filter: {}
+      allow_aggregations: true

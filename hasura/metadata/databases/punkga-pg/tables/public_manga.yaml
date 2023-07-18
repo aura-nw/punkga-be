@@ -1,6 +1,25 @@
 table:
   name: manga
   schema: public
+object_relationships:
+  - name: manga_total_likes
+    using:
+      manual_configuration:
+        column_mapping:
+          id: manga_id
+        insertion_order: null
+        remote_table:
+          name: manga_total_likes
+          schema: public
+  - name: manga_total_views
+    using:
+      manual_configuration:
+        column_mapping:
+          id: manga_id
+        insertion_order: null
+        remote_table:
+          name: manga_total_views
+          schema: public
 array_relationships:
   - name: bookshelves
     using:
