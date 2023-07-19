@@ -20,27 +20,45 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - created_at
-        - email_verified_at
-        - phone_number_verified_at
-        - revoked_timestamp
-        - updated_at
-        - is_multi_factor_auth_enabled
-        - id
+        - bio
         - birthdate
+        - created_at
         - email
+        - email_verified_at
         - family_name
         - gender
         - given_name
+        - id
+        - is_multi_factor_auth_enabled
         - key
         - middle_name
         - nickname
         - password
         - phone_number
+        - phone_number_verified_at
         - picture
+        - revoked_timestamp
         - roles
         - signup_methods
+        - updated_at
       filter:
         id:
           _eq: X-Hasura-User-Id
       allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - nickname
+        - gender
+        - birthdate
+        - picture
+        - bio
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check:
+        id:
+          _eq: X-Hasura-User-Id
+      set:
+        id: x-hasura-User-Id

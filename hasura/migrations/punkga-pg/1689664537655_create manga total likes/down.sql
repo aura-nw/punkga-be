@@ -1,0 +1,8 @@
+-- Could not auto-generate a down migration.
+-- Please write an appropriate down migration for the SQL below:
+-- CREATE VIEW manga_total_likes AS
+--   SELECT manga_id, count(1) as likes
+--     FROM likes
+--     INNER JOIN chapters c on c.id = likes.chapter_id
+--     INNER JOIN manga m on c.manga_id = m.id
+--     GROUP BY manga_id;

@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { readFileSync } from 'fs';
 import { MAGIC_MIME_TYPE, Magic } from 'mmmagic';
-import * as decompress from 'decompress';
+import decompress from 'decompress';
 import { IFileInfo } from '../chapter/interfaces';
 
 @Injectable()
@@ -59,9 +59,7 @@ export class FilesService {
     }
     const s3SubFolder =
       this.configService.get<string>('aws.s3SubFolder') || 'images';
-    const keyName = `${s3SubFolder}/manga-${mangaId}/chapter-${chapterNumber}/thumbnail.${thumbnail.fileName
-      .split('.')
-      .pop()}`;
+    const keyName = `${s3SubFolder}/manga-${mangaId}/chapter-${chapterNumber}/${thumbnail.fileName}`;
     const filePath = thumbnail.fullPath;
     const result = await this.uploadToS3(keyName, filePath);
 
@@ -72,10 +70,7 @@ export class FilesService {
       .href;
   }
 
-  async uploadImageToS3(
-    mangaId: number,
-    f: Express.Multer.File,
-  ): Promise<string> {
+  async uploadImageToS3(key: string, f: Express.Multer.File): Promise<string> {
     // upload file to s3
     if (!f.mimetype.includes('image')) {
       throw Error('file type is not valid');
@@ -85,7 +80,7 @@ export class FilesService {
     //   .pop()}`;
     const s3SubFolder =
       this.configService.get<string>('aws.s3SubFolder') || 'images';
-    const keyName = `${s3SubFolder}/manga-${mangaId}/${f.originalname}`;
+    const keyName = `${s3SubFolder}/${key}/${f.originalname}`;
 
     await this.uploadToS3(keyName, f.buffer);
     return new URL(keyName, this.configService.get<string>('aws.queryEndpoint'))

@@ -1,5 +1,5 @@
 export class UserDto {
   userId: string;
-  allowedRoles: string[];
+  roles: string[];
   token: string;
 }

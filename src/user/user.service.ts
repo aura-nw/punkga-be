@@ -1,11 +1,72 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { Authorizer } from '@authorizerdev/authorizer-js';
+import { LikeChapterParam } from './dto/like-chapter-request.dto';
+import { GraphqlService } from '../graphql/graphql.service';
+import { ContextProvider } from '../providers/contex.provider';
+import { RedisService } from '../redis/redis.service';
+import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
+import { IUpdateProfile } from './interfaces/update-profile.interface';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class UserService {
-  constructor(private config: ConfigService) {}
+  private readonly logger = new Logger(UserService.name);
+  constructor(
+    private configService: ConfigService,
+    private graphqlSvc: GraphqlService,
+    private redisClientService: RedisService,
+    private filesService: FilesService,
+  ) {}
+
+  async updateProfile(
+    data: UpdateProfileRequestDto,
+    files: Array<Express.Multer.File>,
+  ) {
+    const { birthdate, gender, bio } = data;
+    const { token, userId } = ContextProvider.getAuthUser();
+
+    const variables: IUpdateProfile = {
+      id: userId,
+      _set: {
+        bio,
+        gender,
+        birthdate,
+      },
+    };
+
+    const pictureFile = files.filter((f) => f.fieldname === 'picture')[0];
+    if (pictureFile) {
+      const pictureUrl = await this.filesService.uploadImageToS3(
+        `user-${userId}`,
+        pictureFile,
+      );
+
+      variables._set.picture = pictureUrl;
+    }
+
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `mutation UpdateUserProfile($id: bpchar = "", $_set: authorizer_users_set_input = {bio: "", nickname: ""}) {
+        update_authorizer_users(where: {id: {_eq: $id}}, _set: $_set) {
+          affected_rows
+          returning {
+            email
+            bio
+            picture
+            birthdate
+          }
+        }
+      }
+      `,
+      'UpdateUserProfile',
+      variables,
+    );
+
+    return result;
+  }
 
   async delete(data: DeleteUserRequest) {
     const { email } = data;
@@ -19,15 +80,15 @@ export class UserService {
     };
 
     const headers = {
-      'x-authorizer-admin-secret': this.config.get<string>(
+      'x-authorizer-admin-secret': this.configService.get<string>(
         'authorizer.adminSecret',
       ),
     };
 
     const authRef = new Authorizer({
-      redirectURL: this.config.get<string>('authorizer.redirectUrl'), // window.location.origin
-      authorizerURL: this.config.get<string>('authorizer.authorizerUrl'),
-      clientID: this.config.get<string>('authorizer.clientId'), // obtain your client id from authorizer dashboard
+      redirectURL: this.configService.get<string>('authorizer.redirectUrl'), // window.location.origin
+      authorizerURL: this.configService.get<string>('authorizer.authorizerUrl'),
+      clientID: this.configService.get<string>('authorizer.clientId'), // obtain your client id from authorizer dashboard
     });
 
     try {

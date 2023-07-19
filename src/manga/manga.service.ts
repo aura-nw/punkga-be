@@ -71,11 +71,17 @@ export class MangaService {
     let bannerUrl = '';
     const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
     if (bannerFile)
-      bannerUrl = await this.filesService.uploadImageToS3(mangaId, bannerFile);
+      bannerUrl = await this.filesService.uploadImageToS3(
+        `manga-${mangaId}`,
+        bannerFile,
+      );
 
     const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
     if (bannerFile)
-      posterUrl = await this.filesService.uploadImageToS3(mangaId, posterFile);
+      posterUrl = await this.filesService.uploadImageToS3(
+        `manga-${mangaId}`,
+        posterFile,
+      );
 
     // update manga in DB
     const udpateVariables = {
@@ -139,11 +145,17 @@ export class MangaService {
     // upload files
     const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
     if (bannerFile)
-      bannerUrl = await this.filesService.uploadImageToS3(mangaId, bannerFile);
+      bannerUrl = await this.filesService.uploadImageToS3(
+        `manga-${mangaId}`,
+        bannerFile,
+      );
 
     const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
     if (posterFile)
-      posterUrl = await this.filesService.uploadImageToS3(mangaId, posterFile);
+      posterUrl = await this.filesService.uploadImageToS3(
+        `manga-${mangaId}`,
+        posterFile,
+      );
 
     // update manga in DB
     const udpateVariables = {

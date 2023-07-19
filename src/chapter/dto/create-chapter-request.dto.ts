@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
 import { ChapterStatus, ChapterType } from '../../common/enum';
 
@@ -42,9 +42,9 @@ export class CreateChapterRequestDto {
   @ApiProperty({ enum: ChapterStatus, enumName: 'ChapterStatus' })
   status: ChapterStatus;
 
-  @ApiProperty({ type: 'string', format: 'binary' })
+  @ApiPropertyOptional({ type: 'string', format: 'binary' })
   thumbnail: Express.Multer.File;
 
-  @ApiProperty({ type: ['string'], format: 'binary' })
+  @ApiPropertyOptional({ type: ['string'], format: 'binary' })
   files: Express.Multer.File[];
 }

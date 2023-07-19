@@ -9,10 +9,23 @@ export class GraphqlService {
     query: string,
     operationName: string,
     variables: any,
+    additionHeaders?: any,
   ) {
-    const headers = {
+    const defaultHeaders = {
       'content-type': 'application/json',
-      Authorization: `Bearer ${token}`,
+    };
+
+    const authHeaders =
+      token !== ''
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {};
+
+    const headers = {
+      ...defaultHeaders,
+      ...authHeaders,
+      ...additionHeaders,
     };
 
     const response = await axios.post(

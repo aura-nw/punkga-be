@@ -2,6 +2,15 @@ table:
   name: chapters
   schema: public
 object_relationships:
+  - name: chapter_total_likes
+    using:
+      manual_configuration:
+        column_mapping:
+          id: chapter_id
+        insertion_order: null
+        remote_table:
+          name: chapter_total_likes
+          schema: public
   - name: manga
     using:
       foreign_key_constraint_on: manga_id
