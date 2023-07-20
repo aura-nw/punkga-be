@@ -30,26 +30,24 @@ insert_permissions:
       set:
         user_id: x-hasura-User-Id
       columns:
-        - chapter_id
         - id
+        - chapter_id
         - manga_id
-        - ref_activity
-        - action_type
         - content
-        - user_id
         - created_at
+        - user_id
+        - ref_activity
 select_permissions:
   - role: anonymous
     permission:
       columns:
-        - chapter_id
         - id
+        - chapter_id
         - manga_id
-        - ref_activity
-        - action_type
         - content
-        - user_id
         - created_at
+        - user_id
+        - ref_activity
       filter: {}
       allow_aggregations: true
   - role: user
@@ -58,7 +56,6 @@ select_permissions:
         - id
         - chapter_id
         - manga_id
-        - action_type
         - content
         - created_at
         - user_id
@@ -69,14 +66,13 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - chapter_id
         - id
+        - chapter_id
         - manga_id
-        - ref_activity
-        - action_type
         - content
-        - user_id
         - created_at
+        - user_id
+        - ref_activity
       filter:
         user_id:
           _eq: X-Hasura-User-Id
