@@ -2,7 +2,7 @@ actions:
   - name: delete_user
     definition:
       kind: synchronous
-      handler: http://api.dev.punkga.me/user
+      handler: '{{ACTION_API_DOMAIN}}/user'
       forward_client_headers: true
       request_transform:
         method: DELETE
@@ -19,11 +19,7 @@ actions:
     comment: delete user
 custom_types:
   enums: []
-  input_objects:
-    - name: DeleteUserInput
+  input_objects: []
   objects:
     - name: DeleteUserOutput
-    - name: LoginResponse
-    - name: MyQueryOutput
-    - name: TagsOutput
   scalars: []

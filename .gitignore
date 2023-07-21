@@ -37,4 +37,5 @@ lerna-debug.log*
 uploads/
 conf.yaml
 tsconfig.build.tsbuildinfo
+tsconfig.tsbuildinfo
 *.pem*
