@@ -314,7 +314,6 @@ export class ChapterService {
       [
         this.configService.get<string>('app.name'),
         this.configService.get<string>('app.env'),
-        ,
         'chapters',
       ].join(':'),
       chapterId.toString(),
@@ -325,7 +324,6 @@ export class ChapterService {
       [
         this.configService.get<string>('app.name'),
         this.configService.get<string>('app.env'),
-        ,
         'chapter',
         chapterId.toString(),
         'view',
