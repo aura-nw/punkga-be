@@ -13,7 +13,7 @@ export class TasksService {
     private graphqlSvc: GraphqlService,
   ) {}
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async updateChapterViews() {
     // set chapter to set
     const chapters = await this.redisClientService.client.sPop(
