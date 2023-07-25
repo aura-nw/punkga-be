@@ -557,40 +557,6 @@
               poster
             }
           }
-      - name: Public - Get chapter detail
-        query: |
-          query GetChapterReadingDetail ($manga_id: Int = 18, $chapter_number: Int = 1, $user_id: String = "") {
-            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{_and:{id:{_eq:$manga_id},status:{_eq:"Published"}}}}}) {
-              id
-              chapter_number
-              chapter_name
-              chapter_type
-              thumbnail_url
-              status
-              pushlish_date
-              chapter_languages {
-                language_id
-                detail
-              }
-              comments: social_activities_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              views
-              chapters_likes_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              chapters_likes(where: {user_id:{_eq:$user_id}}) {
-                id
-                created_at
-                user_id
-                chapter_id
-              }
-            }
-          }
       - name: Public - Get subscribe list
         query: |
           query GetSubscribeList ($user_id: String = "") {
@@ -780,6 +746,57 @@
               manga_subscribers(where: {user_id:{_eq:$user_id}}) {
                 id
                 created_at
+              }
+            }
+          }
+      - name: Public - Get chapter detail
+        query: |
+          query GetChapterReadingDetail ($manga_id: Int = 18, $chapter_number: Int = 1, $user_id: String = "") {
+            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{_and:{id:{_eq:$manga_id},_or:[{status:{_eq:"On-going"}},{status:{_eq:"Finished"}}]}},status:{_eq:"Published"}}}) {
+              id
+              chapter_number
+              chapter_name
+              chapter_type
+              thumbnail_url
+              status
+              pushlish_date
+              chapter_languages {
+                language_id
+                detail
+              }
+              comments: social_activities_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              views
+              chapters_likes_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              chapters_likes(where: {user_id:{_eq:$user_id}}) {
+                id
+                created_at
+                user_id
+                chapter_id
+              }
+            }
+          }
+      - name: Admin - Get chapter detail
+        query: |
+          query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
+            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{id:{_eq:$manga_id}}}}) {
+              id
+              chapter_number
+              chapter_name
+              chapter_type
+              thumbnail_url
+              status
+              pushlish_date
+              chapter_languages {
+                language_id
+                detail
               }
             }
           }
