@@ -749,10 +749,27 @@
               }
             }
           }
+      - name: Admin - Get chapter detail
+        query: |
+          query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
+            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{id:{_eq:$manga_id}}}}) {
+              id
+              chapter_number
+              chapter_name
+              chapter_type
+              thumbnail_url
+              status
+              pushlish_date
+              chapter_languages {
+                language_id
+                detail
+              }
+            }
+          }
       - name: Public - Get chapter detail
         query: |
           query GetChapterReadingDetail ($manga_id: Int = 18, $chapter_number: Int = 1, $user_id: String = "") {
-            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{_and:{id:{_eq:$manga_id},_or:[{status:{_eq:"On-going"}},{status:{_eq:"Finished"}}]}},status:{_eq:"Published"}}}) {
+            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{_and:{id:{_eq:$manga_id},_or:[{status:{_ilike:"On-going"}},{status:{_eq:"Finished"}}]}},status:{_eq:"Published"}}}) {
               id
               chapter_number
               chapter_name
@@ -780,23 +797,6 @@
                 created_at
                 user_id
                 chapter_id
-              }
-            }
-          }
-      - name: Admin - Get chapter detail
-        query: |
-          query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
-            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{id:{_eq:$manga_id}}}}) {
-              id
-              chapter_number
-              chapter_name
-              chapter_type
-              thumbnail_url
-              status
-              pushlish_date
-              chapter_languages {
-                language_id
-                detail
               }
             }
           }
