@@ -591,75 +591,6 @@
               }
             }
           }
-      - name: Public - Get manga detail
-        query: |
-          query GetMangaReadingDetail ($id: Int = 1, $user_id: String = "") {
-            manga(where: {_and:{id:{_eq:$id},status:{_neq:"Removed"}}}) {
-              id
-              poster
-              banner
-              status
-              manga_creators {
-                creator {
-                  id
-                  name
-                  isActive
-                }
-              }
-              manga_total_likes {
-                likes
-              }
-              manga_total_views {
-                views
-              }
-              manga_languages {
-                title
-                description
-                is_main_language
-                language_id
-              }
-              chapters_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              chapters(order_by: {chapter_number:desc_nulls_last}, where: {status:{_neq:"Inactive"}}) {
-                id
-                chapter_number
-                chapter_name
-                chapter_type
-                thumbnail_url
-                pushlish_date
-                status
-                views
-                chapter_total_likes {
-                  likes
-                }
-                chapters_likes(where: {user_id:{_eq:$user_id}}) {
-                  id
-                  created_at
-                }
-              }
-              manga_subscribers_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              manga_tags {
-                tag {
-                  id
-                  tag_languages {
-                    language_id
-                    value
-                  }
-                }
-              }
-              manga_subscribers(where: {user_id:{_eq:$user_id}}) {
-                id
-                created_at
-              }
-            }
-          }
       - name: Admin - Get chapter detail
         query: |
           query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
@@ -832,6 +763,76 @@
                   id
                   isActive
                 }
+              }
+            }
+          }
+      - name: Public - Get manga detail
+        query: |
+          query GetMangaReadingDetail ($id: Int = 1, $user_id: String = "") {
+            manga(where: {_and:{id:{_eq:$id},status:{_neq:"Removed"}}}) {
+              id
+              poster
+              banner
+              status
+              release_date
+              manga_creators {
+                creator {
+                  id
+                  name
+                  isActive
+                }
+              }
+              manga_total_likes {
+                likes
+              }
+              manga_total_views {
+                views
+              }
+              manga_languages {
+                title
+                description
+                is_main_language
+                language_id
+              }
+              chapters_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              chapters(order_by: {chapter_number:desc_nulls_last}, where: {status:{_neq:"Inactive"}}) {
+                id
+                chapter_number
+                chapter_name
+                chapter_type
+                thumbnail_url
+                pushlish_date
+                status
+                views
+                chapter_total_likes {
+                  likes
+                }
+                chapters_likes(where: {user_id:{_eq:$user_id}}) {
+                  id
+                  created_at
+                }
+              }
+              manga_subscribers_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              manga_tags {
+                tag {
+                  id
+                  tag_languages {
+                    language_id
+                    value
+                  }
+                }
+              }
+              manga_subscribers(where: {user_id:{_eq:$user_id}}) {
+                id
+                created_at
               }
             }
           }
