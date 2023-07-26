@@ -114,7 +114,13 @@ export class MangaService {
     files: Array<Express.Multer.File>,
   ) {
     const { token } = ContextProvider.getAuthUser();
-    const { status } = data;
+    const {
+      status,
+      release_date,
+      manga_tags,
+      manga_creators,
+      manga_languages,
+    } = data;
 
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
@@ -159,24 +165,55 @@ export class MangaService {
 
     // update manga in DB
     const udpateVariables = {
-      id: mangaId,
+      manga_id: mangaId,
       banner: bannerUrl,
       poster: posterUrl,
       status,
+      release_date,
+      manga_tags: plainToInstance(MangaTag, JSON.parse(manga_tags)),
+      manga_creators: plainToInstance(MangaCreator, JSON.parse(manga_creators)),
+      manga_languages: plainToInstance(
+        MangaLanguage,
+        JSON.parse(manga_languages),
+      ),
     };
     const updateResponse = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `mutation UpdateMangaByPK($banner: String = "", $poster: String = "", $id: Int = 10, $status: String = "") {
-        update_manga_by_pk(pk_columns: {id: $id}, _set: {banner: $banner, poster: $poster, status: $status}) {
+      `mutation UpdateManga($manga_id: Int!, $status: String!, $banner: String!, $poster: String!, $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
+        delete_manga_tag(where: {manga_id: {_eq: $manga_id}}) {
+          affected_rows
+        }
+        delete_manga_creator(where: {manga_id: {_eq: $manga_id}}) {
+          affected_rows
+        }
+        delete_manga_languages(where: {manga_id: {_eq: $manga_id}}) {
+          affected_rows
+        }
+        insert_manga_one(object: {status: $status, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, id: $manga_id, release_date: $release_date}, on_conflict: {constraint: manga_pkey, update_columns: [banner, poster, status, release_date]}) {
           id
           banner
           poster
           status
+          release_date
           created_at
+          status
+          manga_creators {
+            creator_id
+          }
+          manga_languages {
+            language_id
+            title
+            is_main_language
+            description
+          }
+          manga_tags {
+            tag_id
+          }
         }
-      }`,
-      'UpdateMangaByPK',
+      }
+      `,
+      'UpdateManga',
       udpateVariables,
     );
 
