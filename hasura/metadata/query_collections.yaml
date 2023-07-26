@@ -205,62 +205,6 @@
               error
             }
           }
-      - name: Admin - Get manga detail
-        query: |
-          query GetMangaReadingDetail ($id: Int = 1) {
-            manga_by_pk(id: $id) {
-              id
-              poster
-              banner
-              status
-              publish_date
-              created_at
-              manga_languages {
-                title
-                description
-                is_main_language
-                language_id
-              }
-              chapters_aggregate {
-                aggregate {
-                  sum {
-                    views
-                    likes
-                  }
-                  count
-                }
-              }
-              manga_subscribers_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              manga_tags {
-                tag {
-                  tag_languages {
-                    tag_id
-                    language_id
-                    value
-                  }
-                }
-              }
-              chapters(order_by: {chapter_number:desc_nulls_last}) {
-                id
-                chapter_number
-                chapter_name
-                chapter_type
-                thumbnail_url
-                pushlish_date
-                status
-              }
-              manga_creators {
-                creator {
-                  id
-                  name
-                }
-              }
-            }
-          }
       - name: Admin - Update tag languages many
         query: |
           mutation UpdateTagLanguages ($updates: [tag_languages_updates!] = {where:{id:{_eq:1}},_set:{value:""}}) {
@@ -831,6 +775,63 @@
               }
               manga_tags {
                 tag_id
+              }
+            }
+          }
+      - name: Admin - Get manga detail
+        query: |
+          query GetMangaReadingDetail ($id: Int = 1) {
+            manga_by_pk(id: $id) {
+              id
+              poster
+              banner
+              status
+              publish_date
+              release_date
+              created_at
+              manga_languages {
+                title
+                description
+                is_main_language
+                language_id
+              }
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    views
+                    likes
+                  }
+                  count
+                }
+              }
+              manga_subscribers_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              manga_tags {
+                tag {
+                  tag_languages {
+                    tag_id
+                    language_id
+                    value
+                  }
+                }
+              }
+              chapters(order_by: {chapter_number:desc_nulls_last}) {
+                id
+                chapter_number
+                chapter_name
+                chapter_type
+                thumbnail_url
+                pushlish_date
+                status
+              }
+              manga_creators {
+                creator {
+                  id
+                  name
+                }
               }
             }
           }
