@@ -70,6 +70,12 @@ array_relationships:
         table:
           name: social_activities
           schema: public
+computed_fields:
+  - name: latest_published
+    definition:
+      function:
+        name: latest_published
+        schema: public
 select_permissions:
   - role: anonymous
     permission:
