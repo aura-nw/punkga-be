@@ -375,8 +375,8 @@ export class ChapterService {
       return this.graphqlSvc.query(
         this.configService.get<string>('graphql.endpoint'),
         token,
-        `mutation UpdateChapterLanguague ($chapter_id: Int!, $language_id: Int!, $detail: jsonb! = "") {
-          update_chapter_languages(where: {_and:{chapter_id:{_eq:$chapter_id},language_id:{_eq:$language_id}}}, _set: {detail:$detail}) {
+        `mutation UpdateChapterLanguague($chapter_id: Int!, $language_id: Int!, $detail: jsonb! = "", $chapter_id1: Int = 10, $language_id1: Int = 10, $detail1: jsonb = "") {
+          insert_chapter_languages(objects: {chapter_id: $chapter_id, language_id: $language_id, detail: $detail}, on_conflict: {constraint: chapter_images_pkey, update_columns: detail}) {
             affected_rows
           }
         }`,
