@@ -88,18 +88,22 @@ select_permissions:
         - release_date
         - status
         - updated_at
+      computed_fields:
+        - latest_published
       filter: {}
       allow_aggregations: true
   - role: user
     permission:
       columns:
-        - banner
-        - created_at
         - id
         - poster
-        - publish_date
+        - banner
         - release_date
         - status
+        - created_at
         - updated_at
+        - publish_date
+      computed_fields:
+        - latest_published
       filter: {}
       allow_aggregations: true
