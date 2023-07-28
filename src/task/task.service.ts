@@ -13,6 +13,60 @@ export class TasksService {
     private graphqlSvc: GraphqlService,
   ) {}
 
+  // every minute, on the 1st second
+  @Cron('1 * * * * *')
+  async publishChapter() {
+    console.log(new Date().toISOString());
+    const { data } = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query GetPublishableChapters($pushlish_date: timestamptz!) {
+        chapters(where: {status: {_eq: "Upcoming"}, _and: {status: {_eq: "Upcoming"}, pushlish_date: {_lte: $pushlish_date}}}) {
+          id
+          pushlish_date
+          status
+        }
+      }`,
+      'GetPublishableChapters',
+      {
+        pushlish_date: new Date().toISOString(),
+      },
+    );
+
+    const publishableChapters = data.chapters;
+    if (publishableChapters.length > 0) {
+      const ids: number[] = publishableChapters.map((chapter) => chapter.id);
+
+      const result = await this.graphqlSvc.query(
+        this.configService.get<string>('graphql.endpoint'),
+        '',
+        `mutation PublishChapter($ids: [Int!]) {
+        update_chapters(where: {id: {_in: $ids}}, _set: {status: "Published"}) {
+          affected_rows
+          returning {
+            id
+            status
+            pushlish_date
+          }
+        }
+      }`,
+        'PublishChapter',
+        {
+          ids,
+        },
+        {
+          'x-hasura-admin-secret': this.configService.get<string>(
+            'graphql.adminSecret',
+          ),
+        },
+      );
+
+      this.logger.log(`Publish chapter result: ${JSON.stringify(result)}`);
+    } else {
+      this.logger.log(`Nothing to publish`);
+    }
+  }
+
   @Cron(CronExpression.EVERY_30_SECONDS)
   async updateChapterViews() {
     // set chapter to set
