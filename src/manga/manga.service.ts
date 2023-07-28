@@ -24,7 +24,7 @@ export class MangaService {
 
   async create(data: CreateMangaRequestDto, files: Array<Express.Multer.File>) {
     const { token } = ContextProvider.getAuthUser();
-    const { status } = data;
+    const { status, release_date } = data;
     const manga_tags = plainToInstance(
       MangaTag,
       JSON.parse(data.manga_tags) as any[],
@@ -44,19 +44,19 @@ export class MangaService {
       manga_tags,
       manga_creators,
       manga_languages,
+      release_date,
     };
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `
-        mutation CreateNewManga($status: String = "", $banner: String = "", $poster: String = "", $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}) {
-          insert_manga_one(object: {status: $status, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}}) {
-            id
-            created_at
-            status
-          }
-        }        
-        `,
+      `mutation CreateNewManga($status: String = "", $banner: String = "", $poster: String = "", $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
+        insert_manga_one(object: {status: $status, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, release_date: $release_date}) {
+          id
+          created_at
+          status
+          release_date
+        }
+      }`,
       'CreateNewManga',
       variables,
     );

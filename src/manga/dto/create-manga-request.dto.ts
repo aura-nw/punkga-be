@@ -45,6 +45,9 @@ export class CreateMangaRequestDto {
   @ApiProperty({ type: [MangaLanguage] })
   manga_languages: string;
 
+  @ApiProperty()
+  release_date: string;
+
   @ApiProperty({ type: 'string', format: 'binary' })
   banner: Express.Multer.File;
 
