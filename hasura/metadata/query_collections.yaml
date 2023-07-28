@@ -716,54 +716,6 @@
               }
             }
           }
-      - name: Public - Get subscribe list
-        query: |
-          query GetSubscribeList ($user_id: String = "") {
-            subscribers(order_by: {created_at:desc}, where: {_and:{user_id:{_eq:$user_id},subscribers_manga:{status:{_neq:"Removed"}}}}) {
-              subscribers_manga {
-                id
-                banner
-                poster
-                status
-                nearest_upcoming
-                manga_languages {
-                  is_main_language
-                  language_id
-                  title
-                }
-                manga_creators {
-                  creator {
-                    id
-                    name
-                    isActive
-                  }
-                }
-                chapters(order_by: {chapter_number:desc_nulls_last}, limit: 1, where: {status:{_eq:"Published"}}) {
-                  chapter_number
-                  id
-                  pushlish_date
-                }
-                chapters_aggregate {
-                  aggregate {
-                    sum {
-                      likes
-                      views
-                    }
-                  }
-                }
-                manga_tags {
-                  tag {
-                    id
-                    tag_languages {
-                      language_id
-                      value
-                    }
-                  }
-                }
-              }
-              user_id
-            }
-          }
       - name: Public - Query latest update manga
         query: |
           query GetLatestUpdatedManga {
@@ -842,5 +794,53 @@
                   isActive
                 }
               }
+            }
+          }
+      - name: Public - Get subscribe list
+        query: |
+          query GetSubscribeList ($user_id: String = "") {
+            subscribers(order_by: {created_at:desc}, where: {_and:{user_id:{_eq:$user_id},subscribers_manga:{status:{_neq:"Removed"}}}}) {
+              subscribers_manga {
+                id
+                banner
+                poster
+                status
+                nearest_upcoming
+                manga_languages {
+                  is_main_language
+                  language_id
+                  title
+                }
+                manga_creators {
+                  creator {
+                    id
+                    name
+                    isActive
+                  }
+                }
+                chapters(order_by: {chapter_number:desc_nulls_last}, limit: 1, where: {status:{_eq:"Published"}}) {
+                  chapter_number
+                  id
+                  pushlish_date
+                }
+                chapters_aggregate {
+                  aggregate {
+                    sum {
+                      likes
+                      views
+                    }
+                  }
+                }
+                manga_tags(limit: 5) {
+                  tag {
+                    id
+                    tag_languages {
+                      language_id
+                      value
+                    }
+                  }
+                }
+              }
+              user_id
             }
           }
