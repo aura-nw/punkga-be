@@ -671,51 +671,6 @@
               }
             }
           }
-      - name: Public - Get manga list by list id
-        query: |
-          query GetListMangaById ($id: [Int!]) {
-            manga(where: {_and:{id:{_in:$id},status:{_neq:"Removed"}}}) {
-              id
-              banner
-              poster
-              status
-              nearest_upcoming
-              manga_languages {
-                is_main_language
-                language_id
-                title
-              }
-              manga_creators {
-                creator {
-                  id
-                  name
-                  isActive
-                }
-              }
-              chapters(order_by: {chapter_number:desc_nulls_last}, limit: 1, where: {status:{_eq:"Published"}}) {
-                chapter_number
-                id
-                pushlish_date
-              }
-              chapters_aggregate {
-                aggregate {
-                  sum {
-                    likes
-                    views
-                  }
-                }
-              }
-              manga_tags(limit: 5) {
-                tag {
-                  id
-                  tag_languages {
-                    language_id
-                    value
-                  }
-                }
-              }
-            }
-          }
       - name: Public - Query latest update manga
         query: |
           query GetLatestUpdatedManga {
@@ -823,13 +778,11 @@
                   id
                   pushlish_date
                 }
-                chapters_aggregate {
-                  aggregate {
-                    sum {
-                      likes
-                      views
-                    }
-                  }
+                manga_total_views {
+                  views
+                }
+                manga_total_likes {
+                  likes
                 }
                 manga_tags(limit: 5) {
                   tag {
@@ -842,5 +795,48 @@
                 }
               }
               user_id
+            }
+          }
+      - name: Public - Get manga list by list id
+        query: |
+          query GetListMangaById ($id: [Int!]) {
+            manga(where: {_and:{id:{_in:$id},status:{_neq:"Removed"}}}) {
+              id
+              banner
+              poster
+              status
+              nearest_upcoming
+              manga_languages {
+                is_main_language
+                language_id
+                title
+              }
+              manga_creators {
+                creator {
+                  id
+                  name
+                  isActive
+                }
+              }
+              chapters(order_by: {chapter_number:desc_nulls_last}, limit: 1, where: {status:{_eq:"Published"}}) {
+                chapter_number
+                id
+                pushlish_date
+              }
+              manga_total_views {
+                views
+              }
+              manga_total_likes {
+                likes
+              }
+              manga_tags(limit: 5) {
+                tag {
+                  id
+                  tag_languages {
+                    language_id
+                    value
+                  }
+                }
+              }
             }
           }

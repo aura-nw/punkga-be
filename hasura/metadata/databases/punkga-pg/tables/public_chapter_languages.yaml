@@ -18,7 +18,7 @@ select_permissions:
         - language_id
       filter:
         chapter:
-          status:
+          chapter_type:
             _eq: Free
       allow_aggregations: true
   - role: user
