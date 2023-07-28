@@ -76,6 +76,11 @@ computed_fields:
       function:
         name: latest_published
         schema: public
+  - name: nearest_upcoming
+    definition:
+      function:
+        name: nearest_upcoming
+        schema: public
 select_permissions:
   - role: anonymous
     permission:
@@ -90,6 +95,7 @@ select_permissions:
         - updated_at
       computed_fields:
         - latest_published
+        - nearest_upcoming
       filter: {}
       allow_aggregations: true
   - role: user
@@ -105,5 +111,6 @@ select_permissions:
         - publish_date
       computed_fields:
         - latest_published
+        - nearest_upcoming
       filter: {}
       allow_aggregations: true
