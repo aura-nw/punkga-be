@@ -16,7 +16,10 @@ select_permissions:
         - detail
         - id
         - language_id
-      filter: {}
+      filter:
+        chapter:
+          status:
+            _eq: Free
       allow_aggregations: true
   - role: user
     permission:

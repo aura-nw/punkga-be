@@ -54,7 +54,6 @@ select_permissions:
         - updated_at
         - views
       filter: {}
-      limit: 20
       allow_aggregations: true
   - role: user
     permission:
@@ -73,5 +72,4 @@ select_permissions:
         - updated_at
         - views
       filter: {}
-      limit: 19
       allow_aggregations: true
