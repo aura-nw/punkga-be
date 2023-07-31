@@ -293,27 +293,6 @@
               created_at
             }
           }
-      - name: Public - Get Chapter Comments
-        query: |
-          query GetChapterComments ($chapter_id: Int!) {
-            social_activities(where: {_and:{ref_activity:{_is_null:true},chapter_id:{_eq:$chapter_id}}}, order_by: {created_at:desc}) {
-              id
-              social_activities_authorizer_user {
-                id
-                nickname
-              }
-              content
-              created_at
-              replies: social_activities(order_by: {created_at:asc}) {
-                social_activities_authorizer_user {
-                  id
-                  nickname
-                }
-                content
-                created_at
-              }
-            }
-          }
       - name: User - Add comment in chapter
         query: |
           mutation AddUserComment ($chapter_id: Int = 21, $ref_activity: Int, $content: String = "") {
@@ -837,6 +816,28 @@
                     value
                   }
                 }
+              }
+            }
+          }
+      - name: Public - Get Chapter Comments
+        query: |
+          query GetChapterComments ($chapter_id: Int!) {
+            social_activities(where: {_and:{ref_activity:{_is_null:true},chapter_id:{_eq:$chapter_id}}}, order_by: {created_at:desc}) {
+              id
+              social_activities_authorizer_user {
+                id
+                nickname
+                picture
+              }
+              content
+              created_at
+              replies: social_activities(order_by: {created_at:asc}) {
+                social_activities_authorizer_user {
+                  id
+                  nickname
+                }
+                content
+                created_at
               }
             }
           }
