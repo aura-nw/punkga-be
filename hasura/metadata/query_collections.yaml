@@ -835,6 +835,7 @@
                 social_activities_authorizer_user {
                   id
                   nickname
+                  picture
                 }
                 content
                 created_at
