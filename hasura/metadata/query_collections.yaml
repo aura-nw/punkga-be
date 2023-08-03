@@ -472,36 +472,6 @@
               }
             }
           }
-      - name: Admin - Query List Manga
-        query: |
-          query QueryListManga {
-            manga(order_by: {created_at:desc}) {
-              id
-              banner
-              poster
-              status
-              release_date
-              publish_date
-              created_at
-              manga_creators {
-                creator {
-                  name
-                }
-              }
-              chapters_aggregate {
-                aggregate {
-                  count
-                  max {
-                    chapter_number
-                  }
-                }
-              }
-              manga_languages(where: {is_main_language:{_eq:true}}) {
-                id
-                title
-              }
-            }
-          }
       - name: Public - Get manga detail
         query: |
           query GetMangaReadingDetail ($id: Int = 1, $user_id: String = "") {
@@ -839,6 +809,38 @@
                 }
                 content
                 created_at
+              }
+            }
+          }
+      - name: Admin - Query List Manga
+        query: |
+          query QueryListManga {
+            manga(order_by: {created_at:desc}) {
+              id
+              banner
+              poster
+              status
+              release_date
+              publish_date
+              created_at
+              manga_creators {
+                creator {
+                  name
+                }
+              }
+              chapters_aggregate {
+                aggregate {
+                  count
+                  max {
+                    chapter_number
+                  }
+                }
+              }
+              manga_languages {
+                id
+                title
+                language_id
+                is_main_language
               }
             }
           }
