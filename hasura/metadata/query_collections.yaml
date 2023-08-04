@@ -346,24 +346,6 @@
               signup_methods
             }
           }
-      - name: Admin - Query creators
-        query: |
-          query QueryCreators {
-            creators(order_by: {created_at:desc}) {
-              id
-              name
-              manga_creators_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              subcribers
-              created_at
-              socials
-              isActive
-              bio
-            }
-          }
       - name: Admin - Get chapter detail
         query: |
           query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
@@ -842,5 +824,24 @@
                 language_id
                 is_main_language
               }
+            }
+          }
+      - name: Admin - Query creators
+        query: |
+          query QueryCreators {
+            creators(order_by: {created_at:desc}) {
+              id
+              name
+              total_subscribers
+              manga_creators_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              subcribers
+              created_at
+              socials
+              isActive
+              bio
             }
           }

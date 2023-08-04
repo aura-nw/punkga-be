@@ -1,0 +1,7 @@
+CREATE OR REPLACE FUNCTION total_creator_subscribers(creator_row creators) RETURNS
+int
+AS $$
+    SELECT COUNT(1) as total_subscribers FROM public.subscribers
+    INNER JOIN manga_creator mc on subscribers.manga_id = mc.manga_id
+    WHERE mc.creator_id = creator_row.id
+$$ LANGUAGE sql STABLE;

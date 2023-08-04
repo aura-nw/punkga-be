@@ -9,6 +9,12 @@ array_relationships:
         table:
           name: manga_creator
           schema: public
+computed_fields:
+  - name: total_subscribers
+    definition:
+      function:
+        name: total_creator_subscribers
+        schema: public
 select_permissions:
   - role: anonymous
     permission:
@@ -22,6 +28,8 @@ select_permissions:
         - name
         - created_at
         - updated_at
+      computed_fields:
+        - total_subscribers
       filter: {}
       allow_aggregations: true
   - role: user
@@ -36,6 +44,8 @@ select_permissions:
         - name
         - created_at
         - updated_at
+      computed_fields:
+        - total_subscribers
       filter: {}
       limit: 20
       allow_aggregations: true
