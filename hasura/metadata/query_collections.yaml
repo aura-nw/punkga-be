@@ -832,7 +832,7 @@
             creators(order_by: {created_at:desc}) {
               id
               name
-              subcribers: total_subscribers
+              total_subscribers
               manga_creators_aggregate {
                 aggregate {
                   count
