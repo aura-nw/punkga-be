@@ -832,13 +832,12 @@
             creators(order_by: {created_at:desc}) {
               id
               name
-              total_subscribers
+              subcribers: total_subscribers
               manga_creators_aggregate {
                 aggregate {
                   count
                 }
               }
-              subcribers
               created_at
               socials
               isActive
