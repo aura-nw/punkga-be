@@ -649,39 +649,6 @@
               poster
             }
           }
-      - name: Public - Get trending manga
-        query: |
-          query GetTrendingManga {
-            manga(order_by: {manga_total_views:{views:desc_nulls_last}}, limit: 4, where: {status:{_neq:"Removed"}}) {
-              id
-              chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
-                id
-                chapter_number
-                updated_at
-              }
-              manga_total_likes {
-                likes
-              }
-              manga_total_views {
-                views
-              }
-              manga_languages {
-                title
-                language_id
-                is_main_language
-                description
-              }
-              banner
-              poster
-              manga_creators {
-                creator {
-                  name
-                  id
-                  isActive
-                }
-              }
-            }
-          }
       - name: Public - Get subscribe list
         query: |
           query GetSubscribeList ($user_id: String = "") {
@@ -842,5 +809,39 @@
               socials
               isActive
               bio
+            }
+          }
+      - name: Public - Get trending manga
+        query: |
+          query GetTrendingManga {
+            manga(order_by: {manga_total_views:{views:desc_nulls_last}}, limit: 4, where: {status:{_neq:"Removed"}}) {
+              id
+              chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
+                id
+                chapter_number
+                updated_at
+              }
+              manga_total_likes {
+                likes
+              }
+              manga_total_views {
+                views
+              }
+              manga_languages {
+                title
+                language_id
+                is_main_language
+                description
+              }
+              banner
+              poster
+              status
+              manga_creators {
+                creator {
+                  name
+                  id
+                  isActive
+                }
+              }
             }
           }
