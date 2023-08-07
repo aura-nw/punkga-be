@@ -67,7 +67,7 @@ export class TasksService {
     }
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_MINUTE)
   async updateChapterViews() {
     // set chapter to set
     const chapters = await this.redisClientService.client.sPop(
@@ -83,7 +83,16 @@ export class TasksService {
       const views = await Promise.all(
         chapters.map((chapterId: string) => {
           // get chapter view
-          return this.redisClientService.client.getDel(
+          // return this.redisClientService.client.getDel(
+          //   [
+          //     this.configService.get<string>('app.name'),
+          //     this.configService.get<string>('app.env'),
+          //     'chapter',
+          //     chapterId.toString(),
+          //     'view',
+          //   ].join(':'),
+          // );
+          return this.countDelKey(
             [
               this.configService.get<string>('app.name'),
               this.configService.get<string>('app.env'),
@@ -130,5 +139,12 @@ export class TasksService {
 
       this.logger.debug('Update chapter views', updates);
     }
+  }
+
+  async countDelKey(key: string): Promise<number> {
+    const result = await this.redisClientService.client.sCard(key);
+    const deleteResult = await this.redisClientService.client.del(key);
+    console.log(deleteResult);
+    return result;
   }
 }

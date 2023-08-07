@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Ip,
   Param,
   Patch,
   Post,
@@ -58,7 +59,7 @@ export class ChapterController {
   }
 
   @Patch(':chapterId/increase')
-  increaseView(@Param() { chapterId }: IncreaseChapterViewParamDto) {
-    return this.chapterSvc.increase(chapterId);
+  increaseView(@Ip() ip, @Param() { chapterId }: IncreaseChapterViewParamDto) {
+    return this.chapterSvc.increase(ip, chapterId);
   }
 }

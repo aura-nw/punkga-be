@@ -295,7 +295,7 @@ export class ChapterService {
   }
 
   //PATCH
-  async increase(chapterId: number) {
+  async increase(ip: string, chapterId: number) {
     // get chapter info
     const { data } = await this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
@@ -327,7 +327,16 @@ export class ChapterService {
     );
 
     // increase
-    this.redisClientService.client.incr(
+    // this.redisClientService.client.incr(
+    //   [
+    //     this.configService.get<string>('app.name'),
+    //     this.configService.get<string>('app.env'),
+    //     'chapter',
+    //     chapterId.toString(),
+    //     'view',
+    //   ].join(':'),
+    // );
+    this.redisClientService.client.sAdd(
       [
         this.configService.get<string>('app.name'),
         this.configService.get<string>('app.env'),
@@ -335,6 +344,7 @@ export class ChapterService {
         chapterId.toString(),
         'view',
       ].join(':'),
+      ip,
     );
     return {
       success: true,

@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ChapterModule } from './chapter/chapter.module';
 import { MangaModule } from './manga/manga.module';
 import configuration from './config/configuration';
@@ -27,7 +25,7 @@ import { TasksModule } from './task/task.module';
     GraphqlModule,
     UserModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
