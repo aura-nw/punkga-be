@@ -6,11 +6,12 @@ import {
   Patch,
   Post,
   Put,
+  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { CreateChapterRequestDto } from './dto/create-chapter-request.dto';
 import { ChapterService } from './chapter.service';
@@ -25,10 +26,26 @@ import { Role } from '../auth/role.enum';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/role.guard';
 import { SetRequestTimeout } from '../decorators/set-timeout.decorator';
+import { UploadInputDto } from './dto/upload.dto';
 
 @Controller('chapter')
 export class ChapterController {
   constructor(private readonly chapterSvc: ChapterService) {}
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Post('upload')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, FileInterceptor('file'))
+  @SetRequestTimeout()
+  @Roles(Role.Admin)
+  upload(
+    @Body() data: UploadInputDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Ip() ip,
+  ) {
+    return this.chapterSvc.upload(data, file, ip);
+  }
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()

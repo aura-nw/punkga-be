@@ -3,12 +3,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { middleware as expressCtx } from 'express-ctx';
 import { AppModule } from './app.module';
 import { json, urlencoded } from 'express';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(expressCtx);
   app.use(json({ limit: '500mb' }));
   app.use(urlencoded({ extended: true, limit: '500mb' }));
+  app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
 
   // setup swagger

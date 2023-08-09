@@ -1,11 +1,20 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import * as _ from 'lodash';
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import rimraf from 'rimraf';
+import md5 from 'md5';
 import {
   ChapterImage,
   CreateChapterRequestDto,
@@ -19,6 +28,7 @@ import {
   UpdateChapterRequestDto,
 } from './dto/update-chapter-request.dto';
 import { RedisService } from '../redis/redis.service';
+import { UploadInputDto } from './dto/upload.dto';
 
 @Injectable()
 export class ChapterService {
@@ -30,6 +40,44 @@ export class ChapterService {
     private filesService: FilesService,
     private redisClientService: RedisService,
   ) {}
+
+  async upload(data: UploadInputDto, file: Express.Multer.File, ip: string) {
+    try {
+      const { userId } = ContextProvider.getAuthUser();
+      const { name, currentChunkIndex, totalChunks } = data;
+      const firstChunk = parseInt(currentChunkIndex) === 0;
+      const lastChunk =
+        parseInt(currentChunkIndex) === parseInt(totalChunks) - 1;
+      const ext = name.split('.').pop();
+
+      const storageFolder = `./uploads/${userId}`;
+      if (!existsSync(storageFolder)) {
+        mkdirSync(storageFolder, { recursive: true });
+      }
+
+      const buffer = file.buffer;
+      const tmpFilename = 'tmp_' + md5(name + ip) + '.' + ext;
+      const tmpFilepath = `${storageFolder}/${tmpFilename}`;
+      if (firstChunk && existsSync(tmpFilepath)) {
+        unlinkSync(tmpFilepath);
+      }
+      appendFileSync(tmpFilepath, buffer);
+
+      if (lastChunk) {
+        const finailFilePath = `${storageFolder}/${name}`;
+        renameSync(tmpFilepath, finailFilePath);
+        return { finalFilename: name, path: finailFilePath };
+      } else {
+        return {
+          success: true,
+        };
+      }
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
 
   async create(
     data: CreateChapterRequestDto,
@@ -160,83 +208,87 @@ export class ChapterService {
     data: UpdateChapterRequestDto,
     files: Array<Express.Multer.File>,
   ) {
-    const { chapterId: chapter_id } = param;
-    const { userId, token } = ContextProvider.getAuthUser();
+    try {
+      const { chapterId: chapter_id } = param;
+      const { userId, token } = ContextProvider.getAuthUser();
 
-    const storageFolder = `./uploads/${userId}`;
+      const storageFolder = `./uploads/${userId}`;
 
-    const {
-      chapter_number,
-      chapter_name,
-      chapter_type,
-      pushlish_date,
-      status,
-    } = data;
+      const {
+        chapter_number,
+        chapter_name,
+        chapter_type,
+        pushlish_date,
+        status,
+      } = data;
 
-    // get chapter info
-    const chapter = await this.graphqlSvc.query(
-      this.configService.get<string>('graphql.endpoint'),
-      token,
-      `query GetChapterInfo($id: Int!) {
+      // get chapter info
+      const chapter = await this.graphqlSvc.query(
+        this.configService.get<string>('graphql.endpoint'),
+        token,
+        `query GetChapterInfo($id: Int!) {
         chapters_by_pk(id: $id) {
           manga_id
           chapter_number
           thumbnail_url
         }
       }`,
-      'GetChapterInfo',
-      {
+        'GetChapterInfo',
+        {
+          id: chapter_id,
+        },
+      );
+      if (
+        !chapter.data.chapters_by_pk ||
+        chapter.data.chapters_by_pk === null
+      ) {
+        throw Error('Not found');
+      }
+
+      if (!existsSync(storageFolder)) {
+        mkdirSync(storageFolder, { recursive: true });
+      }
+
+      const { manga_id } = chapter.data.chapters_by_pk;
+      let { thumbnail_url } = chapter.data.chapters_by_pk;
+
+      const chapter_images = plainToInstance(
+        ChapterImage,
+        JSON.parse(data.chapter_images),
+      );
+
+      files.forEach((file) => {
+        writeFileSync(`./uploads/${userId}/${file.originalname}`, file.buffer);
+      });
+
+      const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
+      if (thumbnail) {
+        const thumbnailFile = await this.filesService.detectFile(
+          `./uploads/${userId}`,
+          thumbnail.originalname,
+        );
+        thumbnail_url = await this.filesService.uploadThumbnailToS3(
+          manga_id,
+          chapter_number,
+          thumbnailFile,
+        );
+      }
+
+      // insert chapter to DB
+      const variables = {
         id: chapter_id,
-      },
-    );
-    if (!chapter.data.chapters_by_pk || chapter.data.chapters_by_pk === null) {
-      throw Error('Not found');
-    }
-
-    if (!existsSync(storageFolder)) {
-      mkdirSync(storageFolder, { recursive: true });
-    }
-
-    const { manga_id } = chapter.data.chapters_by_pk;
-    let { thumbnail_url } = chapter.data.chapters_by_pk;
-
-    const chapter_images = plainToInstance(
-      ChapterImage,
-      JSON.parse(data.chapter_images),
-    );
-
-    files.forEach((file) => {
-      writeFileSync(`./uploads/${userId}/${file.originalname}`, file.buffer);
-    });
-
-    const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
-    if (thumbnail) {
-      const thumbnailFile = await this.filesService.detectFile(
-        `./uploads/${userId}`,
-        thumbnail.originalname,
-      );
-      thumbnail_url = await this.filesService.uploadThumbnailToS3(
-        manga_id,
+        chapter_name,
         chapter_number,
-        thumbnailFile,
-      );
-    }
+        chapter_type,
+        pushlish_date,
+        status,
+        thumbnail_url,
+      };
 
-    // insert chapter to DB
-    const variables = {
-      id: chapter_id,
-      chapter_name,
-      chapter_number,
-      chapter_type,
-      pushlish_date,
-      status,
-      thumbnail_url,
-    };
-
-    const result = await this.graphqlSvc.query(
-      this.configService.get<string>('graphql.endpoint'),
-      token,
-      `mutation UpdateChapterByPK($id: Int!, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String, $status: String = "", $pushlish_date: timestamptz = "") {
+      const result = await this.graphqlSvc.query(
+        this.configService.get<string>('graphql.endpoint'),
+        token,
+        `mutation UpdateChapterByPK($id: Int!, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String, $status: String = "", $pushlish_date: timestamptz = "") {
         update_chapters_by_pk(pk_columns: {id: $id}, _set: {chapter_name: $chapter_name, chapter_type: $chapter_type, thumbnail_url: $thumbnail_url, chapter_number: $chapter_number, status: $status, pushlish_date: $pushlish_date}) {
           id
           chapter_name
@@ -247,108 +299,109 @@ export class ChapterService {
           manga_id
         }
       }`,
-      'UpdateChapterByPK',
-      variables,
-    );
-
-    if (result.errors && result.errors.length > 0) {
-      return result;
-    }
-
-    // const chapterId = result.data.insert_chapters_one.id;
-
-    // upload chapter languages
-    const uploadChapterResult = await this.uploadChapterLanguagesFiles({
-      userId,
-      mangaId: manga_id,
-      chapterNumber: chapter_number,
-      chapterImagePaths: chapter_images.chapter_languages.map((m: any) => ({
-        languageId: m.language_id,
-        filePath: path.join(storageFolder, m.file_name),
-      })),
-    });
-
-    // remove files
-    rimraf.sync(storageFolder);
-
-    if (uploadChapterResult.length > 0) {
-      // insert to DB
-      const groupLanguageChapter = _.groupBy(
-        uploadChapterResult,
-        (chapter) => chapter.language_id,
+        'UpdateChapterByPK',
+        variables,
       );
-      const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
-        languageId: m.language_id,
-        detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
-          order: r.order,
-          image_path: r.image_path,
+
+      if (result.errors && result.errors.length > 0) {
+        return result;
+      }
+
+      // const chapterId = result.data.insert_chapters_one.id;
+
+      // upload chapter languages
+      const uploadChapterResult = await this.uploadChapterLanguagesFiles({
+        userId,
+        mangaId: manga_id,
+        chapterNumber: chapter_number,
+        chapterImagePaths: chapter_images.chapter_languages.map((m: any) => ({
+          languageId: m.language_id,
+          filePath: path.join(storageFolder, m.file_name),
         })),
-      }));
+      });
 
-      const updateChapterLangResult = await Promise.all(
-        this.updateChapterLanguages(token, chapter_id, chapterLanguages),
-      );
-      this.logger.log(updateChapterLangResult);
+      // remove files
+      rimraf.sync(storageFolder);
+
+      if (uploadChapterResult.length > 0) {
+        // insert to DB
+        const groupLanguageChapter = _.groupBy(
+          uploadChapterResult,
+          (chapter) => chapter.language_id,
+        );
+        const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
+          languageId: m.language_id,
+          detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
+            order: r.order,
+            image_path: r.image_path,
+          })),
+        }));
+
+        const updateChapterLangResult = await Promise.all(
+          this.updateChapterLanguages(token, chapter_id, chapterLanguages),
+        );
+        this.logger.log(updateChapterLangResult);
+      }
+
+      return result.data;
+    } catch (errors) {
+      return {
+        errors,
+      };
     }
-
-    return result.data;
   }
 
   //PATCH
   async increase(ip: string, chapterId: number) {
-    // get chapter info
-    const { data } = await this.graphqlSvc.query(
-      this.configService.get<string>('graphql.endpoint'),
-      '',
-      `query GetChapter($id: Int!) {
+    try {
+      // get chapter info
+      const { data } = await this.graphqlSvc.query(
+        this.configService.get<string>('graphql.endpoint'),
+        '',
+        `query GetChapter($id: Int!) {
         chapters_by_pk(id: $id) {
           id
           status
         }
       }`,
-      'GetChapter',
-      {
-        id: chapterId,
-      },
-    );
+        'GetChapter',
+        {
+          id: chapterId,
+        },
+      );
 
-    if (!data.chapters_by_pk || data.chapters_by_pk === null) {
-      throw new NotFoundException('chapter not found');
-    }
+      if (!data.chapters_by_pk || data.chapters_by_pk === null) {
+        throw new NotFoundException('chapter not found');
+      }
 
-    // set chapter to set
-    this.redisClientService.client.sAdd(
-      [
-        this.configService.get<string>('app.name'),
-        this.configService.get<string>('app.env'),
-        'chapters',
-      ].join(':'),
-      chapterId.toString(),
-    );
-
-    // increase
-    // this.redisClientService.client.incr(
-    //   [
-    //     this.configService.get<string>('app.name'),
-    //     this.configService.get<string>('app.env'),
-    //     'chapter',
-    //     chapterId.toString(),
-    //     'view',
-    //   ].join(':'),
-    // );
-    this.redisClientService.client.sAdd(
-      [
-        this.configService.get<string>('app.name'),
-        this.configService.get<string>('app.env'),
-        'chapter',
+      // set chapter to set
+      this.redisClientService.client.sAdd(
+        [
+          this.configService.get<string>('app.name'),
+          this.configService.get<string>('app.env'),
+          'chapters',
+        ].join(':'),
         chapterId.toString(),
-        'view',
-      ].join(':'),
-      ip,
-    );
-    return {
-      success: true,
-    };
+      );
+
+      this.redisClientService.client.sAdd(
+        [
+          this.configService.get<string>('app.name'),
+          this.configService.get<string>('app.env'),
+          'chapter',
+          chapterId.toString(),
+          'view',
+        ].join(':'),
+        ip,
+      );
+      return {
+        success: true,
+      };
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
   }
 
   async insertChapterLanguages(
