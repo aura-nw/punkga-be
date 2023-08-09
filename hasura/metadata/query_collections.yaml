@@ -827,6 +827,16 @@
               manga_total_views {
                 views
               }
+              manga_tags(limit: 5) {
+                tag {
+                  id
+                  tag_languages {
+                    language_id
+                    tag_id
+                    value
+                  }
+                }
+              }
               manga_languages {
                 title
                 language_id
