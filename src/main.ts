@@ -10,7 +10,6 @@ async function bootstrap() {
   app.use(expressCtx);
   app.use(json({ limit: '500mb' }));
   app.use(urlencoded({ extended: true, limit: '500mb' }));
-  app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
 
   // setup swagger
