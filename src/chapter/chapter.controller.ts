@@ -42,9 +42,8 @@ export class ChapterController {
   upload(
     @Body() data: UploadInputDto,
     @UploadedFile() file: Express.Multer.File,
-    @Ip() ip,
   ) {
-    return this.chapterSvc.upload(data, file, ip);
+    return this.chapterSvc.upload(data, file);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

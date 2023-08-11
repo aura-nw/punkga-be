@@ -41,7 +41,7 @@ export class ChapterService {
     private redisClientService: RedisService,
   ) {}
 
-  async upload(data: UploadInputDto, file: Express.Multer.File, ip: string) {
+  async upload(data: UploadInputDto, file: Express.Multer.File) {
     try {
       const { userId } = ContextProvider.getAuthUser();
       const { name, currentChunkIndex, totalChunks } = data;
@@ -56,7 +56,7 @@ export class ChapterService {
       }
 
       const buffer = file.buffer;
-      const tmpFilename = 'tmp_' + md5(name + ip) + '.' + ext;
+      const tmpFilename = 'tmp_' + md5(name) + '.' + ext;
       const tmpFilepath = `${storageFolder}/${tmpFilename}`;
       if (firstChunk && existsSync(tmpFilepath)) {
         unlinkSync(tmpFilepath);
