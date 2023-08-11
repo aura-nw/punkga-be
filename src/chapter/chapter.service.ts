@@ -70,6 +70,8 @@ export class ChapterService {
       } else {
         return {
           success: true,
+          tmpFilename,
+          tmpFilepath,
         };
       }
     } catch (errors) {
@@ -195,6 +197,7 @@ export class ChapterService {
         }
       }
 
+      // return {};
       return result.data;
     } catch (errors) {
       return {
