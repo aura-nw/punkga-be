@@ -11,8 +11,8 @@ export class FilesService {
   private readonly logger = new Logger(FilesService.name);
   constructor(private configService: ConfigService) {}
 
-  unzipFile(file: Buffer | string, outputPath: string): Promise<boolean> {
-    this.logger.debug(file);
+  unzipFile(file: string, outputPath: string): Promise<boolean> {
+    this.logger.debug(`Unzip ${file}...`);
     return new Promise((resolve, reject) => {
       decompress(file, outputPath)
         .then((files: decompress.File[]) => {
@@ -100,6 +100,7 @@ export class FilesService {
     });
 
     const bucketName = this.configService.get<string>('aws.bucketName');
+    this.logger.debug(`Upload key: ${keyName} to bucket ${bucketName}`);
 
     // Create a promise on S3 service object
     const command = new PutObjectCommand({

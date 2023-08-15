@@ -70,7 +70,7 @@ export class UserService {
 
   async delete(data: DeleteUserRequest) {
     const { email } = data;
-    console.log(data);
+    this.logger.debug('delete user data: ' + data);
 
     const query =
       'mutation deleteUser($email: String! = "") { _delete_user(params: {email: $email}) { message }}';

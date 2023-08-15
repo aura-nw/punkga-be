@@ -3,7 +3,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { middleware as expressCtx } from 'express-ctx';
 import { AppModule } from './app.module';
 import { json, urlencoded } from 'express';
-import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

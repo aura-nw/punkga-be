@@ -45,6 +45,13 @@ export class ChapterService {
     try {
       const { userId } = ContextProvider.getAuthUser();
       const { name, currentChunkIndex, totalChunks } = data;
+
+      this.logger.debug(
+        `uploading file ${name}: ${
+          Number(currentChunkIndex) + 1
+        }/${totalChunks}`,
+      );
+
       const firstChunk = parseInt(currentChunkIndex) === 0;
       const lastChunk =
         parseInt(currentChunkIndex) === parseInt(totalChunks) - 1;
@@ -64,9 +71,10 @@ export class ChapterService {
       appendFileSync(tmpFilepath, buffer);
 
       if (lastChunk) {
-        const finailFilePath = `${storageFolder}/${name}`;
-        renameSync(tmpFilepath, finailFilePath);
-        return { finalFilename: name, path: finailFilePath };
+        const finalFilePath = `${storageFolder}/${name}`;
+        if (existsSync(finalFilePath)) unlinkSync(finalFilePath);
+        renameSync(tmpFilepath, finalFilePath);
+        return { finalFilename: name, path: finalFilePath };
       } else {
         return {
           success: true,
@@ -112,6 +120,7 @@ export class ChapterService {
       let thumbnailUrl = '';
       const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
       if (thumbnail) {
+        this.logger.debug(`uploading thumbnail ${thumbnail.originalname}`);
         const thumbnailFile = await this.filesService.detectFile(
           `./uploads/${userId}`,
           thumbnail.originalname,
@@ -470,9 +479,7 @@ export class ChapterService {
     chapterImagePaths: IChapterLanguages[];
   }): Promise<IUploadedFile[]> {
     const { userId, mangaId, chapterNumber, chapterImagePaths } = _payload;
-    this.logger.debug(
-      `job handler: printing something to test.. ${JSON.stringify(userId)}`,
-    );
+    this.logger.debug(`upload chapter files.. ${JSON.stringify(userId)}`);
 
     // UnZip file
     await Promise.all(
@@ -514,6 +521,7 @@ export class ChapterService {
         .sort((a, b) => a.order - b.order),
     );
 
+    // build upload files
     const uploadFiles = allowedFiles.map((f) => {
       const s3SubFolder =
         this.configService.get<string>('aws.s3SubFolder') || 'images';
@@ -532,18 +540,35 @@ export class ChapterService {
       };
     });
 
-    // Upload to S3
-    const uploadResult = await Promise.all(
-      uploadFiles.map((f) =>
-        this.filesService.uploadToS3(f.key_name, f.upload_path),
-      ),
-    );
-    if (
-      uploadResult.filter((r) => r.$metadata.httpStatusCode === 200).length !==
-      allowedFiles.length
-    ) {
-      throw Error(`upload failed - ${JSON.stringify(uploadResult)}`);
+    // upload files
+    // chunk array to small array
+    const chunkSize = 10;
+    for (let i = 0; i < uploadFiles.length; i += chunkSize) {
+      const chunked = uploadFiles.slice(i, i + chunkSize);
+      this.logger.debug(`Upload process: ${i}/${uploadFiles.length}`);
+
+      // Upload to S3
+      try {
+        await Promise.all(
+          chunked.map((f) =>
+            this.filesService.uploadToS3(f.key_name, f.upload_path),
+          ),
+        );
+        // if (
+        //   uploadResult.filter((r) => r.$metadata.httpStatusCode === 200)
+        //     .length !== allowedFiles.length
+        // ) {
+        //   throw Error(`upload failed - ${JSON.stringify(uploadResult)}`);
+        // }
+      } catch (error) {
+        throw Error(`upload to s3 failed - ${JSON.stringify(error)}`);
+      }
     }
+
+    this.logger.debug(
+      `Upload process: ${uploadFiles.length}/${uploadFiles.length}`,
+    );
+
     return uploadFiles;
   }
 }

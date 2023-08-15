@@ -16,7 +16,7 @@ export class TasksService {
   // every minute, on the 1st second
   @Cron('1 * * * * *')
   async publishChapter() {
-    console.log(new Date().toISOString());
+    const timeNow = new Date().toISOString();
     const { data } = await this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       '',
@@ -29,7 +29,7 @@ export class TasksService {
       }`,
       'GetPublishableChapters',
       {
-        pushlish_date: new Date().toISOString(),
+        pushlish_date: timeNow,
       },
     );
 
@@ -61,9 +61,9 @@ export class TasksService {
         },
       );
 
-      this.logger.log(`Publish chapter result: ${JSON.stringify(result)}`);
+      this.logger.debug(`Publish chapter result: ${JSON.stringify(result)}`);
     } else {
-      this.logger.log(`Nothing to publish`);
+      this.logger.debug(`Nothing to publish`);
     }
   }
 
@@ -79,19 +79,10 @@ export class TasksService {
       10,
     );
     if (chapters.length > 0) {
-      console.log(chapters);
+      this.logger.debug('Update views: ' + chapters);
       const views = await Promise.all(
         chapters.map((chapterId: string) => {
           // get chapter view
-          // return this.redisClientService.client.getDel(
-          //   [
-          //     this.configService.get<string>('app.name'),
-          //     this.configService.get<string>('app.env'),
-          //     'chapter',
-          //     chapterId.toString(),
-          //     'view',
-          //   ].join(':'),
-          // );
           return this.countDelKey(
             [
               this.configService.get<string>('app.name'),
@@ -144,7 +135,7 @@ export class TasksService {
   async countDelKey(key: string): Promise<number> {
     const result = await this.redisClientService.client.sCard(key);
     const deleteResult = await this.redisClientService.client.del(key);
-    console.log(deleteResult);
+    this.logger.debug(deleteResult);
     return result;
   }
 }
