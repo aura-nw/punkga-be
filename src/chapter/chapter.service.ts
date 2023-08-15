@@ -542,7 +542,7 @@ export class ChapterService {
 
     // upload files
     // chunk array to small array
-    const chunkSize = 10;
+    const chunkSize = 4;
     for (let i = 0; i < uploadFiles.length; i += chunkSize) {
       const chunked = uploadFiles.slice(i, i + chunkSize);
       this.logger.debug(`Upload process: ${i}/${uploadFiles.length}`);
