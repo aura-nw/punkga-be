@@ -1,9 +1,23 @@
+app:
+  name: punkga
+  env: dev
 http:
   host: 'localhost'
   port: 3000
 aws:
-  region: 'ap-southeast-1'
-  keyid: 'xx'
-  secretAccessKey: 'xx'
-  bucketName: 'xx'
-  queryEndpoint:
+  region: 'ap-xxxxxxxxx-x'
+  keyid: 'xxxxxxxxxxxxxxxxxxxx'
+  secretAccessKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+  bucketName: 's3-xxx.xxxxxx.xx'
+  queryEndpoint: 'https://s3-xxx.xxxxxx.xx'
+  s3SubFolder: 'dev'
+graphql:
+  endpoint: https://xxxxxx.xxx.xxxxxx.xx/v1/graphql
+  adminSecret: xxxxxxxxxxxxxxxx
+authorizer:
+  redirectUrl: https://dev.punkga.me
+  authorizerUrl: https://auth.dev.punkga.me
+  clientId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  adminSecret: xxxxxxxxxxxxxxxx
+redis:
+  url: redis://localhost:6380
