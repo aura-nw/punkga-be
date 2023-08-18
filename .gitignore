@@ -39,3 +39,4 @@ conf.yaml
 tsconfig.build.tsbuildinfo
 tsconfig.tsbuildinfo
 *.pem*
+credentials/*

@@ -1,15 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { RedisService } from '../redis/redis.service';
+import { Cron } from '@nestjs/schedule';
 import { GraphqlService } from '../graphql/graphql.service';
+import { BetaAnalyticsDataClient } from '@google-analytics/data';
 
 @Injectable()
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
   constructor(
     private configService: ConfigService,
-    private redisClientService: RedisService,
     private graphqlSvc: GraphqlService,
   ) {}
 
@@ -67,75 +66,114 @@ export class TasksService {
     }
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
-  async updateChapterViews() {
-    // set chapter to set
-    const chapters = await this.redisClientService.client.sPop(
-      [
-        this.configService.get<string>('app.name'),
-        this.configService.get<string>('app.env'),
-        'chapters',
-      ].join(':'),
-      10,
+  // every day, on the 1st second
+  @Cron('1 0 0 * * *')
+  async getViewsReport() {
+    const response = await this.runReport();
+    const env = this.configService.get<string>('app.env');
+
+    const regex = new RegExp(
+      `https://${env}\.punkga\.me(\/[A-Za-z]+)?\/comic\/[0-9]+\/chapter\/[0-9]+`,
+      'i',
     );
-    if (chapters.length > 0) {
-      this.logger.debug('Update views: ' + chapters);
-      const views = await Promise.all(
-        chapters.map((chapterId: string) => {
-          // get chapter view
-          return this.countDelKey(
-            [
-              this.configService.get<string>('app.name'),
-              this.configService.get<string>('app.env'),
-              'chapter',
-              chapterId.toString(),
-              'view',
-            ].join(':'),
-          );
-        }),
-      );
 
-      const updates = chapters
-        .map((chapterId: string, index: number) => ({
-          where: {
-            id: {
-              _eq: chapterId,
-            },
-          },
-          _inc: {
-            views: Number(views[index]),
-          },
-        }))
-        .filter((u) => u._inc.views !== 0);
+    const filtered = response.rows.filter((row) =>
+      regex.test(row.dimensionValues[0].value),
+    );
 
-      await this.graphqlSvc.query(
-        this.configService.get<string>('graphql.endpoint'),
-        '',
-        `mutation UpdateChapterViews($chapters: [chapters_insert_input!] = {id: 10, views: 10, manga_id: 10}, $updates: [chapters_updates!] = {where: {id: {_eq: 10}}, _set: {views: 10}}) {
+    const data = filtered.map((row) => {
+      const url = row.dimensionValues[0].value;
+      const arr = url
+        .replace(
+          new RegExp(`https://${env}\.punkga\.me(\/[A-Za-z]+)?\/comic\/`, 'i'),
+          '',
+        )
+        .split('/');
+      const mangaId = arr[0];
+      const chapterNumber = arr[2];
+
+      return {
+        mangaId,
+        chapterNumber,
+        views: Number(row.metricValues[0].value),
+      };
+    });
+
+    if (data.length === 0) {
+      return;
+    }
+
+    const updates = data.map((row) => ({
+      where: {
+        manga_id: {
+          _eq: row.mangaId,
+        },
+        chapter_number: {
+          _eq: row.chapterNumber,
+        },
+      },
+      _inc: {
+        views: row.views,
+      },
+    }));
+
+    await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `mutation IncreaseChaptersView($updates: [chapters_updates!] = {where: {manga_id: {_eq: 10}, chapter_number: {_eq: 10}}, _inc: {views: 10}}) {
         update_chapters_many(updates: $updates) {
           affected_rows
         }
-      }
-      `,
-        'UpdateChapterViews',
-        {
-          updates,
-        },
-        {
-          'x-hasura-admin-secret': this.configService.get<string>(
-            'graphql.adminSecret',
-          ),
-        },
-      );
+      }`,
+      'IncreaseChaptersView',
+      {
+        updates,
+      },
+      {
+        'x-hasura-admin-secret': this.configService.get<string>(
+          'graphql.adminSecret',
+        ),
+      },
+    );
 
-      this.logger.debug('Update chapter views', updates);
-    }
+    this.logger.debug('Update chapter views', updates);
   }
 
-  async countDelKey(key: string): Promise<number> {
-    const result = await this.redisClientService.client.sCard(key);
-    const deleteResult = await this.redisClientService.client.del(key);
-    this.logger.debug(deleteResult);
-    return result;
+  async runReport() {
+    const analyticsDataClient = new BetaAnalyticsDataClient({
+      keyFilename: this.configService.get<string>('google.analytics.keyFile'),
+    });
+    const currentDate = new Date();
+    const previousDate = new Date(
+      currentDate.setDate(currentDate.getDate() - 1),
+    )
+      .toISOString()
+      .split('T')[0];
+
+    const propertyId = this.configService.get<string>(
+      'google.analytics.propertyId',
+    );
+
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [
+        {
+          startDate: previousDate,
+          endDate: 'today',
+        },
+      ],
+      dimensions: [
+        {
+          name: 'pageLocation',
+        },
+      ],
+      metrics: [
+        {
+          name: 'screenPageViews',
+        },
+      ],
+    });
+
+    return response;
   }
 }

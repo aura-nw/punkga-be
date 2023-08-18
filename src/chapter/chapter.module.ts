@@ -4,10 +4,9 @@ import { ChapterService } from './chapter.service';
 import { ChapterController } from './chapter.controller';
 import { GraphqlModule } from '../graphql/graphql.module';
 import { FilesModule } from '../files/files.module';
-import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, FilesModule, RedisModule],
+  imports: [JwtModule, GraphqlModule, FilesModule],
   providers: [ChapterService],
   controllers: [ChapterController],
 })

@@ -73,9 +73,4 @@ export class ChapterController {
   ) {
     return this.chapterSvc.update(param, data, files);
   }
-
-  @Patch(':chapterId/increase')
-  increaseView(@Ip() ip, @Param() { chapterId }: IncreaseChapterViewParamDto) {
-    return this.chapterSvc.increase(ip, chapterId);
-  }
 }

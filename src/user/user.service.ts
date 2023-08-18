@@ -2,10 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { Authorizer } from '@authorizerdev/authorizer-js';
-import { LikeChapterParam } from './dto/like-chapter-request.dto';
 import { GraphqlService } from '../graphql/graphql.service';
 import { ContextProvider } from '../providers/contex.provider';
-import { RedisService } from '../redis/redis.service';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { FilesService } from '../files/files.service';
@@ -16,7 +14,6 @@ export class UserService {
   constructor(
     private configService: ConfigService,
     private graphqlSvc: GraphqlService,
-    private redisClientService: RedisService,
     private filesService: FilesService,
   ) {}
 

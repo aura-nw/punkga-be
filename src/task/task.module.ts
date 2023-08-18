@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TasksService } from './task.service';
-import { RedisModule } from '../redis/redis.module';
 import { GraphqlModule } from '../graphql/graphql.module';
 
 @Module({
-  imports: [RedisModule, GraphqlModule],
+  imports: [GraphqlModule],
   providers: [TasksService],
   exports: [TasksService],
 })

@@ -19,5 +19,7 @@ authorizer:
   authorizerUrl: https://auth.dev.punkga.me
   clientId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
   adminSecret: xxxxxxxxxxxxxxxx
-redis:
-  url: redis://localhost:6380
+google:
+  analytics:
+    propertyId: 'xxxxxxxxx'
+    keyFile: './credentials/xxxxxx-xxx-xxxxxxxxxxxx.json'

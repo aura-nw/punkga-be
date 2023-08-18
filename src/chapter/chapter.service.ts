@@ -27,7 +27,6 @@ import {
   UpdateChapterParamDto,
   UpdateChapterRequestDto,
 } from './dto/update-chapter-request.dto';
-import { RedisService } from '../redis/redis.service';
 import { UploadInputDto } from './dto/upload.dto';
 
 @Injectable()
@@ -38,7 +37,6 @@ export class ChapterService {
     private configService: ConfigService,
     private graphqlSvc: GraphqlService,
     private filesService: FilesService,
-    private redisClientService: RedisService,
   ) {}
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
@@ -356,59 +354,6 @@ export class ChapterService {
       }
 
       return result.data;
-    } catch (errors) {
-      return {
-        errors,
-      };
-    }
-  }
-
-  //PATCH
-  async increase(ip: string, chapterId: number) {
-    try {
-      // get chapter info
-      const { data } = await this.graphqlSvc.query(
-        this.configService.get<string>('graphql.endpoint'),
-        '',
-        `query GetChapter($id: Int!) {
-        chapters_by_pk(id: $id) {
-          id
-          status
-        }
-      }`,
-        'GetChapter',
-        {
-          id: chapterId,
-        },
-      );
-
-      if (!data.chapters_by_pk || data.chapters_by_pk === null) {
-        throw new NotFoundException('chapter not found');
-      }
-
-      // set chapter to set
-      this.redisClientService.client.sAdd(
-        [
-          this.configService.get<string>('app.name'),
-          this.configService.get<string>('app.env'),
-          'chapters',
-        ].join(':'),
-        chapterId.toString(),
-      );
-
-      this.redisClientService.client.sAdd(
-        [
-          this.configService.get<string>('app.name'),
-          this.configService.get<string>('app.env'),
-          'chapter',
-          chapterId.toString(),
-          'view',
-        ].join(':'),
-        ip,
-      );
-      return {
-        success: true,
-      };
     } catch (errors) {
       return {
         errors,
