@@ -18,7 +18,6 @@ import { Role } from '../auth/role.enum';
 import { RolesGuard } from '../auth/role.guard';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { SetWalletAddressDto } from './dto/set-wallet-address-request.dto';
 
 @Controller('user')
 export class UserController {
@@ -44,14 +43,5 @@ export class UserController {
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     return this.userSvc.updateProfile(data, files);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @Roles(Role.User)
-  @Put('set-wallet-address')
-  @UseInterceptors(AuthUserInterceptor)
-  setWalletAddress(@Body() data: SetWalletAddressDto) {
-    return this.userSvc.setWalletAddress(data);
   }
 }

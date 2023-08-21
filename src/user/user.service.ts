@@ -7,7 +7,6 @@ import { ContextProvider } from '../providers/contex.provider';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { FilesService } from '../files/files.service';
-import { SetWalletAddressDto } from './dto/set-wallet-address-request.dto';
 
 @Injectable()
 export class UserService {
@@ -17,35 +16,6 @@ export class UserService {
     private graphqlSvc: GraphqlService,
     private filesService: FilesService,
   ) {}
-
-  async setWalletAddress(data: SetWalletAddressDto) {
-    const { wallet_address } = data;
-    const { token, userId } = ContextProvider.getAuthUser();
-
-    const variables = {
-      id: userId,
-      wallet_address,
-    };
-
-    const result = await this.graphqlSvc.query(
-      this.configService.get<string>('graphql.endpoint'),
-      token,
-      `mutation SetUserWalletAddress($id: bpchar!, $wallet_address: String!) {
-        update_authorizer_users(where: {id: {_eq: $id}, wallet_address: {_is_null: true}}, _set: {wallet_address: $wallet_address}) {
-          returning {
-            id
-            wallet_address
-          }
-          affected_rows
-        }
-      }
-      `,
-      'SetUserWalletAddress',
-      variables,
-    );
-
-    return result;
-  }
 
   async updateProfile(
     data: UpdateProfileRequestDto,

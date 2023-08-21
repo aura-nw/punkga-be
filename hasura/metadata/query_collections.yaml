@@ -855,3 +855,14 @@
               }
             }
           }
+      - name: User - Set address
+        query: |
+          mutation SetUserWalletAddress ($wallet_address: String!) {
+            update_authorizer_users(where: {wallet_address:{_is_null:true}}, _set: {wallet_address:$wallet_address}) {
+              returning {
+                id
+                wallet_address
+              }
+              affected_rows
+            }
+          }

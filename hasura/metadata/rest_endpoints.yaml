@@ -362,6 +362,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: User - Set address
+  methods:
+    - POST
+  name: User - Set address
+  url: user/address
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: User - Add comment in chapter
   methods:
     - POST
