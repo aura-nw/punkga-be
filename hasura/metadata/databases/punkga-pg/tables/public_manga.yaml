@@ -81,6 +81,22 @@ computed_fields:
       function:
         name: nearest_upcoming
         schema: public
+remote_relationships:
+  - definition:
+      to_remote_schema:
+        lhs_fields:
+          - contract_address
+        remote_field:
+          euphoria:
+            arguments: {}
+            field:
+              smart_contract:
+                arguments:
+                  where:
+                    address:
+                      _eq: $contract_address
+        remote_schema: Horoscope
+    name: manga_staging_smart_cointract
 select_permissions:
   - role: anonymous
     permission:

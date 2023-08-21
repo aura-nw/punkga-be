@@ -42,6 +42,7 @@ select_permissions:
         - roles
         - signup_methods
         - updated_at
+        - wallet_address
       filter:
         id:
           _eq: X-Hasura-User-Id
@@ -50,11 +51,12 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - nickname
-        - gender
-        - birthdate
-        - picture
         - bio
+        - birthdate
+        - gender
+        - nickname
+        - picture
+        - wallet_address
       filter:
         id:
           _eq: X-Hasura-User-Id

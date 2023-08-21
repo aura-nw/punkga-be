@@ -1,1 +1,6 @@
-[]
+- name: Horoscope
+  definition:
+    url: https://indexer-v2.dev.aurascan.io/v1/graphql
+    timeout_seconds: 60
+    customization: {}
+  comment: ""
