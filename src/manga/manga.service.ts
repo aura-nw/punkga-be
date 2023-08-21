@@ -195,7 +195,7 @@ export class MangaService {
         delete_manga_languages(where: {manga_id: {_eq: $manga_id}}) {
           affected_rows
         }
-        insert_manga_one(object: {status: $status, contract_address: $contract_address, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, id: $manga_id, release_date: $release_date}, on_conflict: {constraint: manga_pkey, update_columns: [banner, poster, status, release_date]}) {
+        insert_manga_one(object: {status: $status, contract_address: $contract_address, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, id: $manga_id, release_date: $release_date}, on_conflict: {constraint: manga_pkey, update_columns: [banner, poster, status, release_date, contract_address]}) {
           id
           banner
           poster
