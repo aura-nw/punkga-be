@@ -332,20 +332,6 @@
               }
             }
           }
-      - name: User - Get Profile
-        query: |
-          query GetUserProfile {
-            authorizer_users {
-              id
-              email
-              bio
-              birthdate
-              gender
-              nickname
-              picture
-              signup_methods
-            }
-          }
       - name: Admin - Get chapter detail
         query: |
           query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
@@ -864,5 +850,20 @@
                 wallet_address
               }
               affected_rows
+            }
+          }
+      - name: User - Get Profile
+        query: |
+          query GetUserProfile {
+            authorizer_users {
+              id
+              email
+              bio
+              birthdate
+              gender
+              wallet_address
+              nickname
+              picture
+              signup_methods
             }
           }
