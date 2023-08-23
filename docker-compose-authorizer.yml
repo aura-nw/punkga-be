@@ -1,10 +1,10 @@
 version: '3.6'
 services:
   authorizer:
-    image: lakhansamani/authorizer:latest
+    image: lakhansamani/authorizer:1.1.50
     restart: always
     ports:
-      - '8089:8080'
+      - '8090:8090'
     environment:
       ENV: production
       DATABASE_TYPE: postgres

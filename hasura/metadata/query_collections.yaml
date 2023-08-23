@@ -197,14 +197,6 @@
               created_at
             }
           }
-      - name: Admin - Delete User
-        query: |
-          mutation DeleteUser ($email: String!) {
-            delete_user(email: $email) {
-              message
-              error
-            }
-          }
       - name: Admin - Update tag languages many
         query: |
           mutation UpdateTagLanguages ($updates: [tag_languages_updates!] = {where:{id:{_eq:1}},_set:{value:""}}) {
@@ -867,5 +859,24 @@
                   name
                 }
               }
+            }
+          }
+      - name: Admin - Delete User
+        query: |
+          mutation DeleteUser ($id: bpchar!) {
+            delete_authorizer_sessions(where: {id:{_eq:$id}}) {
+              affected_rows
+            }
+            delete_likes(where: {user_id:{_eq:$id}}) {
+              affected_rows
+            }
+            delete_subscribers(where: {user_id:{_eq:$id}}) {
+              affected_rows
+            }
+            update_social_activities(where: {user_id:{_eq:$id}}, _set: {user_id:null,content:""}) {
+              affected_rows
+            }
+            delete_authorizer_users(where: {id:{_eq:$id}}) {
+              affected_rows
             }
           }

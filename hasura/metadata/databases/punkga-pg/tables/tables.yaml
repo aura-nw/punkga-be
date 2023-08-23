@@ -1,3 +1,4 @@
+- "!include public_authorizer_sessions.yaml"
 - "!include public_authorizer_users.yaml"
 - "!include public_authorizer_verification_requests.yaml"
 - "!include public_bookshelf.yaml"
