@@ -12,7 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { CreateChapterRequestDto } from './dto/create-chapter-request.dto';
 import { ChapterService } from './chapter.service';
 import { AuthGuard } from '../auth/auth.guard';
@@ -21,7 +21,6 @@ import {
   UpdateChapterParamDto,
   UpdateChapterRequestDto,
 } from './dto/update-chapter-request.dto';
-import { IncreaseChapterViewParamDto } from './dto/increase-chapter-view-request.dto';
 import { Role } from '../auth/role.enum';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/role.guard';
@@ -29,6 +28,7 @@ import { SetRequestTimeout } from '../decorators/set-timeout.decorator';
 import { UploadInputDto } from './dto/upload.dto';
 
 @Controller('chapter')
+@ApiTags('chapter')
 export class ChapterController {
   constructor(private readonly chapterSvc: ChapterService) {}
 

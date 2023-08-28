@@ -8,7 +8,7 @@ import {
   Body,
   UploadedFiles,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
@@ -20,6 +20,7 @@ import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
+@ApiTags('user')
 export class UserController {
   constructor(private readonly userSvc: UserService) {}
 

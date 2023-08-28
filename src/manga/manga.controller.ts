@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { MangaService } from './manga.service';
 import { AuthGuard } from '../auth/auth.guard';
-import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CreateMangaRequestDto } from './dto/create-manga-request.dto';
@@ -23,6 +23,7 @@ import { Role } from '../auth/role.enum';
 import { RolesGuard } from '../auth/role.guard';
 
 @Controller('manga')
+@ApiTags('manga')
 export class MangaController {
   constructor(private readonly mangaSvc: MangaService) {}
 

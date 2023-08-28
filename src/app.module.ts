@@ -9,6 +9,7 @@ import { GraphqlModule } from './graphql/graphql.module';
 import { UserModule } from './user/user.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './task/task.module';
+import { CreatorModule } from './creator/creator.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TasksModule } from './task/task.module';
     ScheduleModule.forRoot(),
     ChapterModule,
     MangaModule,
+    CreatorModule,
     TasksModule,
     ConfigModule.forRoot({
       load: [configuration],

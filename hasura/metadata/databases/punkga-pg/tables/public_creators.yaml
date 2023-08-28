@@ -19,14 +19,17 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
-        - isActive
-        - id
-        - subcribers
-        - socials
         - avatar_url
         - bio
-        - name
         - created_at
+        - dob
+        - gender
+        - id
+        - isActive
+        - name
+        - pen_name
+        - socials
+        - subcribers
         - updated_at
       computed_fields:
         - total_subscribers
@@ -35,14 +38,17 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - isActive
-        - id
-        - subcribers
-        - socials
         - avatar_url
         - bio
-        - name
         - created_at
+        - dob
+        - gender
+        - id
+        - isActive
+        - name
+        - pen_name
+        - socials
+        - subcribers
         - updated_at
       computed_fields:
         - total_subscribers

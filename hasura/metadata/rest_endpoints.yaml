@@ -29,19 +29,19 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Add creator
+      query_name: Admin - Query creators
   methods:
-    - POST
-  name: Admin - Add creator
+    - GET
+  name: Admin - Query creators
   url: admin/creators
 - comment: ""
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Query creators
+      query_name: Admin - Add creator
   methods:
-    - GET
-  name: Admin - Query creators
+    - POST
+  name: Admin - Add creator
   url: admin/creators
 - comment: ""
   definition:

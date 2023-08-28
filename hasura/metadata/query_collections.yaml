@@ -1,17 +1,6 @@
 - name: allowed-queries
   definition:
     queries:
-      - name: Admin - Add creator
-        query: |
-          mutation AddCreator ($name: String, $bio: String, $socials: jsonb = null) {
-            insert_creators_one(object: {name:$name,bio:$bio,socials:$socials}) {
-              id
-              name
-              socials
-              created_at
-              bio
-            }
-          }
       - name: Admin - Deactive Creator By PK
         query: |
           mutation DeactiveCreatorByPk ($id: Int = 10) {
@@ -644,24 +633,6 @@
               }
             }
           }
-      - name: Admin - Query creators
-        query: |
-          query QueryCreators {
-            creators(order_by: {created_at:desc}) {
-              id
-              name
-              total_subscribers
-              manga_creators_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              created_at
-              socials
-              isActive
-              bio
-            }
-          }
       - name: Public - Get trending manga
         query: |
           query GetTrendingManga {
@@ -878,5 +849,38 @@
                 id
                 created_at
               }
+            }
+          }
+      - name: Admin - Query creators
+        query: |
+          query QueryCreators {
+            creators(order_by: {created_at:desc}) {
+              id
+              name
+              total_subscribers
+              manga_creators_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              created_at
+              socials
+              isActive
+              bio
+              avatar_url
+              dob
+              gender
+              pen_name
+            }
+          }
+      - name: Admin - Add creator
+        query: |
+          mutation AddCreator ($name: String, $bio: String, $socials: jsonb = null, $pen_name: String = "", $profile_picture: String = "", $gender: String = "", $dob: String = "", $avatar_url: String = "") {
+            insert_creators_one(object: {name:$name,bio:$bio,socials:$socials,pen_name:$pen_name,gender:$gender,dob:$dob,avatar_url:$avatar_url}) {
+              id
+              name
+              socials
+              created_at
+              bio
             }
           }
