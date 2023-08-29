@@ -899,5 +899,10 @@
               total_subscribers
               isActive
               created_at
+              manga_creators {
+                manga {
+                  contract_addresses
+                }
+              }
             }
           }
