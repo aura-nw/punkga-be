@@ -85,7 +85,7 @@ export class MangaService {
       );
 
     // update manga in DB
-    const udpateVariables = {
+    const updateVariables = {
       id: mangaId,
       banner: bannerUrl,
       poster: posterUrl,
@@ -104,7 +104,7 @@ export class MangaService {
         }
       }`,
       'UpdateMangaByPK',
-      udpateVariables,
+      updateVariables,
     );
 
     return updateResponse;
