@@ -884,3 +884,20 @@
               }
             }
           }
+      - name: Public - Query creator by id
+        query: |
+          query QueryCreatorById ($id: Int!) {
+            creators(where: {id:{_eq:$id}}) {
+              id
+              avatar_url
+              bio
+              dob
+              gender
+              name
+              pen_name
+              socials
+              total_subscribers
+              isActive
+              created_at
+            }
+          }

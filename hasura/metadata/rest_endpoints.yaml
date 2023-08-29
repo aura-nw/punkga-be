@@ -254,6 +254,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Query creator by id
+  methods:
+    - GET
+  name: Public - Query creator by id
+  url: creators/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Admin - Update manga
   methods:
     - PUT
