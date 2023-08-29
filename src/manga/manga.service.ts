@@ -24,7 +24,7 @@ export class MangaService {
 
   async create(data: CreateMangaRequestDto, files: Array<Express.Multer.File>) {
     const { token } = ContextProvider.getAuthUser();
-    const { status, contract_address, release_date } = data;
+    const { status, contract_addresses, release_date } = data;
     const manga_tags = plainToInstance(
       MangaTag,
       JSON.parse(data.manga_tags) as any[],
@@ -45,13 +45,13 @@ export class MangaService {
       manga_creators,
       manga_languages,
       release_date,
-      contract_address,
+      contract_addresses: JSON.parse(contract_addresses),
     };
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `mutation CreateNewManga($status: String = "", $contract_address: String = "", $banner: String = "", $poster: String = "", $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
-        insert_manga_one(object: {status: $status, contract_address: $contract_address, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, release_date: $release_date}) {
+      `mutation CreateNewManga($status: String = "", $contract_addresses: jsonb = "", $banner: String = "", $poster: String = "", $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
+        insert_manga_one(object: {status: $status, contract_addresses: $contract_addresses, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, release_date: $release_date}) {
           id
           created_at
           status
@@ -99,7 +99,7 @@ export class MangaService {
           banner
           poster
           status
-          contract_address
+          contract_addresses
           created_at
         }
       }`,
@@ -122,7 +122,7 @@ export class MangaService {
       manga_tags,
       manga_creators,
       manga_languages,
-      contract_address,
+      contract_addresses,
     } = data;
 
     const result = await this.graphqlSvc.query(
@@ -133,7 +133,7 @@ export class MangaService {
           id
           poster
           banner
-          contract_address
+          contract_addresses
         }
       }`,
       'QueryMangaById',
@@ -174,7 +174,7 @@ export class MangaService {
       poster: posterUrl,
       status,
       release_date,
-      contract_address,
+      contract_addresses: JSON.parse(contract_addresses),
       manga_tags: plainToInstance(MangaTag, JSON.parse(manga_tags)),
       manga_creators: plainToInstance(MangaCreator, JSON.parse(manga_creators)),
       manga_languages: plainToInstance(
@@ -185,7 +185,7 @@ export class MangaService {
     const updateResponse = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `mutation UpdateManga($manga_id: Int!, $status: String!, $contract_address: String!, $banner: String!, $poster: String!, $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
+      `mutation UpdateManga($manga_id: Int!, $status: String!, $contract_addresses: jsonb = "", $banner: String!, $poster: String!, $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
         delete_manga_tag(where: {manga_id: {_eq: $manga_id}}) {
           affected_rows
         }
@@ -195,7 +195,7 @@ export class MangaService {
         delete_manga_languages(where: {manga_id: {_eq: $manga_id}}) {
           affected_rows
         }
-        insert_manga_one(object: {status: $status, contract_address: $contract_address, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, id: $manga_id, release_date: $release_date}, on_conflict: {constraint: manga_pkey, update_columns: [banner, poster, status, release_date, contract_address]}) {
+        insert_manga_one(object: {status: $status, contract_addresses: $contract_addresses, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, id: $manga_id, release_date: $release_date}, on_conflict: {constraint: manga_pkey, update_columns: [banner, poster, status, release_date, contract_addresses]}) {
           id
           banner
           poster

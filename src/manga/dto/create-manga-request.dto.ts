@@ -49,7 +49,7 @@ export class CreateMangaRequestDto {
   release_date: string;
 
   @ApiProperty()
-  contract_address: string;
+  contract_addresses: string;
 
   @ApiProperty({ type: 'string', format: 'binary' })
   banner: Express.Multer.File;

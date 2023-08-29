@@ -81,27 +81,12 @@ computed_fields:
       function:
         name: nearest_upcoming
         schema: public
-remote_relationships:
-  - definition:
-      to_remote_schema:
-        lhs_fields:
-          - contract_address
-        remote_field:
-          euphoria:
-            arguments: {}
-            field:
-              smart_contract:
-                arguments:
-                  where:
-                    address:
-                      _eq: $contract_address
-        remote_schema: Horoscope
-    name: manga_staging_smart_cointract
 select_permissions:
   - role: anonymous
     permission:
       columns:
         - banner
+        - contract_addresses
         - created_at
         - id
         - poster
@@ -117,14 +102,15 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - banner
+        - contract_addresses
+        - created_at
         - id
         - poster
-        - banner
+        - publish_date
         - release_date
         - status
-        - created_at
         - updated_at
-        - publish_date
       computed_fields:
         - latest_published
         - nearest_upcoming
