@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   Post,
   Put,
@@ -21,6 +22,7 @@ import {
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '../auth/role.enum';
 import { RolesGuard } from '../auth/role.guard';
+import { GetAccessMangaParamDto } from './dto/get-access-manga-request.dto';
 
 @Controller('manga')
 @ApiTags('manga')
@@ -54,5 +56,15 @@ export class MangaController {
   ) {
     const { mangaId } = param;
     return this.mangaSvc.update(mangaId, data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Get(':mangaId/get-access')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  getAccess(@Param() param: GetAccessMangaParamDto) {
+    const { mangaId } = param;
+    return this.mangaSvc.getAccess(mangaId);
   }
 }

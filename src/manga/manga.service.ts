@@ -223,4 +223,87 @@ export class MangaService {
 
     return updateResponse;
   }
+
+  async getAccess(mangaId: number) {
+    try {
+      let nft = false;
+      const { token } = ContextProvider.getAuthUser();
+      const result = await this.graphqlSvc.query(
+        this.configSvc.get<string>('graphql.endpoint'),
+        token,
+        `query QueryUserAddress {
+        authorizer_users {
+          wallet_address
+        }
+      }`,
+        'QueryUserAddress',
+        {},
+      );
+
+      if (this.graphqlSvc.errorOrEmpty(result, 'authorizer_users')) {
+        return result;
+      }
+
+      const walletAddress = result.data.authorizer_users[0].wallet_address;
+
+      // get contract_addresses
+      const queryMangaResult = await this.graphqlSvc.query(
+        this.configSvc.get<string>('graphql.endpoint'),
+        token,
+        `query QueryManga($id: Int!) {
+        manga_by_pk(id: $id) {
+          contract_addresses
+        }
+      }`,
+        'QueryManga',
+        {
+          id: mangaId,
+        },
+      );
+
+      if (this.graphqlSvc.errorOrEmpty(queryMangaResult, 'manga_by_pk')) {
+        return queryMangaResult;
+      }
+
+      const contract_addresses =
+        queryMangaResult.data.manga_by_pk.contract_addresses;
+
+      // check data on horoscope
+      const getCw721TokenResult = await this.graphqlSvc.query(
+        this.configSvc.get<string>('horosope.endpoint'),
+        token,
+        `query QueryCw721Tokens($owner: String = "", $smart_contracts: [String!] = "") {
+        ${this.configSvc.get<string>('horosope.network')} {
+          cw721_contract(where: {smart_contract: {address: {_in: $smart_contracts}}}) {
+            id
+            cw721_tokens(where: {burned: {_eq: false}, owner: {_eq: $owner}}) {
+              token_id
+            }
+          }
+        }
+      }`,
+        'QueryCw721Tokens',
+        {
+          smart_contracts: contract_addresses,
+          owner: walletAddress,
+        },
+      );
+
+      if (
+        getCw721TokenResult.data.euphoria.cw721_contract.length > 0 &&
+        getCw721TokenResult.data.euphoria.cw721_contract[0].cw721_tokens
+          .length > 0
+      ) {
+        nft = true;
+      }
+
+      return {
+        nft,
+      };
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
 }
