@@ -10,17 +10,6 @@
               isActive
             }
           }
-      - name: Admin - Update creator by pk
-        query: |
-          mutation UpdateCreator ($id: Int = 10, $name: String = "", $bio: String = "", $socials: jsonb = "") {
-            update_creators_by_pk(pk_columns: {id:$id}, _set: {name:$name,bio:$bio,socials:$socials}) {
-              id
-              name
-              bio
-              socials
-              updated_at
-            }
-          }
       - name: Admin - Deactive Manga
         query: |
           mutation DeactiveManga ($id: Int = 10) {
@@ -46,41 +35,6 @@
               affected_rows
             }
             delete_chapters(where: {_and:{manga_id:{_eq:$manga_id},chapter_number:{_eq:$chapter_number}}}) {
-              affected_rows
-            }
-          }
-      - name: Admin - Create Manga Creators
-        query: |
-          mutation CreateMangaCreators ($manga_creators: [manga_creator_insert_input!] = [{creator_id:10,manga_id:10}]) {
-            insert_manga_creator(objects: $manga_creators) {
-              affected_rows
-            }
-          }
-      - name: Admin - Delete manga creators
-        query: |
-          mutation DeleteMangaCreators ($manga_id: Int = 10, $creator_ids: [Int!] = [10]) {
-            delete_manga_creator(where: {_and:{manga_id:{_eq:$manga_id},creator_id:{_in:$creator_ids}}}) {
-              affected_rows
-            }
-          }
-      - name: Admin - Create manga languages
-        query: |
-          mutation InsertMangaLanguages ($manga_languages: [manga_languages_insert_input!] = {manga_id:10,language_id:10,is_main_language:false,title:"",description:""}) {
-            insert_manga_languages(objects: $manga_languages) {
-              affected_rows
-            }
-          }
-      - name: Admin - Delete Manga Languages By Manga Id
-        query: |
-          mutation DeleteMangaLanguagesByMangaId ($manga_id: Int = 10, $language_ids: [Int!] = [10]) {
-            delete_manga_languages(where: {_and:{manga_id:{_eq:$manga_id},language_id:{_in:$language_ids}}}) {
-              affected_rows
-            }
-          }
-      - name: Admin - Delete manga tags
-        query: |
-          mutation DeleteMangaTags ($manga_id: Int = 10, $tag_ids: [Int!] = [10]) {
-            delete_manga_tag(where: {_and:{manga_id:{_eq:$manga_id},tag_id:{_in:$tag_ids}}}) {
               affected_rows
             }
           }
@@ -129,27 +83,6 @@
               }
             }
           }
-      - name: Admin - Create manga tags
-        query: |
-          mutation AddMangaTag ($manga_tags: [manga_tag_insert_input!] = [{manga_id:10,tag_id:10}]) {
-            insert_manga_tag(objects: $manga_tags) {
-              affected_rows
-              returning {
-                manga {
-                  id
-                  status
-                }
-                tag {
-                  id
-                  tag_languages {
-                    tag_id
-                    language_id
-                    value
-                  }
-                }
-              }
-            }
-          }
       - name: Delete tag
         query: |
           mutation DeleteTag ($id: Int = 10) {
@@ -157,39 +90,6 @@
               affected_rows
             }
             delete_tags(where: {id:{_eq:$id}}) {
-              affected_rows
-            }
-          }
-      - name: Admin - Delete chapter languages
-        query: |
-          mutation DeleteChapterLanguague ($chapter_id: Int = 10, $language_ids: [Int!] = [1]) {
-            delete_chapter_languages(where: {_and:{chapter_id:{_eq:$chapter_id},language_id:{_in:$language_ids}}}) {
-              affected_rows
-            }
-          }
-      - name: Admin - Update chapter language
-        query: |
-          mutation UpdateChapterLanguague ($chapter_id: Int!, $language_id: Int!, $detail: jsonb! = "") {
-            update_chapter_languages(where: {_and:{chapter_id:{_eq:$chapter_id},language_id:{_eq:$language_id}}}, _set: {detail:$detail}) {
-              affected_rows
-            }
-          }
-      - name: Admin - Create Chapter
-        query: |
-          mutation AddChapter ($manga_id: Int = 10, $chapter_name: String = "", $chapter_number: Int = 10, $chapter_type: String = "", $thumbnail_url: String = "", $pushlish_date: date, $chapter_languages: [chapter_languages_insert_input!] = {language_id:10,detail:""}) {
-            insert_chapters_one(object: {chapter_name:$chapter_name,chapter_number:$chapter_number,chapter_type:$chapter_type,thumbnail_url:$thumbnail_url,manga_id:$manga_id,status:"CREATED",pushlish_date:$pushlish_date,chapter_languages:{data:$chapter_languages}}) {
-              id
-              chapter_name
-              chapter_number
-              pushlish_date
-              status
-              created_at
-            }
-          }
-      - name: Admin - Update tag languages many
-        query: |
-          mutation UpdateTagLanguages ($updates: [tag_languages_updates!] = {where:{id:{_eq:1}},_set:{value:""}}) {
-            update_tag_languages_many(updates: $updates) {
               affected_rows
             }
           }
@@ -282,19 +182,6 @@
               content
               user_id
               ref_activity
-            }
-          }
-      - name: Admin - Update chapter
-        query: |
-          mutation UpdateChapterByPK ($id: Int!, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String, $status: String = "", $pushlish_date: timestamptz = "") {
-            update_chapters_by_pk(pk_columns: {id:$id}, _set: {chapter_name:$chapter_name,chapter_type:$chapter_type,thumbnail_url:$thumbnail_url,chapter_number:$chapter_number,status:$status,pushlish_date:$pushlish_date}) {
-              id
-              chapter_name
-              chapter_number
-              chapter_type
-              thumbnail_url
-              updated_at
-              manga_id
             }
           }
       - name: Admin - Update tag by ID
@@ -779,17 +666,6 @@
               dob
               gender
               pen_name
-            }
-          }
-      - name: Admin - Add creator
-        query: |
-          mutation AddCreator ($name: String, $bio: String, $socials: jsonb = null, $pen_name: String = "", $profile_picture: String = "", $gender: String = "", $dob: String = "", $avatar_url: String = "") {
-            insert_creators_one(object: {name:$name,bio:$bio,socials:$socials,pen_name:$pen_name,gender:$gender,dob:$dob,avatar_url:$avatar_url}) {
-              id
-              name
-              socials
-              created_at
-              bio
             }
           }
       - name: Admin - Get manga detail

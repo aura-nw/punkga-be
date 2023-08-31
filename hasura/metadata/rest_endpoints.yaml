@@ -2,33 +2,6 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Delete chapter languages
-  methods:
-    - DELETE
-  name: Admin - Delete chapter languages
-  url: admin/chapter_languages/:chapter_id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Update chapter language
-  methods:
-    - PUT
-  name: Admin - Update chapter language
-  url: admin/chapter_languages/:chapter_id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Update chapter
-  methods:
-    - PUT
-  name: Admin - Update chapter
-  url: admin/chapters/:id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Admin - Query creators
   methods:
     - GET
@@ -38,28 +11,10 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Add creator
-  methods:
-    - POST
-  name: Admin - Add creator
-  url: admin/creators
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Admin - Deactive Creator By PK
   methods:
     - DELETE
   name: Admin - Deactive Creator By PK
-  url: admin/creators/:id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Update creator by pk
-  methods:
-    - PUT
-  name: Admin - Update creator by pk
   url: admin/creators/:id
 - comment: ""
   definition:
@@ -110,15 +65,6 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Create Chapter
-  methods:
-    - POST
-  name: Admin - Create Chapter
-  url: admin/manga/:manga_id/chapters
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Admin - Delete chapter
   methods:
     - DELETE
@@ -133,69 +79,6 @@
     - GET
   name: Admin - Get chapter detail
   url: admin/manga/:manga_id/chapters/:chapter_number
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Create Manga Creators
-  methods:
-    - POST
-  name: Admin - Create Manga Creators
-  url: admin/manga_creators
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Delete manga creators
-  methods:
-    - DELETE
-  name: Admin - Delete manga creators
-  url: admin/manga_creators/:manga_id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Create manga languages
-  methods:
-    - POST
-  name: Admin - Create manga languages
-  url: admin/manga_languages
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Delete Manga Languages By Manga Id
-  methods:
-    - DELETE
-  name: Admin - Delete Manga Languages By Manga Id
-  url: admin/manga_languages/:manga_id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Create manga tags
-  methods:
-    - POST
-  name: Admin - Create manga tags
-  url: admin/manga_tags
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Delete manga tags
-  methods:
-    - DELETE
-  name: Admin - Delete manga tags
-  url: admin/manga_tags/:manga_id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Update tag languages many
-  methods:
-    - PUT
-  name: Admin - Update tag languages many
-  url: admin/tag_languages
 - comment: ""
   definition:
     query:
