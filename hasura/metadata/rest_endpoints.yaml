@@ -263,15 +263,6 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Update manga
-  methods:
-    - PUT
-  name: Admin - Update manga
-  url: manga/:manga_id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Public - Get Chapter Comments
   methods:
     - GET

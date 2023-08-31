@@ -23,3 +23,6 @@ google:
   analytics:
     propertyId: 'xxxxxxxxx'
     keyFile: './credentials/xxxxxx-xxx-xxxxxxxxxxxx.json'
+horosope:
+  endpoint: https://indexer-v2.staging.aurascan.io/api/v2/graphql
+  network: euphoria
