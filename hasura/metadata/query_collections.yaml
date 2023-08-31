@@ -745,6 +745,15 @@
                 manga {
                   id
                   status
+                  poster
+                  banner
+                  manga_creators {
+                    creator {
+                      name
+                      pen_name
+                      id
+                    }
+                  }
                   manga_total_likes {
                     likes
                   }
