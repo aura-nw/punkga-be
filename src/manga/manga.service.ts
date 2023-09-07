@@ -245,6 +245,10 @@ export class MangaService {
       }
 
       const walletAddress = result.data.authorizer_users[0].wallet_address;
+      if (walletAddress === null)
+        return {
+          nft,
+        };
 
       // get contract_addresses
       const queryMangaResult = await this.graphqlSvc.query(
