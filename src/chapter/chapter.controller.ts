@@ -1,9 +1,8 @@
 import {
   Body,
   Controller,
-  Ip,
+  Get,
   Param,
-  Patch,
   Post,
   Put,
   UploadedFile,
@@ -26,6 +25,7 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/role.guard';
 import { SetRequestTimeout } from '../decorators/set-timeout.decorator';
 import { UploadInputDto } from './dto/upload.dto';
+import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
 
 @Controller('chapter')
 @ApiTags('chapter')
@@ -72,5 +72,14 @@ export class ChapterController {
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     return this.chapterSvc.update(param, data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Get(':chapterId')
+  @UseInterceptors(AuthUserInterceptor)
+  view(@Param() data: ViewProtectedChapterRequestDto) {
+    return this.chapterSvc.view(data);
   }
 }

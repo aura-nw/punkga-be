@@ -9,5 +9,6 @@ import { GraphqlModule } from '../graphql/graphql.module';
   imports: [JwtModule, FilesModule, GraphqlModule],
   providers: [MangaService],
   controllers: [MangaController],
+  exports: [MangaService],
 })
 export class MangaModule {}

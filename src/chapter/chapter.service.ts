@@ -28,6 +28,8 @@ import {
   UpdateChapterRequestDto,
 } from './dto/update-chapter-request.dto';
 import { UploadInputDto } from './dto/upload.dto';
+import { MangaService } from '../manga/manga.service';
+import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
 
 @Injectable()
 export class ChapterService {
@@ -37,6 +39,7 @@ export class ChapterService {
     private configService: ConfigService,
     private graphqlSvc: GraphqlService,
     private filesService: FilesService,
+    private mangaService: MangaService,
   ) {}
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
@@ -355,6 +358,57 @@ export class ChapterService {
 
       return result.data;
     } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async view(data: ViewProtectedChapterRequestDto) {
+    try {
+      const { token } = ContextProvider.getAuthUser();
+
+      const { chapterId } = data;
+
+      // insert chapter to DB
+      const result = await this.graphqlSvc.query(
+        this.configService.get<string>('graphql.endpoint'),
+        token,
+        `query GetMangaIdByChapterId($id: Int = 10) {
+          chapters(where: {id: {_eq: $id}}) {
+            manga_id
+            chapter_type
+            chapter_languages(where: {chapter: {status: {_eq: "Published"}}}) {
+              language_id
+              detail
+            }
+          }
+        }`,
+        'GetMangaIdByChapterId',
+        {
+          id: chapterId,
+        },
+      );
+
+      if (result.errors && result.errors.length > 0) {
+        return result;
+      }
+
+      if (result.data.chapters[0].chapter_type === 'NFTs only') {
+        const access = await this.mangaService.getAccess(
+          result.data.chapters[0].manga_id,
+        );
+
+        this.logger.debug(`Access ${JSON.stringify(access)}`);
+
+        if (!access.nft || access.nft !== true) {
+          result.data.chapters[0].chapter_languages = [];
+        }
+      }
+
+      return result;
+    } catch (errors) {
+      this.logger.error(errors);
       return {
         errors,
       };
