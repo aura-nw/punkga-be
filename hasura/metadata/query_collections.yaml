@@ -701,6 +701,39 @@
               }
             }
           }
+      - name: Admin - Query List Manga
+        query: |
+          query QueryListManga {
+            manga(order_by: {created_at:desc}) {
+              id
+              banner
+              poster
+              status
+              release_date
+              publish_date
+              created_at
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                }
+              }
+              chapters_aggregate {
+                aggregate {
+                  count
+                  max {
+                    chapter_number
+                  }
+                }
+              }
+              manga_languages {
+                id
+                title
+                language_id
+                is_main_language
+              }
+            }
+          }
       - name: Public - Query creator by id
         query: |
           query QueryCreatorById ($id: Int!) {
@@ -744,7 +777,7 @@
                       id
                     }
                   }
-                  chapters(order_by: {chapter_number:desc}, limit: 1) {
+                  chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
                     id
                     chapter_number
                     chapter_name
@@ -757,39 +790,6 @@
                     description
                   }
                 }
-              }
-            }
-          }
-      - name: Admin - Query List Manga
-        query: |
-          query QueryListManga {
-            manga(order_by: {created_at:desc}) {
-              id
-              banner
-              poster
-              status
-              release_date
-              publish_date
-              created_at
-              manga_creators {
-                creator {
-                  name
-                  pen_name
-                }
-              }
-              chapters_aggregate {
-                aggregate {
-                  count
-                  max {
-                    chapter_number
-                  }
-                }
-              }
-              manga_languages {
-                id
-                title
-                language_id
-                is_main_language
               }
             }
           }
