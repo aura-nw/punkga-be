@@ -226,6 +226,7 @@
                 creator {
                   id
                   name
+                  pen_name
                   isActive
                 }
               }
@@ -311,6 +312,7 @@
                 creator {
                   id
                   name
+                  pen_name
                   isActive
                 }
               }
@@ -361,6 +363,7 @@
                   creator {
                     id
                     name
+                    pen_name
                     isActive
                   }
                 }
@@ -406,6 +409,7 @@
                 creator {
                   id
                   name
+                  pen_name
                   isActive
                 }
               }
@@ -454,38 +458,6 @@
               }
             }
           }
-      - name: Admin - Query List Manga
-        query: |
-          query QueryListManga {
-            manga(order_by: {created_at:desc}) {
-              id
-              banner
-              poster
-              status
-              release_date
-              publish_date
-              created_at
-              manga_creators {
-                creator {
-                  name
-                }
-              }
-              chapters_aggregate {
-                aggregate {
-                  count
-                  max {
-                    chapter_number
-                  }
-                }
-              }
-              manga_languages {
-                id
-                title
-                language_id
-                is_main_language
-              }
-            }
-          }
       - name: Public - Get trending manga
         query: |
           query GetTrendingManga {
@@ -524,6 +496,7 @@
               manga_creators {
                 creator {
                   name
+                  pen_name
                   id
                   isActive
                 }
@@ -589,6 +562,7 @@
                 creator {
                   id
                   name
+                  pen_name
                   isActive
                 }
               }
@@ -722,6 +696,7 @@
                 creator {
                   id
                   name
+                  pen_name
                 }
               }
             }
@@ -782,6 +757,39 @@
                     description
                   }
                 }
+              }
+            }
+          }
+      - name: Admin - Query List Manga
+        query: |
+          query QueryListManga {
+            manga(order_by: {created_at:desc}) {
+              id
+              banner
+              poster
+              status
+              release_date
+              publish_date
+              created_at
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                }
+              }
+              chapters_aggregate {
+                aggregate {
+                  count
+                  max {
+                    chapter_number
+                  }
+                }
+              }
+              manga_languages {
+                id
+                title
+                language_id
+                is_main_language
               }
             }
           }
