@@ -72,8 +72,10 @@ export class TasksService {
     const response = await this.runReport();
     const env = this.configService.get<string>('app.env');
 
+    const subdomain_pattern = env !== '' ? `${env}\.` : '';
+
     const regex = new RegExp(
-      `https://${env}\.punkga\.me(\/[A-Za-z]+)?\/comic\/[0-9]+\/chapter\/[0-9]+`,
+      `https://${subdomain_pattern}punkga\.me(\/[A-Za-z]+)?\/comic\/[0-9]+\/chapter\/[0-9]+`,
       'i',
     );
 
@@ -85,7 +87,10 @@ export class TasksService {
       const url = row.dimensionValues[0].value;
       const arr = url
         .replace(
-          new RegExp(`https://${env}\.punkga\.me(\/[A-Za-z]+)?\/comic\/`, 'i'),
+          new RegExp(
+            `https://${subdomain_pattern}punkga\.me(\/[A-Za-z]+)?\/comic\/`,
+            'i',
+          ),
           '',
         )
         .split('/');
