@@ -117,7 +117,7 @@ export class TasksService {
       },
     }));
 
-    await this.graphqlSvc.query(
+    const result = await this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       '',
       `mutation IncreaseChaptersView($updates: [chapters_updates!] = {where: {manga_id: {_eq: 10}, chapter_number: {_eq: 10}}, _inc: {views: 10}}) {
@@ -137,6 +137,7 @@ export class TasksService {
     );
 
     this.logger.debug('Update chapter views', updates);
+    this.logger.debug(`Update result: ${JSON.stringify(result)}`);
   }
 
   async runReport() {
