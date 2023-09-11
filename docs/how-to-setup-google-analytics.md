@@ -36,3 +36,35 @@
 - Install `Google Tag Manager` in website
 
   ![Alt text](imgs/image-5.png)
+
+## Use Google Analytics API
+
+1. Go to `https://console.cloud.google.com/`, create new `Project` or select existing project
+
+    ![Alt text](imgs/image-6.png)
+
+2. Enable `Google Analytics Data API`
+
+- Search `Google Analytics Data API`, go to this product details
+
+  ![Alt text](imgs/image-7.png)
+
+- Press `Enable`
+
+  ![Alt text](imgs/image-8.png)
+
+- Click `Credentials` in left panel. Create new or download existing service account credential
+
+  ![Alt text](imgs/image-9.png)
+
+3. Create service account (if not exist)
+
+- Create new service account, no need to provide any permission
+
+  ![Alt text](imgs/image-10.png)
+
+- Add service account key, save to computer
+
+  ![Alt text](imgs/image-11.png)
+
+4. Use `https://www.npmjs.com/package/@google-analytics/data` package in NodeJS app
