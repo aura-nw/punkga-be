@@ -226,6 +226,7 @@ export class MangaService {
 
   async getAccess(mangaId: number) {
     try {
+      const network = this.configSvc.get<string>('horosope.network');
       let nft = false;
       const { token } = ContextProvider.getAuthUser();
       const result = await this.graphqlSvc.query(
@@ -277,7 +278,7 @@ export class MangaService {
         this.configSvc.get<string>('horosope.endpoint'),
         token,
         `query QueryCw721Tokens($owner: String = "", $smart_contracts: [String!] = "") {
-        ${this.configSvc.get<string>('horosope.network')} {
+        ${network} {
           cw721_contract(where: {smart_contract: {address: {_in: $smart_contracts}}}) {
             id
             cw721_tokens(where: {burned: {_eq: false}, owner: {_eq: $owner}}) {
@@ -294,8 +295,8 @@ export class MangaService {
       );
 
       if (
-        getCw721TokenResult.data.euphoria.cw721_contract.length > 0 &&
-        getCw721TokenResult.data.euphoria.cw721_contract[0].cw721_tokens
+        getCw721TokenResult.data[`${network}`].cw721_contract.length > 0 &&
+        getCw721TokenResult.data[`${network}`].cw721_contract[0].cw721_tokens
           .length > 0
       ) {
         nft = true;
