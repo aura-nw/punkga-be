@@ -86,7 +86,8 @@ export class FilesService {
       this.configService.get<string>('aws.s3SubFolder') || 'images';
     const keyName = `${s3SubFolder}/${key}/${f.originalname}`;
 
-    await this.uploadToS3(keyName, f.buffer, f.mimetype);
+    const extension = f.originalname.split('.').pop();
+    await this.uploadToS3(keyName, f.buffer, extension);
     return new URL(keyName, this.configService.get<string>('aws.queryEndpoint'))
       .href;
   }
@@ -94,7 +95,7 @@ export class FilesService {
   async uploadToS3(
     keyName: string,
     filePath: string | Buffer,
-    mimetype?: string,
+    extension?: string,
   ) {
     const file =
       typeof filePath === 'string' ? readFileSync(filePath) : filePath;
@@ -114,14 +115,11 @@ export class FilesService {
       Bucket: bucketName,
       Key: keyName,
       Body: file,
-      Metadata: {
-        'Content-Type': mimetype,
-      },
     };
 
-    if (mimetype)
+    if (extension && extension === 'svg')
       input.Metadata = {
-        'Content-Type': mimetype,
+        'Content-Type': 'image/svg+xml',
       };
 
     // Create a promise on S3 service object
