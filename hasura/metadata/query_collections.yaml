@@ -93,6 +93,13 @@
               affected_rows
             }
           }
+      - name: Admin - Delete chapter languages
+        query: |
+          mutation DeleteChapterLanguague ($chapter_id: Int = 10, $language_ids: [Int!] = [1]) {
+            delete_chapter_languages(where: {_and:{chapter_id:{_eq:$chapter_id},language_id:{_in:$language_ids}}}) {
+              affected_rows
+            }
+          }
       - name: Public - Query all tags
         query: |
           query QueryTags {
