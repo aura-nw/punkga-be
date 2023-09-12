@@ -1,4 +1,8 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  PutObjectCommand,
+  PutObjectCommandInput,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { readFileSync } from 'fs';
@@ -82,12 +86,16 @@ export class FilesService {
       this.configService.get<string>('aws.s3SubFolder') || 'images';
     const keyName = `${s3SubFolder}/${key}/${f.originalname}`;
 
-    await this.uploadToS3(keyName, f.buffer);
+    await this.uploadToS3(keyName, f.buffer, f.mimetype);
     return new URL(keyName, this.configService.get<string>('aws.queryEndpoint'))
       .href;
   }
 
-  async uploadToS3(keyName: string, filePath: string | Buffer) {
+  async uploadToS3(
+    keyName: string,
+    filePath: string | Buffer,
+    mimetype?: string,
+  ) {
     const file =
       typeof filePath === 'string' ? readFileSync(filePath) : filePath;
 
@@ -102,12 +110,22 @@ export class FilesService {
     const bucketName = this.configService.get<string>('aws.bucketName');
     this.logger.debug(`Upload key: ${keyName} to bucket ${bucketName}`);
 
-    // Create a promise on S3 service object
-    const command = new PutObjectCommand({
+    const input: PutObjectCommandInput = {
       Bucket: bucketName,
       Key: keyName,
       Body: file,
-    });
+      Metadata: {
+        'Content-Type': mimetype,
+      },
+    };
+
+    if (mimetype)
+      input.Metadata = {
+        'Content-Type': mimetype,
+      };
+
+    // Create a promise on S3 service object
+    const command = new PutObjectCommand(input);
     return client.send(command);
   }
 }
