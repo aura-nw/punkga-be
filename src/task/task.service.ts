@@ -10,9 +10,7 @@ export class TasksService {
   constructor(
     private configService: ConfigService,
     private graphqlSvc: GraphqlService,
-  ) {
-    this.getViewsReport();
-  }
+  ) {}
 
   // every minute, on the 1st second
   @Cron('1 * * * * *')
