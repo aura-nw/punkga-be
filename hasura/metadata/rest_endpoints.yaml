@@ -2,15 +2,6 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Delete chapter languages
-  methods:
-    - DELETE
-  name: Admin - Delete chapter languages
-  url: admin/chapter_languages/:chapter_id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Admin - Query creators
   methods:
     - GET

@@ -93,13 +93,6 @@
               affected_rows
             }
           }
-      - name: Admin - Delete chapter languages
-        query: |
-          mutation DeleteChapterLanguague ($chapter_id: Int = 10, $language_ids: [Int!] = [1]) {
-            delete_chapter_languages(where: {_and:{chapter_id:{_eq:$chapter_id},language_id:{_in:$language_ids}}}) {
-              affected_rows
-            }
-          }
       - name: Public - Query all tags
         query: |
           query QueryTags {
@@ -670,65 +663,6 @@
               }
             }
           }
-      - name: Public - Query creator by id
-        query: |
-          query QueryCreatorById ($id: Int!) {
-            creators(where: {id:{_eq:$id}}) {
-              id
-              avatar_url
-              bio
-              dob
-              gender
-              name
-              pen_name
-              socials
-              total_subscribers
-              isActive
-              created_at
-              manga_creators {
-                manga {
-                  id
-                  status
-                  poster
-                  banner
-                  manga_creators {
-                    creator {
-                      name
-                      pen_name
-                      id
-                    }
-                  }
-                  manga_total_likes {
-                    likes
-                  }
-                  manga_total_views {
-                    views
-                  }
-                  manga_tags {
-                    tag {
-                      tag_languages {
-                        language_id
-                        value
-                      }
-                      id
-                    }
-                  }
-                  chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
-                    id
-                    chapter_number
-                    chapter_name
-                  }
-                  contract_addresses
-                  manga_languages {
-                    id
-                    is_main_language
-                    title
-                    description
-                  }
-                }
-              }
-            }
-          }
       - name: Public - Get manga detail
         query: |
           query GetMangaReadingDetail ($id: Int = 1, $user_id: bpchar = "") {
@@ -798,6 +732,65 @@
               manga_subscribers(where: {user_id:{_eq:$user_id}}) {
                 id
                 created_at
+              }
+            }
+          }
+      - name: Public - Query creator by id
+        query: |
+          query QueryCreatorById ($id: Int!) {
+            creators(where: {id:{_eq:$id}}) {
+              id
+              avatar_url
+              bio
+              dob
+              gender
+              name
+              pen_name
+              socials
+              total_subscribers
+              isActive
+              created_at
+              manga_creators(where: {manga:{status:{_neq:"Removed"}}}) {
+                manga {
+                  id
+                  status
+                  poster
+                  banner
+                  manga_creators {
+                    creator {
+                      name
+                      pen_name
+                      id
+                    }
+                  }
+                  manga_total_likes {
+                    likes
+                  }
+                  manga_total_views {
+                    views
+                  }
+                  manga_tags {
+                    tag {
+                      tag_languages {
+                        language_id
+                        value
+                      }
+                      id
+                    }
+                  }
+                  chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
+                    id
+                    chapter_number
+                    chapter_name
+                  }
+                  contract_addresses
+                  manga_languages {
+                    id
+                    is_main_language
+                    title
+                    description
+                  }
+                }
               }
             }
           }
