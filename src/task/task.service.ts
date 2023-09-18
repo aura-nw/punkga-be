@@ -72,7 +72,9 @@ export class TasksService {
     const response = await this.runReport();
     const env = this.configService.get<string>('app.env');
 
-    const subdomain_pattern = env !== '' ? `${env}\.` : '';
+    const subdomain_pattern = ['dev', 'staging'].includes(env)
+      ? `${env}\.`
+      : '';
 
     const regex = new RegExp(
       `https://${subdomain_pattern}punkga\.me(\/[A-Za-z]+)?\/comic\/[0-9]+\/chapter\/[0-9]+`,

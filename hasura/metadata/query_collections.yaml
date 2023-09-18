@@ -794,3 +794,16 @@
               }
             }
           }
+      - name: Public - Query User
+        query: |
+          query QueryUser ($user_id: bpchar = "") {
+            authorizer_users(where: {id:{_eq:$user_id}}) {
+              id
+              email
+              nickname
+              birthdate
+              bio
+              picture
+              gender
+            }
+          }
