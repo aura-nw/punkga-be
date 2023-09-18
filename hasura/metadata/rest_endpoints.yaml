@@ -245,6 +245,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Query User
+  methods:
+    - GET
+  name: Public - Query User
+  url: public/users/:user_id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: User - Set address
   methods:
     - POST
