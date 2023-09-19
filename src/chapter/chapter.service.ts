@@ -193,6 +193,7 @@ export class ChapterService {
           detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
             order: r.order,
             image_path: r.image_path,
+            name: r.name,
           })),
         }));
 
@@ -553,12 +554,6 @@ export class ChapterService {
             this.filesService.uploadToS3(f.key_name, f.upload_path),
           ),
         );
-        // if (
-        //   uploadResult.filter((r) => r.$metadata.httpStatusCode === 200)
-        //     .length !== allowedFiles.length
-        // ) {
-        //   throw Error(`upload failed - ${JSON.stringify(uploadResult)}`);
-        // }
       } catch (error) {
         throw Error(`upload to s3 failed - ${JSON.stringify(error)}`);
       }
