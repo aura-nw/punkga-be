@@ -97,7 +97,7 @@ export class CreatorService {
     files: Array<Express.Multer.File>,
   ) {
     const { token } = ContextProvider.getAuthUser();
-    const { name, bio, socials, pen_name, gender, dob } = data;
+    const { name, socials, pen_name, bio, gender, dob } = data;
 
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
@@ -137,7 +137,7 @@ export class CreatorService {
     const variables = {
       id: creatorId,
       name,
-      bio,
+      bio: bio.toString(),
       socials: JSON.parse(socials),
       pen_name,
       gender,

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ChapterModule } from './chapter/chapter.module';
 import { MangaModule } from './manga/manga.module';
@@ -10,6 +10,7 @@ import { UserModule } from './user/user.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './task/task.module';
 import { CreatorModule } from './creator/creator.module';
+import { APP_PIPE } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -28,6 +29,14 @@ import { CreatorModule } from './creator/creator.module';
     UserModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+      }),
+    },
+  ],
 })
 export class AppModule {}

@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Param,
   Post,
@@ -45,7 +46,11 @@ export class CreatorController {
   @Roles(Role.Admin)
   @Put(':creatorId')
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @UseInterceptors(
+    AuthUserInterceptor,
+    ClassSerializerInterceptor,
+    AnyFilesInterceptor(),
+  )
   update(
     @Param() param: UpdateCreatorParamDto,
     @Body() data: UpdateCreatorRequestDto,
