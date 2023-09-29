@@ -348,6 +348,7 @@ export class ChapterService {
           detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
             order: r.order,
             image_path: r.image_path,
+            name: r.name,
           })),
         }));
 
