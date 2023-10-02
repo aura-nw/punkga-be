@@ -5,10 +5,12 @@ import { ChapterController } from './chapter.controller';
 import { GraphqlModule } from '../graphql/graphql.module';
 import { FilesModule } from '../files/files.module';
 import { MangaModule } from '../manga/manga.module';
+import { UploadChapterService } from './upload-chapter.service';
+import { ChapterGraphql } from './chapter.graphql';
 
 @Module({
   imports: [JwtModule, GraphqlModule, FilesModule, MangaModule],
-  providers: [ChapterService],
+  providers: [ChapterService, UploadChapterService, ChapterGraphql],
   controllers: [ChapterController],
 })
 export class ChapterModule {}

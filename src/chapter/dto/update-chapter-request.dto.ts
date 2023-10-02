@@ -10,8 +10,14 @@ export class ChapterLanguage {
   @ApiProperty({ example: 'BC - 1.zip' })
   @IsString()
   file_name: string;
+
+  @ApiProperty({ type: ['string'] })
+  add_images: string[];
+
+  @ApiProperty({ type: ['string'] })
+  delete_images: string[];
 }
-export class ChapterImage {
+export class UpdateChapterImage {
   @ApiProperty({ type: [ChapterLanguage] })
   chapter_languages: ChapterLanguage[];
 }
@@ -28,7 +34,7 @@ export class UpdateChapterRequestDto {
   @ApiProperty({ enum: ChapterType, enumName: 'ChapterType' })
   chapter_type: ChapterType;
 
-  @ApiProperty({ type: ChapterImage })
+  @ApiProperty({ type: UpdateChapterImage })
   chapter_images: string;
 
   @ApiProperty({ example: '2023-07-05T02:48:36.893251+00:00' })

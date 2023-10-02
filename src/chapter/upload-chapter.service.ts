@@ -1,0 +1,130 @@
+import { ConfigService } from '@nestjs/config';
+import { FilesService } from '../files/files.service';
+import { Logger } from '@nestjs/common';
+import { IChapterLanguages, IFileInfo, IUploadedFile } from './interfaces';
+import path from 'path';
+import { readdirSync } from 'fs';
+
+export class UploadChapterService {
+  private readonly logger = new Logger(UploadChapterService.name);
+
+  constructor(
+    private configService: ConfigService,
+    private filesService: FilesService
+  ) {}
+
+  async uploadThumbnail(
+    files: Array<Express.Multer.File>,
+    userId: string,
+    manga_id: number,
+    chapter_number: number
+  ) {
+    const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
+    let thumbnail_url = '';
+    if (thumbnail) {
+      const thumbnailFile = await this.filesService.detectFile(
+        `./uploads/${userId}`,
+        thumbnail.originalname
+      );
+      thumbnail_url = await this.filesService.uploadThumbnailToS3(
+        manga_id,
+        chapter_number,
+        thumbnailFile
+      );
+    }
+    return thumbnail_url;
+  }
+
+  async uploadChapterLanguagesFiles(data: {
+    userId: string;
+    mangaId: number;
+    chapterNumber: number;
+    chapterImages: IChapterLanguages[];
+  }): Promise<IUploadedFile[]> {
+    const { userId, mangaId, chapterNumber, chapterImages } = data;
+    this.logger.debug(`upload chapter files.. ${JSON.stringify(userId)}`);
+
+    // UnZip file
+    await Promise.all(
+      chapterImages.map((element) =>
+        this.filesService.unzipFile(
+          element.filePath,
+          path.join(
+            __dirname,
+            '../../uploads',
+            userId,
+            'unzip',
+            element.languageId.toString()
+          )
+        )
+      )
+    );
+
+    // Validate files in folder
+    const promises: Promise<IFileInfo>[] = [];
+    // const allowedFiles: IFileInfo[] = [];
+
+    chapterImages.forEach((element) => {
+      promises.push(
+        ...readdirSync(`./uploads/${userId}/unzip/${element.languageId}`).map(
+          (f: string) =>
+            this.filesService.detectFile(
+              `./uploads/${userId}/unzip/${element.languageId}`,
+              f,
+              element.languageId
+            )
+        )
+      );
+    });
+    const fileExtensions = await Promise.all(promises);
+
+    const allowedFiles = fileExtensions
+      .filter((fe) => fe.type.includes('image'))
+      .sort((a, b) => a.order - b.order);
+
+    // build upload files
+    const uploadFiles = allowedFiles.map((file) => {
+      const s3SubFolder =
+        this.configService.get<string>('aws.s3SubFolder') || 'images';
+      const keyName = `${s3SubFolder}/manga-${mangaId}/chapter-${chapterNumber}/lang-${file.languageId}/${file.fileName}`;
+
+      return {
+        name: file.fileName,
+        key_name: keyName,
+
+        upload_path: file.fullPath,
+        image_path: new URL(
+          keyName,
+          this.configService.get<string>('aws.queryEndpoint')
+        ).href,
+        order: file.order,
+        language_id: file.languageId,
+      };
+    });
+
+    // upload files
+    // chunk array to small array
+    const chunkSize = 4;
+    for (let i = 0; i < uploadFiles.length; i += chunkSize) {
+      const chunked = uploadFiles.slice(i, i + chunkSize);
+      this.logger.debug(`Upload process: ${i}/${uploadFiles.length}`);
+
+      // Upload to S3
+      try {
+        await Promise.all(
+          chunked.map((f) =>
+            this.filesService.uploadToS3(f.key_name, f.upload_path)
+          )
+        );
+      } catch (error) {
+        throw Error(`upload to s3 failed - ${JSON.stringify(error)}`);
+      }
+    }
+
+    this.logger.debug(
+      `Upload process: ${uploadFiles.length}/${uploadFiles.length}`
+    );
+
+    return uploadFiles;
+  }
+}
