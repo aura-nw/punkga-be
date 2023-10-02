@@ -218,6 +218,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Subscribe email
+  methods:
+    - POST
+  name: Public - Subscribe email
+  url: public/subscribe
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Query all tags
   methods:
     - GET

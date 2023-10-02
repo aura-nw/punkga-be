@@ -1,0 +1,16 @@
+table:
+  name: email_subscribe
+  schema: public
+insert_permissions:
+  - role: anonymous
+    permission:
+      check: {}
+      columns:
+        - id
+        - email
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - id
+        - email

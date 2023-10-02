@@ -807,3 +807,10 @@
               gender
             }
           }
+      - name: Public - Subscribe email
+        query: |
+          mutation SubscribeEmail ($email: String) {
+            insert_email_subscribe(objects: {email:$email}, on_conflict: {constraint:email_subscribe_email_key,update_columns:email}) {
+              affected_rows
+            }
+          }
