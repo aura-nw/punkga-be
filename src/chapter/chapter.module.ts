@@ -12,5 +12,6 @@ import { ChapterGraphql } from './chapter.graphql';
   imports: [JwtModule, GraphqlModule, FilesModule, MangaModule],
   providers: [ChapterService, UploadChapterService, ChapterGraphql],
   controllers: [ChapterController],
+  exports: [UploadChapterService, ChapterGraphql],
 })
 export class ChapterModule {}

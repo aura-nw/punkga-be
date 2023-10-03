@@ -1,6 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { GraphqlService } from '../graphql/graphql.service';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class ChapterGraphql {
   constructor(
     private configService: ConfigService,

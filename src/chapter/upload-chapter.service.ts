@@ -1,10 +1,11 @@
 import { ConfigService } from '@nestjs/config';
 import { FilesService } from '../files/files.service';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { IChapterLanguages, IFileInfo, IUploadedFile } from './interfaces';
 import path from 'path';
 import { readdirSync } from 'fs';
 
+@Injectable()
 export class UploadChapterService {
   private readonly logger = new Logger(UploadChapterService.name);
 
@@ -46,18 +47,17 @@ export class UploadChapterService {
 
     // UnZip file
     await Promise.all(
-      chapterImages.map((element) =>
-        this.filesService.unzipFile(
-          element.filePath,
-          path.join(
-            __dirname,
-            '../../uploads',
-            userId,
-            'unzip',
-            element.languageId.toString()
-          )
-        )
-      )
+      chapterImages.map((element) => {
+        const outputPath = path.join(
+          __dirname,
+          '../../uploads',
+          userId,
+          'unzip',
+          element.languageId.toString()
+        );
+
+        return this.filesService.unzipFile(element.filePath, outputPath);
+      })
     );
 
     // Validate files in folder

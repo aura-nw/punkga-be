@@ -313,13 +313,9 @@ export class ChapterService {
               (chapLang) => chapLang.language_id === language_id
             )[0];
 
-          const newLanguageDetail = _.remove(detail, (image: any) =>
-            delete_images.includes(image.name)
-          );
-          uploadChapterResult.filter((uploadResult) =>
-            add_images.includes(uploadResult.name)
-          );
-          newLanguageDetail.push(
+          _.remove(detail, (image: any) => delete_images.includes(image.name));
+
+          detail.push(
             ...uploadChapterResult
               .filter((uploadResult) => add_images.includes(uploadResult.name))
               .map((uploadResult) => ({
@@ -330,8 +326,8 @@ export class ChapterService {
           );
 
           return {
-            language_id,
-            detail: newLanguageDetail,
+            languageId: language_id,
+            detail,
           };
         }
       );

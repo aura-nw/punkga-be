@@ -33,7 +33,7 @@ export class FilesService {
   detectFile(
     filePath: string,
     fileName: string,
-    languageId?: number,
+    languageId?: number
   ): Promise<IFileInfo> {
     return new Promise((resolve, reject) => {
       const file = `${filePath}/${fileName}`;
@@ -56,7 +56,7 @@ export class FilesService {
   async uploadThumbnailToS3(
     mangaId: number,
     chapterNumber: number,
-    thumbnail: IFileInfo,
+    thumbnail: IFileInfo
   ): Promise<string> {
     if (!thumbnail.type.includes('image')) {
       throw Error('thumbnail not valid');
@@ -95,7 +95,7 @@ export class FilesService {
   async uploadToS3(
     keyName: string,
     filePath: string | Buffer,
-    extension?: string,
+    extension?: string
   ) {
     const file =
       typeof filePath === 'string' ? readFileSync(filePath) : filePath;

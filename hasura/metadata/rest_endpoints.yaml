@@ -186,7 +186,7 @@
   methods:
     - GET
   name: Public - Get manga detail
-  url: public/manga/:id
+  url: public/manga/:slug
 - comment: ""
   definition:
     query:
@@ -195,7 +195,7 @@
   methods:
     - GET
   name: Public - Get chapter detail
-  url: public/manga/:manga_id/chapters/:chapter_number
+  url: public/manga/:slug/chapters/:chapter_number
 - comment: ""
   definition:
     query:
