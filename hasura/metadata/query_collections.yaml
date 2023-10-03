@@ -472,13 +472,6 @@
               gender
             }
           }
-      - name: Public - Subscribe email
-        query: |
-          mutation SubscribeEmail ($email: String) {
-            insert_email_subscribe(objects: {email:$email}, on_conflict: {constraint:email_subscribe_email_key,update_columns:email}) {
-              affected_rows
-            }
-          }
       - name: Public - Query latest update manga
         query: |
           query GetLatestUpdatedManga {
@@ -818,5 +811,12 @@
                 user_id
                 chapter_id
               }
+            }
+          }
+      - name: Public - Subscribe email
+        query: |
+          mutation SubscribeEmail ($email: String) {
+            insert_email_subscribe(objects: {email:$email}) {
+              affected_rows
             }
           }
