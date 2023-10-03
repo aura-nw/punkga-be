@@ -11,6 +11,7 @@ import { ContextProvider } from '../providers/contex.provider';
 import { FilesService } from '../files/files.service';
 import { GraphqlService } from '../graphql/graphql.service';
 import { UpdateMangaRequestDto } from './dto/update-manga-request.dto';
+import { generateSlug } from './util';
 
 @Injectable()
 export class MangaService {
@@ -19,7 +20,7 @@ export class MangaService {
   constructor(
     private configSvc: ConfigService,
     private filesService: FilesService,
-    private graphqlSvc: GraphqlService,
+    private graphqlSvc: GraphqlService
   ) {}
 
   async create(data: CreateMangaRequestDto, files: Array<Express.Multer.File>) {
@@ -27,15 +28,15 @@ export class MangaService {
     const { status, contract_addresses, release_date } = data;
     const manga_tags = plainToInstance(
       MangaTag,
-      JSON.parse(data.manga_tags) as any[],
+      JSON.parse(data.manga_tags) as any[]
     );
     const manga_creators = plainToInstance(
       MangaCreator,
-      JSON.parse(data.manga_creators) as any[],
+      JSON.parse(data.manga_creators) as any[]
     );
     const manga_languages = plainToInstance(
       MangaLanguage,
-      JSON.parse(data.manga_languages) as any[],
+      JSON.parse(data.manga_languages) as any[]
     );
 
     // insert manga to DB
@@ -59,7 +60,7 @@ export class MangaService {
         }
       }`,
       'CreateNewManga',
-      variables,
+      variables
     );
 
     if (result.errors && result.errors.length > 0) {
@@ -74,27 +75,35 @@ export class MangaService {
     if (bannerFile)
       bannerUrl = await this.filesService.uploadImageToS3(
         `manga-${mangaId}`,
-        bannerFile,
+        bannerFile
       );
 
     const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
     if (bannerFile)
       posterUrl = await this.filesService.uploadImageToS3(
         `manga-${mangaId}`,
-        posterFile,
+        posterFile
       );
+
+    const slug = generateSlug(
+      manga_languages.filter(
+        (language) => language.is_main_language === true
+      )[0].title,
+      mangaId
+    );
 
     // update manga in DB
     const updateVariables = {
       id: mangaId,
       banner: bannerUrl,
       poster: posterUrl,
+      slug,
     };
     const updateResponse = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `mutation UpdateMangaByPK($banner: String = "", $poster: String = "", $id: Int = 10) {
-        update_manga_by_pk(pk_columns: {id: $id}, _set: {banner: $banner, poster: $poster}) {
+      `mutation UpdateMangaByPK($banner: String = "", $poster: String = "", $id: Int = 10, $slug: String = "") {
+        update_manga_by_pk(pk_columns: {id: $id}, _set: {banner: $banner, poster: $poster, slug: $slug}) {
           id
           banner
           poster
@@ -104,7 +113,7 @@ export class MangaService {
         }
       }`,
       'UpdateMangaByPK',
-      updateVariables,
+      updateVariables
     );
 
     return updateResponse;
@@ -113,7 +122,7 @@ export class MangaService {
   async update(
     mangaId: number,
     data: UpdateMangaRequestDto,
-    files: Array<Express.Multer.File>,
+    files: Array<Express.Multer.File>
   ) {
     const { token } = ContextProvider.getAuthUser();
     const {
@@ -139,7 +148,7 @@ export class MangaService {
       'QueryMangaById',
       {
         id: mangaId,
-      },
+      }
     );
 
     if (result.errors && result.errors.length > 0) {
@@ -157,14 +166,14 @@ export class MangaService {
     if (bannerFile)
       bannerUrl = await this.filesService.uploadImageToS3(
         `manga-${mangaId}`,
-        bannerFile,
+        bannerFile
       );
 
     const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
     if (posterFile)
       posterUrl = await this.filesService.uploadImageToS3(
         `manga-${mangaId}`,
-        posterFile,
+        posterFile
       );
 
     // update manga in DB
@@ -179,7 +188,7 @@ export class MangaService {
       manga_creators: plainToInstance(MangaCreator, JSON.parse(manga_creators)),
       manga_languages: plainToInstance(
         MangaLanguage,
-        JSON.parse(manga_languages),
+        JSON.parse(manga_languages)
       ),
     };
     const updateResponse = await this.graphqlSvc.query(
@@ -218,7 +227,7 @@ export class MangaService {
       }
       `,
       'UpdateManga',
-      updateVariables,
+      updateVariables
     );
 
     return updateResponse;
@@ -238,7 +247,7 @@ export class MangaService {
         }
       }`,
         'QueryUserAddress',
-        {},
+        {}
       );
 
       if (this.graphqlSvc.errorOrEmpty(result, 'authorizer_users')) {
@@ -263,7 +272,7 @@ export class MangaService {
         'QueryManga',
         {
           id: mangaId,
-        },
+        }
       );
 
       if (this.graphqlSvc.errorOrEmpty(queryMangaResult, 'manga_by_pk')) {
@@ -291,7 +300,7 @@ export class MangaService {
         {
           smart_contracts: contract_addresses,
           owner: walletAddress,
-        },
+        }
       );
 
       if (

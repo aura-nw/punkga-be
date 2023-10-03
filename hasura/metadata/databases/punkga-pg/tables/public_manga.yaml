@@ -92,6 +92,7 @@ select_permissions:
         - poster
         - publish_date
         - release_date
+        - slug
         - status
         - updated_at
       computed_fields:
@@ -109,6 +110,7 @@ select_permissions:
         - poster
         - publish_date
         - release_date
+        - slug
         - status
         - updated_at
       computed_fields:
