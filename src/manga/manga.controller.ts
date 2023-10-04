@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -23,11 +24,32 @@ import { Roles } from '../auth/roles.decorator';
 import { Role } from '../auth/role.enum';
 import { RolesGuard } from '../auth/role.guard';
 import { GetAccessMangaParamDto } from './dto/get-access-manga-request.dto';
+import {
+  GetMangaParamDto,
+  GetMangaQueryDto,
+} from './dto/get-manga-request.dto';
+import {
+  GetChapterByMangaParamDto,
+  GetChapterByMangaQueryDto,
+} from './dto/get-chapter-by-manga-request.dto';
 
 @Controller('manga')
 @ApiTags('manga')
 export class MangaController {
   constructor(private readonly mangaSvc: MangaService) {}
+
+  @Get(':slug')
+  get(@Param() param: GetMangaParamDto, @Query() query: GetMangaQueryDto) {
+    return this.mangaSvc.get(param.slug, query.user_id);
+  }
+
+  @Get(':slug/chapter/:chapter_number')
+  getChapterByManga(
+    @Param() param: GetChapterByMangaParamDto,
+    @Query() query: GetChapterByMangaQueryDto
+  ) {
+    return this.mangaSvc.getChapterByManga(param, query.user_id);
+  }
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -37,7 +59,7 @@ export class MangaController {
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   create(
     @Body() data: CreateMangaRequestDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     // console.log(data);
     return this.mangaSvc.create(data, files);
@@ -52,7 +74,7 @@ export class MangaController {
   update(
     @Param() param: UpdateMangaParamDto,
     @Body() data: UpdateMangaRequestDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     const { mangaId } = param;
     return this.mangaSvc.update(mangaId, data, files);

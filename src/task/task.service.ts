@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { GraphqlService } from '../graphql/graphql.service';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
-import { isNaN } from 'lodash';
+import { detectMangaSlugId } from '../utils/utils';
 
 @Injectable()
 export class TasksService {
@@ -11,9 +11,7 @@ export class TasksService {
   constructor(
     private configService: ConfigService,
     private graphqlSvc: GraphqlService
-  ) {
-    this.getViewsReport();
-  }
+  ) {}
 
   // every minute, on the 1st second
   @Cron('1 * * * * *')
@@ -99,14 +97,8 @@ export class TasksService {
           ''
         )
         .split('/');
-      let mangaId = 0;
-      let mangaSlug = '';
 
-      if (isNaN(arr[0])) {
-        mangaSlug = arr[0];
-      } else {
-        mangaId = Number(arr[0]);
-      }
+      const { mangaId, mangaSlug } = detectMangaSlugId(arr[0]);
       const chapterNumber = arr[2];
 
       return {

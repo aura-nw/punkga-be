@@ -12,6 +12,8 @@ import { FilesService } from '../files/files.service';
 import { GraphqlService } from '../graphql/graphql.service';
 import { UpdateMangaRequestDto } from './dto/update-manga-request.dto';
 import { generateSlug } from './util';
+import { detectMangaSlugId } from '../utils/utils';
+import { GetChapterByMangaParamDto } from './dto/get-chapter-by-manga-request.dto';
 
 @Injectable()
 export class MangaService {
@@ -22,6 +24,151 @@ export class MangaService {
     private filesService: FilesService,
     private graphqlSvc: GraphqlService
   ) {}
+
+  async get(slug: string, user_id = '') {
+    const { mangaId, mangaSlug } = detectMangaSlugId(slug);
+
+    const variables = {
+      id: mangaId,
+      slug: mangaSlug,
+      user_id,
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query QueryMangaByIdOrSlug ($user_id: bpchar = "", $slug: String = "", $id: Int = 0) {
+        manga(where: {_and: {_or: [{id: {_eq: $id}}, {slug: {_eq: $slug}}]}, status: {_neq: "Removed"}}) {
+          id
+          slug
+          poster
+          banner
+          contract_addresses
+          status
+          release_date
+          manga_creators {
+            creator {
+              id
+              name
+              pen_name
+              isActive
+            }
+          }
+          manga_total_likes {
+            likes
+          }
+          manga_total_views {
+            views
+          }
+          manga_languages {
+            title
+            description
+            is_main_language
+            language_id
+          }
+          chapters_aggregate {
+            aggregate {
+              count
+            }
+          }
+          chapters(order_by: {chapter_number:desc_nulls_last}, where: {status:{_neq:"Inactive"}}) {
+            id
+            chapter_number
+            chapter_name
+            chapter_type
+            thumbnail_url
+            pushlish_date
+            status
+            views
+            chapter_total_likes {
+              likes
+            }
+            chapters_likes(where: {user_id:{_eq:$user_id}}) {
+              id
+              created_at
+            }
+          }
+          manga_subscribers_aggregate {
+            aggregate {
+              count
+            }
+          }
+          manga_tags(limit: 5) {
+            tag {
+              id
+              tag_languages {
+                language_id
+                value
+              }
+            }
+          }
+          manga_subscribers(where: {user_id:{_eq:$user_id}}) {
+            id
+            created_at
+          }
+        }
+      }
+      `,
+      'QueryMangaByIdOrSlug',
+      variables
+    );
+
+    return result;
+  }
+
+  async getChapterByManga(param: GetChapterByMangaParamDto, user_id: string) {
+    const { slug, chapter_number } = param;
+    const { mangaId, mangaSlug } = detectMangaSlugId(slug);
+
+    const variables = {
+      manga_slug: mangaSlug,
+      manga_id: mangaId,
+      chapter_number,
+      user_id,
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query GetChapterReadingDetail($manga_slug: String = "", $manga_id: Int = 0, $chapter_number: Int = 1, $user_id: bpchar = "") {
+        chapters(where: {_and: {chapter_number: {_eq: $chapter_number}, manga: {_and: {_or: [{slug: {_eq: $manga_slug}}, {id: {_eq: $manga_id}}], status: {_in: ["On-Going", "Finished"]}}}}}) {
+          id
+          chapter_number
+          chapter_name
+          chapter_type
+          thumbnail_url
+          status
+          pushlish_date
+          chapter_languages(where: {chapter: {status: {_eq: "Published"}}}) {
+            language_id
+            detail
+          }
+          comments: social_activities_aggregate {
+            aggregate {
+              count
+            }
+          }
+          views
+          chapters_likes_aggregate {
+            aggregate {
+              count
+            }
+          }
+          chapters_likes(where: {user_id: {_eq: $user_id}}) {
+            id
+            created_at
+            user_id
+            chapter_id
+          }
+        }
+      }
+      `,
+      'GetChapterReadingDetail',
+      variables
+    );
+
+    return result;
+  }
 
   async create(data: CreateMangaRequestDto, files: Array<Express.Multer.File>) {
     const { token } = ContextProvider.getAuthUser();
