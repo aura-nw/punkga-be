@@ -285,20 +285,28 @@ export class ChapterService {
         return result;
       }
 
+      // prepare upload
+      const uploadImagesData = [];
+      chapter_images.chapter_languages.forEach(
+        (chapterLanguage: ChapterLanguage) => {
+          if (chapterLanguage.file_name !== '') {
+            uploadImagesData.push({
+              languageId: chapterLanguage.language_id,
+              filePath: path.join(storageFolder, chapterLanguage.file_name),
+              addImages: chapterLanguage.add_images,
+              deleteImages: chapterLanguage.delete_images,
+            });
+          }
+        }
+      );
+
       // upload chapter languages
       const uploadChapterResult =
         await this.uploadChapterService.uploadChapterLanguagesFiles({
           userId,
           mangaId: manga_id,
           chapterNumber: chapter_number,
-          chapterImages: chapter_images.chapter_languages.map(
-            (chapterLanguage: ChapterLanguage) => ({
-              languageId: chapterLanguage.language_id,
-              filePath: path.join(storageFolder, chapterLanguage.file_name),
-              addImages: chapterLanguage.add_images,
-              deleteImages: chapterLanguage.delete_images,
-            })
-          ),
+          chapterImages: uploadImagesData,
         });
 
       // remove files
