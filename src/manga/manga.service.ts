@@ -23,7 +23,66 @@ export class MangaService {
     private configSvc: ConfigService,
     private filesService: FilesService,
     private graphqlSvc: GraphqlService
-  ) {}
+  ) {
+    this.updateAllSlug();
+  }
+
+  async updateAllSlug() {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query GetAllMangaTitle {
+        manga {
+          id
+          manga_languages(where: {is_main_language: {_eq: true}}) {
+            title
+          }
+        }
+      }`,
+      'GetAllMangaTitle',
+      {}
+    );
+
+    const manga = result.data.manga.map((manga) => {
+      return {
+        id: manga.id,
+        title: manga.manga_languages[0].title,
+        slug: generateSlug(manga.manga_languages[0].title, manga.id),
+      };
+    });
+
+    // update manga many
+    const updates = manga.map((m) => ({
+      where: {
+        id: {
+          _eq: m.id,
+        },
+      },
+      _set: {
+        slug: m.slug,
+      },
+    }));
+
+    const updateResult = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation UpdateSlugMangaMany($updates: [manga_updates!] = {where: {id: {_eq: 10}}, _set: {slug: ""}}) {
+        update_manga_many(updates: $updates) {
+          affected_rows
+        }
+      }`,
+      'UpdateSlugMangaMany',
+      {
+        updates,
+      },
+      {
+        'x-hasura-admin-secret': this.configSvc.get<string>(
+          'graphql.adminSecret'
+        ),
+      }
+    );
+    console.log(JSON.stringify(updateResult));
+  }
 
   async get(slug: string, user_id = '') {
     const { mangaId, mangaSlug } = detectMangaSlugId(slug);
