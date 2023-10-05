@@ -109,7 +109,7 @@ export class ChapterService {
       );
 
       // insert chapter to DB
-      const variables = {
+      const result = await this.chapterGraphql.createChapter(token, {
         manga_id,
         chapter_name,
         chapter_number,
@@ -117,9 +117,7 @@ export class ChapterService {
         pushlish_date,
         status,
         thumbnail_url: newThumbnailUrl,
-      };
-
-      const result = await this.chapterGraphql.createChapter(token, variables);
+      });
 
       if (result.errors && result.errors.length > 0) {
         return result;
@@ -217,7 +215,7 @@ export class ChapterService {
       );
 
       // update chapter
-      const variables = {
+      const result = await this.chapterGraphql.updateChapter(token, {
         id: chapter_id,
         chapter_name,
         chapter_number,
@@ -225,9 +223,7 @@ export class ChapterService {
         pushlish_date,
         status,
         thumbnail_url: newThumbnailUrl !== '' ? newThumbnailUrl : thumbnail_url,
-      };
-
-      const result = await this.chapterGraphql.updateChapter(token, variables);
+      });
 
       if (result.errors && result.errors.length > 0) {
         return result;
