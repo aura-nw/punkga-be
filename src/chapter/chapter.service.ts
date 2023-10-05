@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import * as _ from 'lodash';
 import { appendFileSync, existsSync, renameSync, unlinkSync } from 'fs';
-import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import rimraf from 'rimraf';
 import md5 from 'md5';
@@ -11,8 +10,6 @@ import {
   CreateChapterRequestDto,
 } from './dto/create-chapter-request.dto';
 import { ContextProvider } from '../providers/contex.provider';
-import { GraphqlService } from '../graphql/graphql.service';
-import { FilesService } from '../files/files.service';
 import {
   UpdateChapterImage,
   UpdateChapterParamDto,
@@ -30,9 +27,6 @@ export class ChapterService {
   private readonly logger = new Logger(ChapterService.name);
 
   constructor(
-    private configService: ConfigService,
-    private graphqlSvc: GraphqlService,
-    private filesService: FilesService,
     private mangaService: MangaService,
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService

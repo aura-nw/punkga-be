@@ -41,7 +41,7 @@ export class ChapterController {
   @Roles(Role.Admin)
   upload(
     @Body() data: UploadInputDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File
   ) {
     return this.chapterSvc.upload(data, file);
   }
@@ -55,7 +55,7 @@ export class ChapterController {
   @Roles(Role.Admin)
   create(
     @Body() data: CreateChapterRequestDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.chapterSvc.create(data, files);
   }
@@ -69,7 +69,7 @@ export class ChapterController {
   update(
     @Param() param: UpdateChapterParamDto,
     @Body() data: UpdateChapterRequestDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.chapterSvc.update(param, data, files);
   }

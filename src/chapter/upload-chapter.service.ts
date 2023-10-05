@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { FilesService } from '../files/files.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { IChapterLanguages, IFileInfo, IUploadedFile } from './interfaces';
+import { IFileInfo, IUploadedFile } from './interfaces';
 import path from 'path';
 import { readdirSync } from 'fs';
 import {
