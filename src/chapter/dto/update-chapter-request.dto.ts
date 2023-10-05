@@ -1,16 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
 import { ChapterStatus, ChapterType } from '../../common/enum';
+import { ChapterLanguage } from './create-chapter-request.dto';
 
-export class ChapterLanguage {
-  @ApiProperty()
-  @IsNumber()
-  language_id: number;
-
-  @ApiProperty({ example: 'BC - 1.zip' })
-  @IsString()
-  file_name: string;
-
+export class UpdateChapterLanguage extends ChapterLanguage {
   @ApiProperty({ type: ['string'] })
   add_images: string[];
 
@@ -18,8 +11,8 @@ export class ChapterLanguage {
   delete_images: string[];
 }
 export class UpdateChapterImage {
-  @ApiProperty({ type: [ChapterLanguage] })
-  chapter_languages: ChapterLanguage[];
+  @ApiProperty({ type: [UpdateChapterLanguage] })
+  chapter_languages: UpdateChapterLanguage[];
 }
 
 export class UpdateChapterRequestDto {

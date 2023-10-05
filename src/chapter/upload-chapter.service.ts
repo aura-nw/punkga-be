@@ -1,9 +1,13 @@
 import { ConfigService } from '@nestjs/config';
 import { FilesService } from '../files/files.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { IChapterLanguages, IFileInfo, IUploadedFile } from './interfaces';
+import { IFileInfo, IUploadedFile } from './interfaces';
 import path from 'path';
 import { readdirSync } from 'fs';
+import {
+  ChapterImage,
+  ChapterLanguage,
+} from './dto/create-chapter-request.dto';
 
 @Injectable()
 export class UploadChapterService {
@@ -36,18 +40,40 @@ export class UploadChapterService {
     return thumbnail_url;
   }
 
+  buildUploadImagesData(chapter_images: ChapterImage, storageFolder: string) {
+    const uploadImagesData = [];
+    chapter_images.chapter_languages.forEach(
+      (chapterLanguage: ChapterLanguage) => {
+        if (chapterLanguage.file_name !== '') {
+          uploadImagesData.push({
+            languageId: chapterLanguage.language_id,
+            filePath: path.join(storageFolder, chapterLanguage.file_name),
+          });
+        }
+      }
+    );
+    return uploadImagesData;
+  }
+
   async uploadChapterLanguagesFiles(data: {
     userId: string;
     mangaId: number;
     chapterNumber: number;
-    chapterImages: IChapterLanguages[];
+    storageFolder: string;
+    chapterImages: ChapterImage;
   }): Promise<IUploadedFile[]> {
-    const { userId, mangaId, chapterNumber, chapterImages } = data;
+    const { userId, mangaId, chapterNumber, storageFolder, chapterImages } =
+      data;
+    const uploadImageData = this.buildUploadImagesData(
+      chapterImages,
+      storageFolder
+    );
+
     this.logger.debug(`upload chapter files.. ${JSON.stringify(userId)}`);
 
     // UnZip file
     await Promise.all(
-      chapterImages.map((element) => {
+      uploadImageData.map((element) => {
         const outputPath = path.join(
           __dirname,
           '../../uploads',
@@ -64,7 +90,7 @@ export class UploadChapterService {
     const promises: Promise<IFileInfo>[] = [];
     // const allowedFiles: IFileInfo[] = [];
 
-    chapterImages.forEach((element) => {
+    uploadImageData.forEach((element) => {
       promises.push(
         ...readdirSync(`./uploads/${userId}/unzip/${element.languageId}`).map(
           (f: string) =>

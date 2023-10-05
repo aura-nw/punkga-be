@@ -9,7 +9,7 @@ export class GraphqlService {
     query: string,
     operationName: string,
     variables: any,
-    additionHeaders?: any,
+    additionHeaders?: any
   ) {
     const defaultHeaders = {
       'content-type': 'application/json',
@@ -35,7 +35,7 @@ export class GraphqlService {
         variables,
         operationName,
       },
-      { headers },
+      { headers }
     );
     return response.data;
   }

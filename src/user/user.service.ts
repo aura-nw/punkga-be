@@ -2,24 +2,24 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { Authorizer } from '@authorizerdev/authorizer-js';
-import { GraphqlService } from '../graphql/graphql.service';
 import { ContextProvider } from '../providers/contex.provider';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { FilesService } from '../files/files.service';
+import { UserGraphql } from './user.graphql';
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
   constructor(
     private configService: ConfigService,
-    private graphqlSvc: GraphqlService,
     private filesService: FilesService,
+    private userGraphql: UserGraphql
   ) {}
 
   async updateProfile(
     data: UpdateProfileRequestDto,
-    files: Array<Express.Multer.File>,
+    files: Array<Express.Multer.File>
   ) {
     const { birthdate, gender, bio } = data;
     const { token, userId } = ContextProvider.getAuthUser();
@@ -37,30 +37,13 @@ export class UserService {
     if (pictureFile) {
       const pictureUrl = await this.filesService.uploadImageToS3(
         `user-${userId}`,
-        pictureFile,
+        pictureFile
       );
 
       variables._set.picture = pictureUrl;
     }
 
-    const result = await this.graphqlSvc.query(
-      this.configService.get<string>('graphql.endpoint'),
-      token,
-      `mutation UpdateUserProfile($id: bpchar = "", $_set: authorizer_users_set_input = {bio: "", nickname: ""}) {
-        update_authorizer_users(where: {id: {_eq: $id}}, _set: $_set) {
-          affected_rows
-          returning {
-            email
-            bio
-            picture
-            birthdate
-          }
-        }
-      }
-      `,
-      'UpdateUserProfile',
-      variables,
-    );
+    const result = await this.userGraphql.updateUserProfile(token, variables);
 
     return result;
   }
@@ -78,7 +61,7 @@ export class UserService {
 
     const headers = {
       'x-authorizer-admin-secret': this.configService.get<string>(
-        'authorizer.adminSecret',
+        'authorizer.adminSecret'
       ),
     };
 

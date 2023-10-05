@@ -1,56 +1,31 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
-import { GraphqlService } from '../graphql/graphql.service';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
 import { detectMangaSlugId } from '../utils/utils';
+import { TaskGraphql } from './task.graphql';
 
 @Injectable()
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
   constructor(
     private configService: ConfigService,
-    private graphqlSvc: GraphqlService
+    private taskGraphql: TaskGraphql
   ) {}
 
   // every minute, on the 1st second
   @Cron('1 * * * * *')
   async publishChapter() {
     const timeNow = new Date().toISOString();
-    const { data } = await this.graphqlSvc.query(
-      this.configService.get<string>('graphql.endpoint'),
-      '',
-      `query GetPublishableChapters($pushlish_date: timestamptz!) {
-        chapters(where: {status: {_eq: "Upcoming"}, _and: {status: {_eq: "Upcoming"}, pushlish_date: {_lte: $pushlish_date}}}) {
-          id
-          pushlish_date
-          status
-        }
-      }`,
-      'GetPublishableChapters',
-      {
-        pushlish_date: timeNow,
-      }
-    );
+    const { data } = await this.taskGraphql.getPublishableChapters({
+      pushlish_date: timeNow,
+    });
 
     const publishableChapters = data.chapters;
     if (publishableChapters.length > 0) {
       const ids: number[] = publishableChapters.map((chapter) => chapter.id);
 
-      const result = await this.graphqlSvc.query(
-        this.configService.get<string>('graphql.endpoint'),
-        '',
-        `mutation PublishChapter($ids: [Int!]) {
-        update_chapters(where: {id: {_in: $ids}}, _set: {status: "Published"}) {
-          affected_rows
-          returning {
-            id
-            status
-            pushlish_date
-          }
-        }
-      }`,
-        'PublishChapter',
+      const result = await this.taskGraphql.publishChapter(
         {
           ids,
         },
@@ -127,15 +102,7 @@ export class TasksService {
       },
     }));
 
-    const result = await this.graphqlSvc.query(
-      this.configService.get<string>('graphql.endpoint'),
-      '',
-      `mutation IncreaseChaptersView($updates: [chapters_updates!] = {where: {chapter_number: {_eq: 10}, manga: {_or: [{id: {_eq: 0}}, {slug: {_eq: ""}}]}}, _inc: {views: 10}}) {
-        update_chapters_many(updates: $updates) {
-          affected_rows
-        }
-      }`,
-      'IncreaseChaptersView',
+    const result = await this.taskGraphql.increaseChaptersView(
       {
         updates,
       },
