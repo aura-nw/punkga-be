@@ -4,10 +4,11 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { GraphqlModule } from '../graphql/graphql.module';
 import { FilesModule } from '../files/files.module';
+import { UserGraphql } from './user.graphql';
 
 @Module({
   imports: [JwtModule, GraphqlModule, FilesModule],
-  providers: [UserService],
+  providers: [UserService, UserGraphql],
   controllers: [UserController],
 })
 export class UserModule {}
