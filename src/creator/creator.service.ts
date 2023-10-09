@@ -41,7 +41,6 @@ export class CreatorService {
         bio,
         socials: JSON.parse(socials),
         pen_name,
-        slug: generateSlug(pen_name),
         gender,
         dob,
       });
@@ -62,10 +61,14 @@ export class CreatorService {
         );
 
       // update creator in DB
-      const updateResponse = await this.creatorGraphql.updateAvatar(token, {
-        id: creatorId,
-        avatar_url: avatarUrl,
-      });
+      const updateResponse = await this.creatorGraphql.updateSlugAndAvatar(
+        token,
+        {
+          id: creatorId,
+          slug: generateSlug(pen_name, creatorId),
+          avatar_url: avatarUrl,
+        }
+      );
 
       return updateResponse;
     } catch (errors) {

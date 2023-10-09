@@ -80,10 +80,9 @@ export class CreatorGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `mutation AddCreator($name: String, $bio: String, $socials: jsonb = null, $pen_name: String = "", $profile_picture: String = "", $gender: String = "", $dob: String = "", $avatar_url: String = "", $slug: String = "") {
-      insert_creators_one(object: {name: $name, bio: $bio, socials: $socials, pen_name: $pen_name, gender: $gender, dob: $dob, avatar_url: $avatar_url, slug: $slug}) {
+      `mutation AddCreator($name: String, $bio: String, $socials: jsonb = null, $pen_name: String = "", $profile_picture: String = "", $gender: String = "", $dob: String = "", $avatar_url: String = "") {
+      insert_creators_one(object: {name: $name, bio: $bio, socials: $socials, pen_name: $pen_name, gender: $gender, dob: $dob, avatar_url: $avatar_url}) {
         id
-        slug
         name
         socials
         created_at
@@ -95,18 +94,18 @@ export class CreatorGraphql {
     );
   }
 
-  updateAvatar(token: string, variables: any) {
+  updateSlugAndAvatar(token: string, variables: any) {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `mutation UpdateAvatar($id: Int = 10, $avatar_url: String = "") {
-      update_creators_by_pk(pk_columns: {id: $id}, _set: {avatar_url: $avatar_url}) {
+      `mutation UpdateSlugAndAvatar($id: Int = 10, $avatar_url: String = ""), $slug: String = "" {
+      update_creators_by_pk(pk_columns: {id: $id}, _set: {avatar_url: $avatar_url, slug: $slug}) {
         id
         avatar_url
       }
     }
     `,
-      'UpdateAvatar',
+      'UpdateSlugAndAvatar',
       variables
     );
   }
