@@ -98,7 +98,7 @@ export class CreatorGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `mutation UpdateSlugAndAvatar($id: Int = 10, $avatar_url: String = ""), $slug: String = "" {
+      `mutation UpdateSlugAndAvatar($id: Int = 10, $avatar_url: String = "", $slug: String = "") {
       update_creators_by_pk(pk_columns: {id: $id}, _set: {avatar_url: $avatar_url, slug: $slug}) {
         id
         avatar_url
