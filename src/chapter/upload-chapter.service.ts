@@ -27,14 +27,10 @@ export class UploadChapterService {
     const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
     let thumbnail_url = '';
     if (thumbnail) {
-      const thumbnailFile = await this.filesService.detectFile(
-        `./uploads/${userId}`,
-        thumbnail.originalname
-      );
       thumbnail_url = await this.filesService.uploadThumbnailToS3(
         manga_id,
         chapter_number,
-        thumbnailFile
+        thumbnail
       );
     }
     return thumbnail_url;
@@ -117,6 +113,7 @@ export class UploadChapterService {
       return {
         name: file.fileName,
         key_name: keyName,
+        type: file.type,
 
         upload_path: file.fullPath,
         image_path: new URL(
@@ -129,6 +126,7 @@ export class UploadChapterService {
     });
 
     // upload files
+
     // chunk array to small array
     const chunkSize = 4;
     for (let i = 0; i < uploadFiles.length; i += chunkSize) {
@@ -139,7 +137,7 @@ export class UploadChapterService {
       try {
         await Promise.all(
           chunked.map((f) =>
-            this.filesService.uploadToS3(f.key_name, f.upload_path)
+            this.filesService.uploadToS3(f.key_name, f.upload_path, f.type)
           )
         );
       } catch (error) {

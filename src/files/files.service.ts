@@ -56,16 +56,15 @@ export class FilesService {
   async uploadThumbnailToS3(
     mangaId: number,
     chapterNumber: number,
-    thumbnail: IFileInfo
+    file: Express.Multer.File
   ): Promise<string> {
-    if (!thumbnail.type.includes('image')) {
+    if (!file.mimetype.includes('image')) {
       throw Error('thumbnail not valid');
     }
     const s3SubFolder =
       this.configService.get<string>('aws.s3SubFolder') || 'images';
-    const keyName = `${s3SubFolder}/manga-${mangaId}/chapter-${chapterNumber}/${thumbnail.fileName}`;
-    const filePath = thumbnail.fullPath;
-    const result = await this.uploadToS3(keyName, filePath);
+    const keyName = `${s3SubFolder}/manga-${mangaId}/chapter-${chapterNumber}/${file.originalname}`;
+    const result = await this.uploadToS3(keyName, file.buffer, file.mimetype);
 
     if (result.$metadata.httpStatusCode !== 200) {
       throw new Error('Upload thumbnail fail' + JSON.stringify(result));
@@ -87,7 +86,7 @@ export class FilesService {
     const keyName = `${s3SubFolder}/${key}/${f.originalname}`;
 
     const extension = f.originalname.split('.').pop();
-    await this.uploadToS3(keyName, f.buffer, extension);
+    await this.uploadToS3(keyName, f.buffer, f.mimetype, extension);
     return new URL(keyName, this.configService.get<string>('aws.queryEndpoint'))
       .href;
   }
@@ -95,6 +94,7 @@ export class FilesService {
   async uploadToS3(
     keyName: string,
     filePath: string | Buffer,
+    mimetype: string,
     extension?: string
   ) {
     const file =
@@ -115,6 +115,7 @@ export class FilesService {
       Bucket: bucketName,
       Key: keyName,
       Body: file,
+      ContentType: mimetype,
     };
 
     if (extension && extension === 'svg')
