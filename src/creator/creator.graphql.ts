@@ -9,6 +9,73 @@ export class CreatorGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  queryCreatorByIdOrSlug(variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query QueryCreatorByIdOrSlug($id: Int = 0, $slug: String = "") {
+        creators(where: {_or: [{id: {_eq: $id}}, {slug: {_eq: $slug}}]}) {
+          id
+          avatar_url
+          bio
+          dob
+          gender
+          name
+          pen_name
+          socials
+          total_subscribers
+          isActive
+          created_at
+          manga_creators(where: {manga: {status: {_neq: "Removed"}}}) {
+            manga {
+              id
+              status
+              poster
+              banner
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                  id
+                }
+              }
+              manga_total_likes {
+                likes
+              }
+              manga_total_views {
+                views
+              }
+              manga_tags {
+                tag {
+                  tag_languages {
+                    language_id
+                    value
+                  }
+                  id
+                }
+              }
+              chapters(limit: 1, order_by: {chapter_number: desc}, where: {status: {_eq: "Published"}}) {
+                id
+                chapter_number
+                chapter_name
+              }
+              contract_addresses
+              manga_languages {
+                id
+                is_main_language
+                title
+                description
+              }
+            }
+          }
+        }
+      }
+      `,
+      'QueryCreatorByIdOrSlug',
+      variables
+    );
+  }
+
   addCreator(token: string, variables: any) {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),

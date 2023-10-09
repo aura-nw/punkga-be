@@ -1,4 +1,4 @@
-export interface IMangaSlugId {
-  mangaId: number;
-  mangaSlug: string;
+export interface ISlugId {
+  id: number;
+  slug: string;
 }

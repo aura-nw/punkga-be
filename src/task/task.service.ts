@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
-import { detectMangaSlugId } from '../utils/utils';
 import { TaskGraphql } from './task.graphql';
+import { detectSlugOrId } from '../utils/utils';
 
 @Injectable()
 export class TasksService {
@@ -73,7 +73,7 @@ export class TasksService {
         )
         .split('/');
 
-      const { mangaId, mangaSlug } = detectMangaSlugId(arr[0]);
+      const { id: mangaId, slug: mangaSlug } = detectSlugOrId(arr[0]);
       const chapterNumber = arr[2];
 
       return {

@@ -1,17 +1,17 @@
-import { IMangaSlugId } from './utils.interface';
+import { ISlugId } from './utils.interface';
 
-export function detectMangaSlugId(text: any): IMangaSlugId {
-  let mangaId = 0;
-  let mangaSlug = '';
+export function detectSlugOrId(text: any): ISlugId {
+  let id = 0;
+  let slug = '';
 
   if (isNaN(text)) {
-    mangaSlug = text;
+    slug = text;
   } else {
-    mangaId = Number(text);
+    id = Number(text);
   }
 
   return {
-    mangaId,
-    mangaSlug,
+    id,
+    slug,
   };
 }

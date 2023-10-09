@@ -1,4 +1,4 @@
-export function generateSlug(name: string, id: number) {
+export function generateSlug(name: string, id?: number) {
   let prefix = name
     .normalize('NFKD') // decompose 1 single code point into multiple combining ones e.g. "ñ" -> "\u006E\u0303"
     .replace(/[\u0300-\u036f]/g, '') // Remove "Combining Diacritical Marks" https://www.ssec.wisc.edu/~tomw/java/unicode.html#x0300
@@ -14,5 +14,5 @@ export function generateSlug(name: string, id: number) {
     prefix = prefix.slice(1);
   }
 
-  return `${prefix}_${id}`;
+  return id ? `${prefix}_${id}` : prefix;
 }

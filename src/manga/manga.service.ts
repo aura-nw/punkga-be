@@ -12,7 +12,7 @@ import { FilesService } from '../files/files.service';
 import { GraphqlService } from '../graphql/graphql.service';
 import { UpdateMangaRequestDto } from './dto/update-manga-request.dto';
 import { generateSlug } from './util';
-import { detectMangaSlugId } from '../utils/utils';
+import { detectSlugOrId } from '../utils/utils';
 import { GetChapterByMangaParamDto } from './dto/get-chapter-by-manga-request.dto';
 import { MangaGraphql } from './manga.graphql';
 
@@ -28,10 +28,10 @@ export class MangaService {
   ) {}
 
   async get(slug: string, user_id = '') {
-    const { mangaId, mangaSlug } = detectMangaSlugId(slug);
+    const { id, slug: mangaSlug } = detectSlugOrId(slug);
 
     const result = await this.mangaGraphql.queryMangaByIdOrSlug({
-      id: mangaId,
+      id,
       slug: mangaSlug,
       user_id,
     });
@@ -41,7 +41,7 @@ export class MangaService {
 
   async getChapterByManga(param: GetChapterByMangaParamDto, user_id: string) {
     const { slug, chapter_number } = param;
-    const { mangaId, mangaSlug } = detectMangaSlugId(slug);
+    const { id: mangaId, slug: mangaSlug } = detectSlugOrId(slug);
 
     const result = await this.mangaGraphql.getChapterReadingDetail({
       manga_slug: mangaSlug,

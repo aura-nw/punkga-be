@@ -28,6 +28,7 @@ select_permissions:
         - isActive
         - name
         - pen_name
+        - slug
         - socials
         - subcribers
         - updated_at
@@ -47,6 +48,7 @@ select_permissions:
         - isActive
         - name
         - pen_name
+        - slug
         - socials
         - subcribers
         - updated_at

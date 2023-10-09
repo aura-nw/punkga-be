@@ -4,6 +4,8 @@ import { ContextProvider } from '../providers/contex.provider';
 import { FilesService } from '../files/files.service';
 import { UpdateCreatorRequestDto } from './dto/update-creator-request.dto';
 import { CreatorGraphql } from './creator.graphql';
+import { generateSlug } from '../manga/util';
+import { detectSlugOrId } from '../utils/utils';
 
 @Injectable()
 export class CreatorService {
@@ -13,6 +15,17 @@ export class CreatorService {
     private filesService: FilesService,
     private creatorGraphql: CreatorGraphql
   ) {}
+
+  async get(slug: string) {
+    const { id, slug: mangaSlug } = detectSlugOrId(slug);
+
+    const result = await this.creatorGraphql.queryCreatorByIdOrSlug({
+      id,
+      slug: mangaSlug,
+    });
+
+    return result;
+  }
 
   async create(
     data: CreateCreatorRequestDto,
@@ -28,6 +41,7 @@ export class CreatorService {
         bio,
         socials: JSON.parse(socials),
         pen_name,
+        slug: generateSlug(pen_name),
         gender,
         dob,
       });
