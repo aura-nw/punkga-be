@@ -24,7 +24,7 @@ export class MangaService {
     private filesService: FilesService,
     private graphqlSvc: GraphqlService
   ) {
-    this.updateAllSlug();
+    // this.updateAllSlug();
   }
 
   async updateAllSlug() {

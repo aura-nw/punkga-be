@@ -5,6 +5,7 @@ import { ContextProvider } from '../providers/contex.provider';
 import { FilesService } from '../files/files.service';
 import { GraphqlService } from '../graphql/graphql.service';
 import { UpdateCreatorRequestDto } from './dto/update-creator-request.dto';
+import { generateSlug } from '../manga/util';
 
 @Injectable()
 export class CreatorService {
@@ -13,12 +14,64 @@ export class CreatorService {
   constructor(
     private configSvc: ConfigService,
     private filesService: FilesService,
-    private graphqlSvc: GraphqlService,
-  ) {}
+    private graphqlSvc: GraphqlService
+  ) {
+    // this.updateAllSlug();
+  }
+
+  async updateAllSlug() {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query GetCreators {
+        creators {
+          id
+          pen_name
+        }
+      }`,
+      'GetCreators',
+      {}
+    );
+
+    // update manga many
+    const updates = result.data.creators.map((creator) => ({
+      where: {
+        id: {
+          _eq: creator.id,
+        },
+      },
+      _set: {
+        slug:
+          creator.pen_name === null
+            ? generateSlug('', creator.id)
+            : generateSlug(creator.pen_name, creator.id),
+      },
+    }));
+
+    const updateResult = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation UpdateSlugCreators($updates: [creators_updates!] = {where: {id: {_eq: 10}}, _set: {slug: ""}}) {
+        update_creators_many(updates: $updates) {
+          affected_rows
+        }
+      }`,
+      'UpdateSlugCreators',
+      {
+        updates,
+      },
+      {
+        'x-hasura-admin-secret': this.configSvc.get<string>(
+          'graphql.adminSecret'
+        ),
+      }
+    );
+    console.log(JSON.stringify(updateResult));
+  }
 
   async create(
     data: CreateCreatorRequestDto,
-    files: Array<Express.Multer.File>,
+    files: Array<Express.Multer.File>
   ) {
     try {
       const { token } = ContextProvider.getAuthUser();
@@ -46,7 +99,7 @@ export class CreatorService {
         }
       }`,
         'AddCreator',
-        variables,
+        variables
       );
 
       if (result.errors && result.errors.length > 0) {
@@ -61,7 +114,7 @@ export class CreatorService {
       if (avatarFile)
         avatarUrl = await this.filesService.uploadImageToS3(
           `creator-${creatorId}`,
-          avatarFile,
+          avatarFile
         );
 
       // update creator in DB
@@ -80,7 +133,7 @@ export class CreatorService {
       }
       `,
         'UpdateAvatar',
-        updateVariables,
+        updateVariables
       );
 
       return updateResponse;
@@ -94,7 +147,7 @@ export class CreatorService {
   async update(
     creatorId: number,
     data: UpdateCreatorRequestDto,
-    files: Array<Express.Multer.File>,
+    files: Array<Express.Multer.File>
   ) {
     const { token } = ContextProvider.getAuthUser();
     const { name, socials, pen_name, bio, gender, dob } = data;
@@ -112,7 +165,7 @@ export class CreatorService {
       'QueryCreatorById',
       {
         id: creatorId,
-      },
+      }
     );
 
     if (result.errors && result.errors.length > 0) {
@@ -130,7 +183,7 @@ export class CreatorService {
     if (avatarFile)
       avatarUrl = await this.filesService.uploadImageToS3(
         `creator-${creatorId}`,
-        avatarFile,
+        avatarFile
       );
 
     // update creator in DB
@@ -162,7 +215,7 @@ export class CreatorService {
       }
       `,
       'AddCreator',
-      variables,
+      variables
     );
 
     return updateResult;
