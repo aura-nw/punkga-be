@@ -25,6 +25,7 @@ export class MangaGraphql {
           manga_creators {
             creator {
               id
+              slug
               name
               pen_name
               isActive

@@ -39,6 +39,7 @@ export class CreatorGraphql {
                   name
                   pen_name
                   id
+                  slug
                 }
               }
               manga_total_likes {
