@@ -16,6 +16,7 @@ export class CreatorGraphql {
       `query QueryCreatorByIdOrSlug($id: Int = 0, $slug: String = "") {
         creators(where: {_or: [{id: {_eq: $id}}, {slug: {_eq: $slug}}]}) {
           id
+          slug
           avatar_url
           bio
           dob
@@ -29,6 +30,7 @@ export class CreatorGraphql {
           manga_creators(where: {manga: {status: {_neq: "Removed"}}}) {
             manga {
               id
+              slug
               status
               poster
               banner
