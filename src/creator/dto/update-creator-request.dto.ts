@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNumber } from 'class-validator';
 
@@ -8,7 +8,7 @@ export class UpdateCreatorRequestDto {
 
   @ApiProperty()
   @Transform(({ value }) =>
-    value.split('\\n').join('\n').split('\\t').join('\t'),
+    value.split('\\n').join('\n').split('\\t').join('\t')
   )
   bio: string;
 
@@ -21,7 +21,7 @@ export class UpdateCreatorRequestDto {
   @ApiProperty()
   gender: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   dob: string;
 
   @ApiProperty({ type: 'string', format: 'binary' })
