@@ -3,7 +3,7 @@ import { IsString } from 'class-validator';
 import { Gender } from '../../common/enum';
 
 export class UpdateProfileRequestDto {
-  @ApiProperty({ example: '2020-07-05' })
+  @ApiPropertyOptional({ example: '2020-07-05' })
   @IsString()
   birthdate: string;
 
