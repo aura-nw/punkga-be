@@ -2,6 +2,7 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Get,
   Param,
   Post,
   Put,
@@ -22,11 +23,17 @@ import {
   UpdateCreatorParamDto,
   UpdateCreatorRequestDto,
 } from './dto/update-creator-request.dto';
+import { GetCreatorParamDto } from './dto/get-creator-request.dto';
 
 @Controller('creator')
 @ApiTags('creator')
 export class CreatorController {
   constructor(private readonly creatorSvc: CreatorService) {}
+
+  @Get(':slug')
+  get(@Param() param: GetCreatorParamDto) {
+    return this.creatorSvc.get(param.slug);
+  }
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -36,7 +43,7 @@ export class CreatorController {
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   create(
     @Body() data: CreateCreatorRequestDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.creatorSvc.create(data, files);
   }
@@ -49,12 +56,12 @@ export class CreatorController {
   @UseInterceptors(
     AuthUserInterceptor,
     ClassSerializerInterceptor,
-    AnyFilesInterceptor(),
+    AnyFilesInterceptor()
   )
   update(
     @Param() param: UpdateCreatorParamDto,
     @Body() data: UpdateCreatorRequestDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     const { creatorId } = param;
     return this.creatorSvc.update(creatorId, data, files);
