@@ -1,0 +1,11 @@
+table:
+  name: campaign
+  schema: public
+array_relationships:
+  - name: campaign_quests
+    using:
+      foreign_key_constraint_on:
+        column: campaign_id
+        table:
+          name: quests
+          schema: public
