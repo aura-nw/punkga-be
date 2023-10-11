@@ -137,6 +137,33 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Admin - Get quest by id
+  methods:
+    - GET
+  name: Admin - Get quest by id
+  url: admin/quests/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Update quest
+  methods:
+    - PUT
+  name: Admin - Update quest
+  url: admin/quests/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete quest
+  methods:
+    - DELETE
+  name: Admin - Delete quest
+  url: admin/quests/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Admin - Create Tag
   methods:
     - POST
@@ -313,33 +340,6 @@
     - GET
   name: Public - Query User
   url: public/users/:user_id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: quests_by_pk
-  methods:
-    - GET
-  name: quests_by_pk
-  url: quests/:id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: delete_quests_by_pk
-  methods:
-    - DELETE
-  name: delete_quests_by_pk
-  url: quests/:id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: update_quests_by_pk
-  methods:
-    - POST
-  name: update_quests_by_pk
-  url: quests/:id
 - comment: ""
   definition:
     query:
