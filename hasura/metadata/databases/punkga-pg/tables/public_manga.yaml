@@ -21,13 +21,6 @@ object_relationships:
           name: manga_total_views
           schema: public
 array_relationships:
-  - name: bookshelves
-    using:
-      foreign_key_constraint_on:
-        column: manga_id
-        table:
-          name: bookshelf
-          schema: public
   - name: chapters
     using:
       foreign_key_constraint_on:

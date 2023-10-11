@@ -1,0 +1,1 @@
+CREATE TABLE "public"."quests" ("id" serial NOT NULL, "name" text NOT NULL, "type" text NOT NULL, "condition" jsonb NOT NULL, "requirement" jsonb NOT NULL, "reward" jsonb NOT NULL, "status" text NOT NULL, PRIMARY KEY ("id") );

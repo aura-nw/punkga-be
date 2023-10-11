@@ -1,0 +1,7 @@
+table:
+  name: quests
+  schema: public
+object_relationships:
+  - name: quests_campaign
+    using:
+      foreign_key_constraint_on: campaign_id

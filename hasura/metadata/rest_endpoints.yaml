@@ -2,6 +2,51 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Admin - Query all campaign
+  methods:
+    - GET
+  name: Admin - Query all campaign
+  url: admin/campaign
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Create Campaign
+  methods:
+    - POST
+  name: Admin - Create Campaign
+  url: admin/campaign
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Query campaign detail
+  methods:
+    - GET
+  name: Admin - Query campaign detail
+  url: admin/campaign/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete campaign
+  methods:
+    - DELETE
+  name: Admin - Delete campaign
+  url: admin/campaign/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Update campaign
+  methods:
+    - PUT
+  name: Admin - Update campaign
+  url: admin/campaign/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Admin - Query creators
   methods:
     - GET
@@ -79,6 +124,42 @@
     - GET
   name: Admin - Get chapter detail
   url: admin/manga/:manga_id/chapters/:chapter_number
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Create Quest
+  methods:
+    - POST
+  name: Admin - Create Quest
+  url: admin/quests
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Get quest by id
+  methods:
+    - GET
+  name: Admin - Get quest by id
+  url: admin/quests/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Update quest
+  methods:
+    - PUT
+  name: Admin - Update quest
+  url: admin/quests/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete quest
+  methods:
+    - DELETE
+  name: Admin - Delete quest
+  url: admin/quests/:id
 - comment: ""
   definition:
     query:

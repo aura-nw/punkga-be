@@ -829,3 +829,140 @@
               user_id
             }
           }
+      - name: Admin - Query all campaign
+        query: |
+          query campaign {
+            campaign {
+              created_at
+              end_date
+              id
+              name
+              start_date
+              updated_at
+              campaign_quests_aggregate(where: {status:{_eq:"Publish"}}) {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+      - name: Admin - Query campaign detail
+        query: |
+          query campaign_by_pk ($id: Int!) {
+            campaign_by_pk(id: $id) {
+              created_at
+              updated_at
+              id
+              name
+              start_date
+              end_date
+              campaign_quests {
+                created_at
+                updated_at
+                id
+                name
+                type
+                condition
+                reward
+                status
+              }
+            }
+          }
+      - name: Admin - Delete campaign
+        query: |
+          mutation delete_campaign_by_pk ($id: Int!) {
+            delete_quests(where: {campaign_id:{_eq:$id}}) {
+              affected_rows
+            }
+            delete_campaign_by_pk(id: $id) {
+              id
+            }
+          }
+      - name: Admin - Create Campaign
+        query: |
+          mutation insert_campaign_one ($name: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "") {
+            insert_campaign(objects: {name:$name,start_date:$start_date,end_date:$end_date}) {
+              returning {
+                id
+                name
+                start_date
+                end_date
+              }
+            }
+          }
+      - name: Admin - Update campaign
+        query: |
+          mutation update_campaign ($id: Int!, $name: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "") {
+            update_campaign(where: {id:{_eq:$id}}, _set: {name:$name,start_date:$start_date,end_date:$end_date}) {
+              returning {
+                id
+                name
+                start_date
+                end_date
+                updated_at
+              }
+              affected_rows
+            }
+          }
+      - name: Admin - Create Quest
+        query: |
+          mutation insert_quests ($name: String = "", $type: String = "", $condition: jsonb = "", $requirement: jsonb = "", $reward: jsonb = "", $status: String = "", $campaign_id: Int = 10) {
+            insert_quests(objects: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,campaign_id:$campaign_id}) {
+              affected_rows
+              returning {
+                id
+                name
+                campaign_id
+                status
+              }
+            }
+          }
+      - name: Admin - Get quest by id
+        query: |
+          query quests_by_pk ($id: Int!) {
+            quests_by_pk(id: $id) {
+              campaign_id
+              condition
+              created_at
+              id
+              name
+              requirement
+              reward
+              status
+              type
+              updated_at
+              quests_campaign {
+                name
+                created_at
+              }
+            }
+          }
+      - name: Admin - Update quest
+        query: |
+          mutation update_quests ($name: String = "", $type: String = "", $condition: jsonb = "", $requirement: jsonb = "", $reward: jsonb = "", $status: String = "", $id: Int!) {
+            update_quests(where: {id:{_eq:$id}}, _set: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status}) {
+              affected_rows
+              returning {
+                id
+                name
+                status
+                updated_at
+              }
+            }
+          }
+      - name: Admin - Delete quest
+        query: |
+          mutation delete_quests_by_pk ($id: Int!) {
+            delete_quests_by_pk(id: $id) {
+              campaign_id
+              condition
+              created_at
+              id
+              name
+              requirement
+              reward
+              status
+              type
+              updated_at
+            }
+          }
