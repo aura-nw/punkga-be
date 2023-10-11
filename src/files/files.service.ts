@@ -78,15 +78,12 @@ export class FilesService {
     if (!f.mimetype.includes('image')) {
       throw Error('file type is not valid');
     }
-    // const keyName = `manga-${mangaId}/${f.fieldname}.${f.originalname
-    //   .split('.')
-    //   .pop()}`;
+
     const s3SubFolder =
       this.configService.get<string>('aws.s3SubFolder') || 'images';
     const keyName = `${s3SubFolder}/${key}/${f.originalname}`;
 
-    const extension = f.originalname.split('.').pop();
-    await this.uploadToS3(keyName, f.buffer, f.mimetype, extension);
+    await this.uploadToS3(keyName, f.buffer, f.mimetype);
     return new URL(keyName, this.configService.get<string>('aws.queryEndpoint'))
       .href;
   }
@@ -94,8 +91,7 @@ export class FilesService {
   async uploadToS3(
     keyName: string,
     filePath: string | Buffer,
-    mimetype: string,
-    extension?: string
+    mimetype: string
   ) {
     const file =
       typeof filePath === 'string' ? readFileSync(filePath) : filePath;
@@ -117,11 +113,6 @@ export class FilesService {
       Body: file,
       ContentType: mimetype,
     };
-
-    if (extension && extension === 'svg')
-      input.Metadata = {
-        'Content-Type': 'image/svg+xml',
-      };
 
     // Create a promise on S3 service object
     const command = new PutObjectCommand(input);

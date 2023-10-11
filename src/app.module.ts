@@ -11,6 +11,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './task/task.module';
 import { CreatorModule } from './creator/creator.module';
 import { APP_PIPE } from '@nestjs/core';
+import { QuestModule } from './quest/quest.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { APP_PIPE } from '@nestjs/core';
     FilesModule,
     GraphqlModule,
     UserModule,
+    QuestModule,
   ],
   controllers: [],
   providers: [
