@@ -1,28 +1,34 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { KeysGraphql } from './keys.graphql';
+import { KMSBuilderService } from './kms.service';
+import { randomSeed } from './util';
 
 @Injectable()
-export class SysKeyService {
+export class SysKeyService implements OnModuleInit {
   private readonly logger = new Logger(SysKeyService.name);
   private seed = '';
 
   constructor(
-    private configService: ConfigService,
     private keysGraphql: KeysGraphql,
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache
+    private kmsService: KMSBuilderService
   ) {}
 
-  async instantiate() {
-    // get seed from cache
-    let seed = await this.cacheManager.get<string>('original-seed');
+  async onModuleInit() {
+    // get from db
+    const result = await this.keysGraphql.queryEncryptedSeed();
 
-    if (seed === null) {
-      // get from db
-      const encryptedSeed = this.keysGraphql.queryEncryptedSystemKey();
+    if (result) {
+      const encryptedSeed = result.encrypted_seed;
+      this.seed = await this.kmsService.getSeed(encryptedSeed);
+    } else {
+      this.seed = randomSeed();
+      // encrypt seed & store db
+      const encryptedSeed = await this.kmsService.encryptSeed(this.seed);
+      await this.keysGraphql.storeEncryptedSeed(encryptedSeed);
     }
+  }
+
+  print() {
+    this.logger.log(this.seed);
   }
 }

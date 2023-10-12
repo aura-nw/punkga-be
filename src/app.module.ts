@@ -14,6 +14,7 @@ import { MangaModule } from './manga/manga.module';
 import { TasksModule } from './task/task.module';
 import { UserModule } from './user/user.module';
 import { QuestModule } from './quest/quest.module';
+import { SysKeyModule } from './keys/syskey.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { QuestModule } from './quest/quest.module';
     GraphqlModule,
     UserModule,
     QuestModule,
+    SysKeyModule,
   ],
   controllers: [],
   providers: [

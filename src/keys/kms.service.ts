@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { Secp256k1HdWallet } from '@cosmjs/amino';
 import { GasPrice } from '@cosmjs/stargate';
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import { RequestService } from '../request/request.service';
 
 @Injectable()
 export class KMSBuilderService {
@@ -12,28 +11,12 @@ export class KMSBuilderService {
   private SystemKey = null;
   private KMS: KMSService = null;
 
-  constructor(
-    private requestService: RequestService,
-    private configService: ConfigService
-  ) {}
-
-  async loadKMS() {
-    if (this.KMS) return this.KMS;
-    const KMS_ACCESS_KEY_ID = this.configService.get<string>(
-      'kms.KMS_ACCESS_KEY_ID'
-    );
-    const KMS_SECRET_ACCESS_KEY = this.configService.get<string>(
-      'kms.KMS_SECRET_ACCESS_KEY'
-    );
-    const KMS_REGION = this.configService.get<string>('kms.KMS_REGION');
-    const KMS_API_VERSION = this.configService.get<string>(
-      'kms.KMS_API_VERSION'
-    );
-    return new KMSService(
-      KMS_ACCESS_KEY_ID,
-      KMS_SECRET_ACCESS_KEY,
-      KMS_REGION,
-      KMS_API_VERSION
+  constructor(private configService: ConfigService) {
+    this.KMS = new KMSService(
+      this.configService.get<string>('kms.accessKeyId'),
+      this.configService.get<string>('kms.secretAccessKey'),
+      this.configService.get<string>('kms.region'),
+      this.configService.get<string>('kms.apiVersion')
     );
   }
 
@@ -47,45 +30,52 @@ export class KMSBuilderService {
     return originalSeed;
   }
 
-  async getClient(wallet: Secp256k1HdWallet) {
-    const rpcEndpoint = this.configService.get<string>('rpc.endpoint');
-    const gasPrice = GasPrice.fromString(
-      this.configService.get<string>('aura.gasprice')
-    );
-    return SigningCosmWasmClient.connectWithSigner(rpcEndpoint, wallet, {
-      gasPrice,
-    });
+  async encryptSeed(seed: string) {
+    const keyId = 'alias/' + this.configService.get<string>('kms.alias');
+    const encryptedData = await this.KMS.encrypt(keyId, seed);
+
+    return Buffer.from(encryptedData.CiphertextBlob).toString('base64');
   }
 
-  async transferToken(senderInfo: any, msgs: any, memo: string, token: string) {
-    // try {
-    const data = senderInfo.encrypt_key;
-    const deserializeData = {
-      type: 'secp256k1wallet-v1',
-      kdf: {
-        algorithm: 'argon2id',
-        params: { outputLength: 32, opsLimit: 24, memLimitKib: 12288 },
-      },
-      encryption: { algorithm: 'xchacha20poly1305-ietf' },
-      data: data,
-    };
-    // get secret key
-    if (!this.SystemKey) {
-      this.SystemKey = await this.getSystemKey(token);
-    }
-    const wallet = await Secp256k1HdWallet.deserialize(
-      JSON.stringify(deserializeData),
-      this.SystemKey
-    );
-    const client = await this.getClient(wallet);
+  // async getClient(wallet: Secp256k1HdWallet) {
+  //   const rpcEndpoint = this.configService.get<string>('rpc.endpoint');
+  //   const gasPrice = GasPrice.fromString(
+  //     this.configService.get<string>('aura.gasprice')
+  //   );
+  //   return SigningCosmWasmClient.connectWithSigner(rpcEndpoint, wallet, {
+  //     gasPrice,
+  //   });
+  // }
 
-    const result = await client.signAndBroadcast(
-      senderInfo.wallet_address,
-      msgs,
-      'auto'
-      // memo,
-    );
+  // async transferToken(senderInfo: any, msgs: any, memo: string, token: string) {
+  //   // try {
+  //   const data = senderInfo.encrypt_key;
+  //   const deserializeData = {
+  //     type: 'secp256k1wallet-v1',
+  //     kdf: {
+  //       algorithm: 'argon2id',
+  //       params: { outputLength: 32, opsLimit: 24, memLimitKib: 12288 },
+  //     },
+  //     encryption: { algorithm: 'xchacha20poly1305-ietf' },
+  //     data: data,
+  //   };
+  //   // get secret key
+  //   if (!this.SystemKey) {
+  //     this.SystemKey = await this.getSystemKey(token);
+  //   }
+  //   const wallet = await Secp256k1HdWallet.deserialize(
+  //     JSON.stringify(deserializeData),
+  //     this.SystemKey
+  //   );
+  //   const client = await this.getClient(wallet);
 
-    return result.transactionHash;
-  }
+  //   const result = await client.signAndBroadcast(
+  //     senderInfo.wallet_address,
+  //     msgs,
+  //     'auto'
+  //     // memo,
+  //   );
+
+  //   return result.transactionHash;
+  // }
 }
