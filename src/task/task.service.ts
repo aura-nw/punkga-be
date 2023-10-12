@@ -53,7 +53,7 @@ export class TasksService {
       : '';
 
     const regex = new RegExp(
-      `https://${subdomain_pattern}punkga\.me(\/[A-Za-z]+)?\/comic\/[0-9]+\/chapter\/[0-9]+`,
+      `https://${subdomain_pattern}punkga\.me(\/[A-Za-z]+)?\/comic\/[A-Za-z0-9_]+\/chapter\/[0-9]+`,
       'i'
     );
 
@@ -66,7 +66,7 @@ export class TasksService {
       const arr = url
         .replace(
           new RegExp(
-            `https://${subdomain_pattern}punkga\.me(\/[A-Za-z]+)?\/comic\/`,
+            `https://${subdomain_pattern}punkga\.me(\/[A-Za-z0-9_]+)?\/comic\/`,
             'i'
           ),
           ''
