@@ -834,11 +834,10 @@
           query campaign {
             campaign {
               created_at
-              end_date
+              updated_at
               id
               name
-              start_date
-              updated_at
+              status
               campaign_quests_aggregate(where: {status:{_eq:"Publish"}}) {
                 aggregate {
                   count
@@ -854,8 +853,7 @@
               updated_at
               id
               name
-              start_date
-              end_date
+              status
               campaign_quests {
                 created_at
                 updated_at
@@ -880,25 +878,23 @@
           }
       - name: Admin - Create Campaign
         query: |
-          mutation insert_campaign_one ($name: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "") {
-            insert_campaign(objects: {name:$name,start_date:$start_date,end_date:$end_date}) {
+          mutation insert_campaign_one ($name: String = "", $status: String = "") {
+            insert_campaign(objects: {name:$name,status:$status}) {
               returning {
                 id
                 name
-                start_date
-                end_date
+                status
               }
             }
           }
       - name: Admin - Update campaign
         query: |
-          mutation update_campaign ($id: Int!, $name: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "") {
-            update_campaign(where: {id:{_eq:$id}}, _set: {name:$name,start_date:$start_date,end_date:$end_date}) {
+          mutation update_campaign ($id: Int!, $name: String = "", $status: String = "") {
+            update_campaign(where: {id:{_eq:$id}}, _set: {name:$name,status:$status}) {
               returning {
                 id
                 name
-                start_date
-                end_date
+                status
                 updated_at
               }
               affected_rows
