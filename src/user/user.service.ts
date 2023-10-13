@@ -1,15 +1,10 @@
-import * as bip39 from 'bip39';
-
 import { Authorizer } from '@authorizerdev/authorizer-js';
-import { Secp256k1HdWallet } from '@cosmjs/amino';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { FilesService } from '../files/files.service';
-import { SysKeyService } from '../keys/syskey.service';
 import { ContextProvider } from '../providers/contex.provider';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
-import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { UserGraphql } from './user.graphql';
@@ -20,36 +15,8 @@ export class UserService {
   constructor(
     private configService: ConfigService,
     private filesService: FilesService,
-    private userGraphql: UserGraphql,
-    private sysKeyService: SysKeyService
+    private userGraphql: UserGraphql
   ) {}
-
-  async generateWallet(headers: any, data: GenerateWalletRequestDto) {
-    const webHookSecret = this.configService.get<string>('webhook.secret');
-    if (!webHookSecret || headers['webhook-secret'] !== webHookSecret)
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-    const { user_id: userId } = data;
-    const mnemonic = bip39.generateMnemonic();
-    const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
-      prefix: 'aura',
-    });
-
-    const account = await wallet.getAccounts();
-    const serializedWallet = await wallet.serialize(
-      this.sysKeyService.originalSeed
-    );
-
-    // store db
-    const result = await this.userGraphql.insertUserWallet({
-      address: account[0].address,
-      data: JSON.parse(serializedWallet).data,
-      user_id: userId,
-    });
-
-    console.log(result);
-
-    return result;
-  }
 
   async updateProfile(
     data: UpdateProfileRequestDto,

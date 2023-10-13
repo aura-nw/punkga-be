@@ -5,10 +5,9 @@ import { UserController } from './user.controller';
 import { GraphqlModule } from '../graphql/graphql.module';
 import { FilesModule } from '../files/files.module';
 import { UserGraphql } from './user.graphql';
-import { SysKeyModule } from '../keys/syskey.module';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, FilesModule, SysKeyModule],
+  imports: [JwtModule, GraphqlModule, FilesModule],
   providers: [UserService, UserGraphql],
   controllers: [UserController],
 })

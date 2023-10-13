@@ -87,7 +87,7 @@ event_triggers:
       interval_sec: 10
       num_retries: 0
       timeout_sec: 60
-    webhook: '{{WEBHOOK_URL}}/user/generate-wallet'
+    webhook: '{{WEBHOOK_URL}}/user-wallet/generate-wallet'
     headers:
       - name: webhook-secret
         value_from_env: WEBHOOK_SECRET

@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  Headers,
-  Post,
   Put,
   Query,
   UploadedFiles,
@@ -19,7 +17,6 @@ import { RolesGuard } from '../auth/role.guard';
 import { Roles } from '../auth/roles.decorator';
 import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
-import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { UserService } from './user.service';
 
@@ -27,15 +24,6 @@ import { UserService } from './user.service';
 @ApiTags('user')
 export class UserController {
   constructor(private readonly userSvc: UserService) {}
-
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @ApiBearerAuth()
-  // @Roles(Role.Admin)
-  @Post('generate-wallet')
-  // @UseInterceptors(AuthUserInterceptor)
-  generateWallet(@Headers() headers, @Body() data: GenerateWalletRequestDto) {
-    return this.userSvc.generateWallet(headers, data);
-  }
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
