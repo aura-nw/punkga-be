@@ -28,7 +28,7 @@ export class SysKeyService implements OnModuleInit {
     }
   }
 
-  print() {
-    this.logger.log(this.seed);
+  get originalSeed() {
+    return this.seed;
   }
 }

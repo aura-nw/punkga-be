@@ -7,6 +7,9 @@ import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { FilesService } from '../files/files.service';
 import { UserGraphql } from './user.graphql';
+import * as bip39 from 'bip39';
+import { Secp256k1HdWallet } from '@cosmjs/amino';
+import { SysKeyService } from '../keys/syskey.service';
 
 @Injectable()
 export class UserService {
@@ -14,8 +17,26 @@ export class UserService {
   constructor(
     private configService: ConfigService,
     private filesService: FilesService,
-    private userGraphql: UserGraphql
-  ) {}
+    private userGraphql: UserGraphql,
+    private sysKeyService: SysKeyService
+  ) {
+    this.generateWallet();
+  }
+
+  async generateWallet() {
+    const mnemonic = bip39.generateMnemonic();
+    const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
+      prefix: 'aura',
+    });
+
+    const account = await wallet.getAccounts();
+    const serializedWallet = await wallet.serialize(
+      this.sysKeyService.originalSeed
+    );
+
+    // store db
+    console.log(serializedWallet);
+  }
 
   async updateProfile(
     data: UpdateProfileRequestDto,

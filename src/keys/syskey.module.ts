@@ -7,6 +7,6 @@ import { GraphqlModule } from '../graphql/graphql.module';
 @Module({
   imports: [GraphqlModule],
   providers: [SysKeyService, KMSBuilderService, KeysGraphql],
-  exports: [],
+  exports: [SysKeyService],
 })
 export class SysKeyModule {}
