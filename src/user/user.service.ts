@@ -1,15 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { DeleteUserRequest } from './dto/delete-user-request.dto';
+import * as bip39 from 'bip39';
+
 import { Authorizer } from '@authorizerdev/authorizer-js';
+import { Secp256k1HdWallet } from '@cosmjs/amino';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+import { FilesService } from '../files/files.service';
+import { SysKeyService } from '../keys/syskey.service';
 import { ContextProvider } from '../providers/contex.provider';
+import { DeleteUserRequest } from './dto/delete-user-request.dto';
+import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
-import { FilesService } from '../files/files.service';
 import { UserGraphql } from './user.graphql';
-import * as bip39 from 'bip39';
-import { Secp256k1HdWallet } from '@cosmjs/amino';
-import { SysKeyService } from '../keys/syskey.service';
 
 @Injectable()
 export class UserService {
@@ -19,11 +22,13 @@ export class UserService {
     private filesService: FilesService,
     private userGraphql: UserGraphql,
     private sysKeyService: SysKeyService
-  ) {
-    this.generateWallet();
-  }
+  ) {}
 
-  async generateWallet() {
+  async generateWallet(headers: any, data: GenerateWalletRequestDto) {
+    const webHookSecret = this.configService.get<string>('webhook.secret');
+    if (!webHookSecret || headers['webhook-secret'] !== webHookSecret)
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    const { user_id: userId } = data;
     const mnemonic = bip39.generateMnemonic();
     const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
       prefix: 'aura',
@@ -35,7 +40,15 @@ export class UserService {
     );
 
     // store db
-    console.log(serializedWallet);
+    const result = await this.userGraphql.insertUserWallet({
+      address: account[0].address,
+      data: JSON.parse(serializedWallet).data,
+      user_id: userId,
+    });
+
+    console.log(result);
+
+    return result;
   }
 
   async updateProfile(

@@ -1,6 +1,14 @@
 table:
   name: authorizer_users
   schema: public
+object_relationships:
+  - name: authorizer_users_user_wallet
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_wallet
+          schema: public
 array_relationships:
   - name: authorizer_users_social_activities
     using:
@@ -69,3 +77,28 @@ update_permissions:
           _eq: X-Hasura-User-Id
       set:
         id: x-hasura-User-Id
+event_triggers:
+  - name: generate_user_wallet
+    definition:
+      enable_manual: false
+      insert:
+        columns: '*'
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: '{{WEBHOOK_URL}}/user/generate-wallet'
+    headers:
+      - name: webhook-secret
+        value_from_env: WEBHOOK_SECRET
+    request_transform:
+      body:
+        action: transform
+        template: |-
+          {
+            "user_id": {{$body.event.data.new.id}}
+          }
+      method: POST
+      query_params: {}
+      template_engine: Kriti
+      version: 2

@@ -21,3 +21,4 @@
 - "!include public_system_key.yaml"
 - "!include public_tag_languages.yaml"
 - "!include public_tags.yaml"
+- "!include public_user_wallet.yaml"
