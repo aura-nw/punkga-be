@@ -829,22 +829,6 @@
               user_id
             }
           }
-      - name: Admin - Query all campaign
-        query: |
-          query campaign {
-            campaign {
-              created_at
-              updated_at
-              id
-              name
-              status
-              campaign_quests_aggregate(where: {status:{_eq:"Publish"}}) {
-                aggregate {
-                  count
-                }
-              }
-            }
-          }
       - name: Admin - Query campaign detail
         query: |
           query campaign_by_pk ($id: Int!) {
@@ -960,5 +944,21 @@
               status
               type
               updated_at
+            }
+          }
+      - name: Admin - Query all campaign
+        query: |
+          query campaign {
+            campaign {
+              created_at
+              updated_at
+              id
+              name
+              status
+              campaign_quests_aggregate(where: {status:{_eq:"Published"}}) {
+                aggregate {
+                  count
+                }
+              }
             }
           }
