@@ -10,25 +10,18 @@ export class UserWalletGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
-  insertUserWallet(variables: any) {
+  async insertManyUserWallet(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
       ),
     };
 
-    return this.graphqlSvc.query(
+    const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation insert_user_wallet($address: String = "", $data: String = "", $is_master_wallet: Boolean = false, $user_id: bpchar = "") {
-        insert_user_wallet(objects: {address: $address, data: $data, is_master_wallet: $is_master_wallet, user_id: $user_id}) {
-          returning {
-            id
-            address
-            data
-            is_master_wallet
-            user_id
-          }
+      `mutation insert_user_wallet($objects: [user_wallet_insert_input!] = {}) {
+        insert_user_wallet(objects: $objects) {
           affected_rows
         }
       }`,
@@ -36,6 +29,50 @@ export class UserWalletGraphql {
       variables,
       headers
     );
+    console.log(result);
+    return result;
+  }
+
+  async queryEmptyUserWallet() {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const queryResult = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query query_user_wallet {
+        user_wallet {
+          user_id
+        }
+      }
+      `,
+      'query_user_wallet',
+      {},
+      headers
+    );
+
+    const existUsersId = queryResult.data.user_wallet.map(
+      (info) => info.user_id
+    );
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query query_user_wallet($ids: [bpchar!] = "") {
+        authorizer_users(where: {id: {_nin: $ids}}) {
+          id
+        }
+      }`,
+      'query_user_wallet',
+      {
+        ids: existUsersId,
+      },
+      headers
+    );
+    return result.data.authorizer_users;
   }
 
   async getMasterWallet() {

@@ -28,7 +28,7 @@ export class MasterWalletService implements OnModuleInit {
           params: { outputLength: 32, opsLimit: 24, memLimitKib: 12288 },
         },
         encryption: { algorithm: 'xchacha20poly1305-ietf' },
-        data: masterWalletData,
+        data: masterWalletData.data,
       });
       const wallet = await Secp256k1HdWallet.deserialize(
         serialization,
@@ -40,12 +40,16 @@ export class MasterWalletService implements OnModuleInit {
         await this.userWalletService.randomWallet();
       this.masterWallet = wallet;
       // store db
-      const result = await this.userWalletGraphql.insertUserWallet({
-        address: account[0].address,
-        data: JSON.parse(serializedWallet).data,
-        is_master_wallet: true,
+      const result = await this.userWalletGraphql.insertManyUserWallet({
+        objects: [
+          {
+            address: account[0].address,
+            data: JSON.parse(serializedWallet).data,
+            is_master_wallet: true,
+          },
+        ],
       });
-      this.logger.debug(`Insert master wallet: ${result}`);
+      this.logger.debug(`Insert master wallet: ${JSON.stringify(result)}`);
     }
   }
 }

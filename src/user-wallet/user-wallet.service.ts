@@ -1,13 +1,7 @@
 import * as bip39 from 'bip39';
 
 import { Secp256k1HdWallet } from '@cosmjs/amino';
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-  OnModuleInit,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { SysKeyService } from '../keys/syskey.service';
@@ -15,45 +9,33 @@ import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UserWalletGraphql } from './user-wallet.graphql';
 
 @Injectable()
-export class UserWalletService implements OnModuleInit {
+export class UserWalletService {
   private readonly logger = new Logger(UserWalletService.name);
-  private masterWallet = null;
   constructor(
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService
   ) {}
 
-  // init master wallet
-  async onModuleInit() {
-    // get from db
-    const masterWalletData = await this.userWalletGraphql.getMasterWallet();
-    if (masterWalletData) {
-      const serialization = JSON.stringify({
-        type: 'secp256k1wallet-v1',
-        kdf: {
-          algorithm: 'argon2id',
-          params: { outputLength: 32, opsLimit: 24, memLimitKib: 12288 },
-        },
-        encryption: { algorithm: 'xchacha20poly1305-ietf' },
-        data: masterWalletData,
-      });
-      const wallet = await Secp256k1HdWallet.deserialize(
-        serialization,
-        this.sysKeyService.originalSeed
-      );
-      this.masterWallet = wallet;
-    } else {
-      const { wallet, account, serializedWallet } = await this.randomWallet();
-      this.masterWallet = wallet;
-      // store db
-      const result = await this.userWalletGraphql.insertUserWallet({
-        address: account[0].address,
-        data: JSON.parse(serializedWallet).data,
-        is_master_wallet: true,
-      });
-      this.logger.debug(`Insert master wallet: ${result}`);
-    }
+  async queryEmptyUserWallet() {
+    const users = await this.userWalletGraphql.queryEmptyUserWallet();
+    const wallets = await Promise.all(
+      users.map(() => {
+        return this.randomWallet();
+      })
+    );
+
+    const objects = wallets.map((wallet, index) => ({
+      address: wallet.account[0].address,
+      data: JSON.parse(wallet.serializedWallet).data,
+      user_id: users[index].id,
+    }));
+
+    const result = await this.userWalletGraphql.insertManyUserWallet({
+      objects,
+    });
+
+    console.log(result);
   }
 
   async generateWallet(headers: any, data: GenerateWalletRequestDto) {
@@ -66,10 +48,14 @@ export class UserWalletService implements OnModuleInit {
     const { account, serializedWallet } = await this.randomWallet();
 
     // store db
-    const result = await this.userWalletGraphql.insertUserWallet({
-      address: account[0].address,
-      data: JSON.parse(serializedWallet).data,
-      user_id: userId,
+    const result = await this.userWalletGraphql.insertManyUserWallet({
+      objects: [
+        {
+          address: account[0].address,
+          data: JSON.parse(serializedWallet).data,
+          user_id: userId,
+        },
+      ],
     });
 
     return result;
