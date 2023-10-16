@@ -94,7 +94,7 @@ event_triggers:
     request_transform:
       body:
         action: transform
-        template: "{\r\n  \"user_id\": {{$body.event.data.new.id}}\r\n}"
+        template: '{"user_id": {{$body.event.data.new.id}}}'
       method: POST
       query_params: {}
       template_engine: Kriti

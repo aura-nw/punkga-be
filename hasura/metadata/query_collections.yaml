@@ -38,17 +38,6 @@
               affected_rows
             }
           }
-      - name: Admin - Get All Users
-        query: |
-          query GetAllUsers {
-            authorizer_users(order_by: {updated_at:desc}) {
-              id
-              nickname
-              email
-              created_at
-              updated_at
-            }
-          }
       - name: User - Subscribe manga
         query: |
           mutation UserSubscribeManga ($manga_id: Int = 10) {
@@ -959,6 +948,20 @@
                 aggregate {
                   count
                 }
+              }
+            }
+          }
+      - name: Admin - Get All Users
+        query: |
+          query GetAllUsers {
+            authorizer_users {
+              id
+              nickname
+              email
+              created_at
+              updated_at
+              authorizer_users_user_wallet {
+                address
               }
             }
           }

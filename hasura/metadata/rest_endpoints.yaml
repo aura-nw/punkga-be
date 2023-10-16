@@ -200,19 +200,19 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Get All Users
+      query_name: Admin - Delete User
   methods:
-    - GET
-  name: Admin - Get All Users
+    - DELETE
+  name: Admin - Delete User
   url: admin/users
 - comment: ""
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Delete User
+      query_name: Admin - Get All Users
   methods:
-    - DELETE
-  name: Admin - Delete User
+    - GET
+  name: Admin - Get All Users
   url: admin/users
 - comment: ""
   definition:

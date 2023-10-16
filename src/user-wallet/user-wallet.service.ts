@@ -15,9 +15,11 @@ export class UserWalletService {
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService
-  ) {}
+  ) {
+    // this.fillEmptyUserWallet();
+  }
 
-  async queryEmptyUserWallet() {
+  async fillEmptyUserWallet() {
     const users = await this.userWalletGraphql.queryEmptyUserWallet();
     const wallets = await Promise.all(
       users.map(() => {

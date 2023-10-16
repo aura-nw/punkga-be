@@ -44,7 +44,7 @@ export class UserWalletGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query query_user_wallet {
-        user_wallet {
+        user_wallet(where: {is_master_wallet: {_eq: false}}) {
           user_id
         }
       }
