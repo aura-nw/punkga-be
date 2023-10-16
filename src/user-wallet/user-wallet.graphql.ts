@@ -37,4 +37,28 @@ export class UserWalletGraphql {
       headers
     );
   }
+
+  async getMasterWallet() {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query query_user_wallet {
+        user_wallet(where: {is_master_wallet: {_eq: true}}) {
+          address
+          data
+        }
+      }
+      `,
+      'query_user_wallet',
+      {},
+      headers
+    );
+
+    return result.data.user_wallet[0];
+  }
 }
