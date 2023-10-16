@@ -87,18 +87,16 @@ event_triggers:
       interval_sec: 10
       num_retries: 0
       timeout_sec: 60
-    webhook: '{{WEBHOOK_URL}}/user-wallet/generate-wallet'
+    webhook: '{{WEBHOOK_URL}}/user-wallet'
     headers:
       - name: webhook-secret
         value_from_env: WEBHOOK_SECRET
     request_transform:
       body:
         action: transform
-        template: |-
-          {
-            "user_id": {{$body.event.data.new.id}}
-          }
+        template: "{\r\n  \"user_id\": {{$body.event.data.new.id}}\r\n}"
       method: POST
       query_params: {}
       template_engine: Kriti
+      url: '{{$base_url}}/generate-wallet'
       version: 2
