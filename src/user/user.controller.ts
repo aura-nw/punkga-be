@@ -1,23 +1,24 @@
 import {
-  Query,
+  Body,
   Controller,
   Delete,
+  Put,
+  Query,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
-  Put,
-  Body,
-  UploadedFiles,
 } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { UserService } from './user.service';
+
 import { AuthGuard } from '../auth/auth.guard';
-import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
-import { DeleteUserRequest } from './dto/delete-user-request.dto';
-import { Roles } from '../auth/roles.decorator';
 import { Role } from '../auth/role.enum';
 import { RolesGuard } from '../auth/role.guard';
+import { Roles } from '../auth/roles.decorator';
+import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
+import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { UserService } from './user.service';
 
 @Controller('user')
 @ApiTags('user')
@@ -41,7 +42,7 @@ export class UserController {
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   updateProfile(
     @Body() data: UpdateProfileRequestDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.userSvc.updateProfile(data, files);
   }

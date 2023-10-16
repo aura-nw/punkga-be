@@ -33,6 +33,9 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: 'anonymous'
       ACTION_API_DOMAIN: 'http://172.27.10.137:3000'
       # HASURA_GRAPHQL_ENABLED_APIS: graphql
+
+      WEBHOOK_URL: http://172.27.10.137:3000
+      WEBHOOK_SECRET: k4KWf6Mk4Hfx
     depends_on:
       data-connector-agent:
         condition: service_healthy

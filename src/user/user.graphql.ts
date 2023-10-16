@@ -1,6 +1,7 @@
-import { ConfigService } from '@nestjs/config';
-import { GraphqlService } from '../graphql/graphql.service';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+import { GraphqlService } from '../graphql/graphql.service';
 
 @Injectable()
 export class UserGraphql {

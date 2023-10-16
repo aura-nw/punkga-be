@@ -1,0 +1,1 @@
+CREATE TABLE "public"."user_wallet" ("id" serial NOT NULL, "address" text NOT NULL, "data" text NOT NULL, "user_id" bpchar, "is_master_wallet" boolean NOT NULL DEFAULT false, PRIMARY KEY ("id") , FOREIGN KEY ("user_id") REFERENCES "public"."authorizer_users"("id") ON UPDATE restrict ON DELETE restrict, UNIQUE ("address"), UNIQUE ("user_id"));

@@ -1,11 +1,12 @@
+import { Authorizer } from '@authorizerdev/authorizer-js';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DeleteUserRequest } from './dto/delete-user-request.dto';
-import { Authorizer } from '@authorizerdev/authorizer-js';
+
+import { FilesService } from '../files/files.service';
 import { ContextProvider } from '../providers/contex.provider';
+import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
-import { FilesService } from '../files/files.service';
 import { UserGraphql } from './user.graphql';
 
 @Injectable()

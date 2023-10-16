@@ -1,22 +1,27 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ChapterModule } from './chapter/chapter.module';
-import { MangaModule } from './manga/manga.module';
-import configuration from './config/configuration';
+import { APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
+
+import { ChapterModule } from './chapter/chapter.module';
+import configuration from './config/configuration';
+import { CreatorModule } from './creator/creator.module';
 import { FilesModule } from './files/files.module';
 import { GraphqlModule } from './graphql/graphql.module';
-import { UserModule } from './user/user.module';
-import { ScheduleModule } from '@nestjs/schedule';
+import { MangaModule } from './manga/manga.module';
 import { TasksModule } from './task/task.module';
-import { CreatorModule } from './creator/creator.module';
-import { APP_PIPE } from '@nestjs/core';
+import { UserModule } from './user/user.module';
 import { QuestModule } from './quest/quest.module';
+import { SysKeyModule } from './keys/syskey.module';
+import { UserWalletModule } from './user-wallet/user-wallet.module';
 
 @Module({
   imports: [
     JwtModule,
     ScheduleModule.forRoot(),
+    CacheModule.register(),
     ChapterModule,
     MangaModule,
     CreatorModule,
@@ -29,6 +34,8 @@ import { QuestModule } from './quest/quest.module';
     GraphqlModule,
     UserModule,
     QuestModule,
+    SysKeyModule,
+    UserWalletModule,
   ],
   controllers: [],
   providers: [
