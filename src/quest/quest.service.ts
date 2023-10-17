@@ -1,12 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { FilesService } from '../files/files.service';
+import { QuestGraphql } from './quest.graphql';
 
 @Injectable()
 export class QuestService {
   private readonly logger = new Logger(QuestService.name);
 
-  constructor(private filesService: FilesService) {}
+  constructor(
+    private filesService: FilesService,
+    private questGraphql: QuestGraphql
+  ) {}
 
   async upload(file: Express.Multer.File) {
     try {
@@ -21,5 +25,46 @@ export class QuestService {
         errors,
       };
     }
+  }
+
+  verifyQuestCondition(condition: any, userId?: string) {
+    if (condition.level && userId) {
+      // check user level
+    }
+
+    if (
+      condition.duration &&
+      condition.duration.after &&
+      condition.duration.before
+    ) {
+      const now = new Date();
+      const after = new Date(condition.duration.after);
+      const before = new Date(condition.duration.before);
+      if (after <= now && now <= before) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  async getAllCampaignQuest(userId?: string) {
+    const campaigns = await this.questGraphql.getAllCampaignQuest();
+    if (campaigns.length === 0) return campaigns;
+
+    // let result: any;
+
+    campaigns.forEach((campaign) => {
+      // let data: any;
+      // data.id = campaign.id;
+      campaign.campaign_quests.forEach((quest, index) => {
+        campaign.campaign_quests[index].unlock = this.verifyQuestCondition(
+          quest.condition,
+          userId
+        );
+      });
+    });
+
+    return campaigns;
   }
 }

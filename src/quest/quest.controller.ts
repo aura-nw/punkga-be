@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   UploadedFiles,
   UseGuards,
@@ -20,6 +21,11 @@ import { QuestService } from './quest.service';
 @ApiTags('quest')
 export class QuestController {
   constructor(private readonly questSvc: QuestService) {}
+
+  @Get()
+  getAllCampaignQuest() {
+    return this.questSvc.getAllCampaignQuest();
+  }
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()

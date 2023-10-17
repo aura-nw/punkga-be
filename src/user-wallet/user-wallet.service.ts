@@ -46,11 +46,9 @@ export class UserWalletService implements OnModuleInit {
       user_id: data[index].id,
     }));
 
-    const result = await this.userWalletGraphql.insertManyUserWallet({
+    await this.userWalletGraphql.insertManyUserWallet({
       objects,
     });
-
-    console.log(result);
   }
 
   async generateWallet(headers: any, data: GenerateWalletRequestDto) {

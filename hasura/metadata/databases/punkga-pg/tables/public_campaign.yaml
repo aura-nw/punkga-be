@@ -9,3 +9,24 @@ array_relationships:
         table:
           name: quests
           schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - name
+        - status
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - status
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
