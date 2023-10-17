@@ -62,7 +62,7 @@ export class UserWalletGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query query_user_wallet($ids: [bpchar!] = "") {
-        authorizer_users(where: {id: {_nin: $ids}}) {
+        authorizer_users(where: {id: {_nin: $ids}}, limit: 10) {
           id
         }
       }`,

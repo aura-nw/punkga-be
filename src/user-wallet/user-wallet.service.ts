@@ -1,7 +1,13 @@
 import * as bip39 from 'bip39';
 
 import { Secp256k1HdWallet } from '@cosmjs/amino';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { SysKeyService } from '../keys/syskey.service';
@@ -9,20 +15,27 @@ import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UserWalletGraphql } from './user-wallet.graphql';
 
 @Injectable()
-export class UserWalletService {
+export class UserWalletService implements OnModuleInit {
   private readonly logger = new Logger(UserWalletService.name);
   constructor(
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService
-  ) {
-    // this.fillEmptyUserWallet();
+  ) {}
+
+  async onModuleInit() {
+    const data = [];
+    do {
+      const users = await this.userWalletGraphql.queryEmptyUserWallet();
+      data.push(...users);
+      await this.insertUserWallet(data);
+    } while (data.length > 0);
   }
 
-  async fillEmptyUserWallet() {
-    const users = await this.userWalletGraphql.queryEmptyUserWallet();
+  async insertUserWallet(data: any) {
+    // const users = await this.userWalletGraphql.queryEmptyUserWallet();
     const wallets = await Promise.all(
-      users.map(() => {
+      data.map(() => {
         return this.randomWallet();
       })
     );
@@ -30,7 +43,7 @@ export class UserWalletService {
     const objects = wallets.map((wallet, index) => ({
       address: wallet.account[0].address,
       data: JSON.parse(wallet.serializedWallet).data,
-      user_id: users[index].id,
+      user_id: data[index].id,
     }));
 
     const result = await this.userWalletGraphql.insertManyUserWallet({
