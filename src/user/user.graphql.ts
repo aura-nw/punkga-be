@@ -10,6 +10,25 @@ export class UserGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async queryUserLevel(variables) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query authorizer_users($id: bpchar!) {
+        authorizer_users(where: {id: {_eq: $id}}) {
+          levels {
+            xp
+            level
+          }
+        }
+      }`,
+      'authorizer_users',
+      variables
+    );
+
+    return result.data.authorizer_users[0];
+  }
+
   updateUserProfile(token: string, variables: any) {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),

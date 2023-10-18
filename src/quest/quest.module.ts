@@ -5,9 +5,10 @@ import { QuestController } from './quest.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { QuestGraphql } from './quest.graphql';
 import { GraphqlModule } from '../graphql/graphql.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [FilesModule, JwtModule, GraphqlModule],
+  imports: [FilesModule, JwtModule, GraphqlModule, UserModule],
   providers: [QuestService, QuestGraphql],
   controllers: [QuestController],
   exports: [],

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -16,6 +17,7 @@ import { Role } from '../auth/role.enum';
 import { RolesGuard } from '../auth/role.guard';
 import { UploadNftImageRequestDto } from './dto/upload-nft-image.dto';
 import { QuestService } from './quest.service';
+import { GetAllCampaignQuestRequestDto } from './dto/get-all-campaign-quest.dto';
 
 @Controller('quest')
 @ApiTags('quest')
@@ -23,8 +25,9 @@ export class QuestController {
   constructor(private readonly questSvc: QuestService) {}
 
   @Get()
-  getAllCampaignQuest() {
-    return this.questSvc.getAllCampaignQuest();
+  getAllCampaignQuest(@Query() query: GetAllCampaignQuestRequestDto) {
+    const userId = query.user_id;
+    return this.questSvc.getAllCampaignQuest(userId);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

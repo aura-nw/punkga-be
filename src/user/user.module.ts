@@ -10,5 +10,6 @@ import { UserGraphql } from './user.graphql';
   imports: [JwtModule, GraphqlModule, FilesModule],
   providers: [UserService, UserGraphql],
   controllers: [UserController],
+  exports: [UserGraphql],
 })
 export class UserModule {}

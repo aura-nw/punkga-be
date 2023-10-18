@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { FilesService } from '../files/files.service';
 import { QuestGraphql } from './quest.graphql';
+import { UserGraphql } from '../user/user.graphql';
 
 @Injectable()
 export class QuestService {
@@ -9,7 +10,8 @@ export class QuestService {
 
   constructor(
     private filesService: FilesService,
-    private questGraphql: QuestGraphql
+    private questGraphql: QuestGraphql,
+    private userGraphql: UserGraphql
   ) {}
 
   async upload(file: Express.Multer.File) {
@@ -27,9 +29,10 @@ export class QuestService {
     }
   }
 
-  verifyQuestCondition(condition: any, userId?: string) {
-    if (condition.level && userId) {
+  verifyQuestCondition(condition: any, currentLevel?: number) {
+    if (condition.level && currentLevel) {
       // check user level
+      return currentLevel >= condition.level;
     }
 
     if (
@@ -52,7 +55,16 @@ export class QuestService {
     const campaigns = await this.questGraphql.getAllCampaignQuest();
     if (campaigns.length === 0) return campaigns;
 
-    // let result: any;
+    let currentLevel = 0;
+    if (userId) {
+      const user = await this.userGraphql.queryUserLevel({
+        id: userId,
+      });
+
+      if (user?.levels[0]) {
+        currentLevel = user.levels[0].level;
+      }
+    }
 
     campaigns.forEach((campaign) => {
       // let data: any;
@@ -60,7 +72,7 @@ export class QuestService {
       campaign.campaign_quests.forEach((quest, index) => {
         campaign.campaign_quests[index].unlock = this.verifyQuestCondition(
           quest.condition,
-          userId
+          currentLevel
         );
       });
     });
