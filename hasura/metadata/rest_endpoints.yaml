@@ -20,15 +20,6 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Query campaign detail
-  methods:
-    - GET
-  name: Admin - Query campaign detail
-  url: admin/campaign/:id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Admin - Delete campaign
   methods:
     - DELETE
@@ -42,6 +33,15 @@
   methods:
     - PUT
   name: Admin - Update campaign
+  url: admin/campaign/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Query campaign detail
+  methods:
+    - GET
+  name: Admin - Query campaign detail
   url: admin/campaign/:id
 - comment: ""
   definition:

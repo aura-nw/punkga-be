@@ -785,27 +785,6 @@
               user_id
             }
           }
-      - name: Admin - Query campaign detail
-        query: |
-          query campaign_by_pk ($id: Int!) {
-            campaign_by_pk(id: $id) {
-              created_at
-              updated_at
-              id
-              name
-              status
-              campaign_quests {
-                created_at
-                updated_at
-                id
-                name
-                type
-                condition
-                reward
-                status
-              }
-            }
-          }
       - name: Admin - Delete campaign
         query: |
           mutation delete_campaign_by_pk ($id: Int!) {
@@ -963,6 +942,27 @@
                 aggregate {
                   count
                 }
+              }
+            }
+          }
+      - name: Admin - Query campaign detail
+        query: |
+          query campaign_by_pk ($id: Int!) {
+            campaign_by_pk(id: $id) {
+              created_at
+              updated_at
+              id
+              name
+              status
+              campaign_quests(order_by: {updated_at:desc}) {
+                created_at
+                updated_at
+                id
+                name
+                type
+                condition
+                reward
+                status
               }
             }
           }
