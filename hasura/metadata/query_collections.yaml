@@ -357,39 +357,6 @@
               }
             }
           }
-      - name: Admin - Query List Manga
-        query: |
-          query QueryListManga {
-            manga(order_by: {created_at:desc}) {
-              id
-              banner
-              poster
-              status
-              release_date
-              publish_date
-              created_at
-              manga_creators {
-                creator {
-                  name
-                  pen_name
-                }
-              }
-              chapters_aggregate {
-                aggregate {
-                  count
-                  max {
-                    chapter_number
-                  }
-                }
-              }
-              manga_languages {
-                id
-                title
-                language_id
-                is_main_language
-              }
-            }
-          }
       - name: Public - Query User
         query: |
           query QueryUser ($user_id: bpchar = "") {
@@ -935,22 +902,6 @@
               updated_at
             }
           }
-      - name: Admin - Query all campaign
-        query: |
-          query campaign {
-            campaign {
-              created_at
-              updated_at
-              id
-              name
-              status
-              campaign_quests_aggregate(where: {status:{_eq:"Published"}}) {
-                aggregate {
-                  count
-                }
-              }
-            }
-          }
       - name: Admin - Get All Users
         query: |
           query GetAllUsers {
@@ -962,6 +913,56 @@
               updated_at
               authorizer_users_user_wallet {
                 address
+              }
+            }
+          }
+      - name: Admin - Query List Manga
+        query: |
+          query QueryListManga {
+            manga(order_by: {created_at:desc}) {
+              id
+              slug
+              banner
+              poster
+              status
+              release_date
+              publish_date
+              created_at
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                }
+              }
+              chapters_aggregate {
+                aggregate {
+                  count
+                  max {
+                    chapter_number
+                  }
+                }
+              }
+              manga_languages {
+                id
+                title
+                language_id
+                is_main_language
+              }
+            }
+          }
+      - name: Admin - Query all campaign
+        query: |
+          query campaign {
+            campaign(order_by: {updated_at:desc}) {
+              created_at
+              updated_at
+              id
+              name
+              status
+              campaign_quests_aggregate(where: {status:{_eq:"Published"}}) {
+                aggregate {
+                  count
+                }
               }
             }
           }
