@@ -10,6 +10,25 @@ export class QuestGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async getQuestDetail(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query quests($id: Int!) {
+        quests(where: {id: {_eq: $id}, status: {_eq: "Published"}}) {
+          id
+          name
+          status
+          requirement
+        }
+      }`,
+      'quests',
+      variables
+    );
+
+    return result.data.quests[0];
+  }
+
   async getAllCampaignQuest() {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),

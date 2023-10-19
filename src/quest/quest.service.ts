@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { FilesService } from '../files/files.service';
 import { QuestGraphql } from './quest.graphql';
@@ -13,6 +13,45 @@ export class QuestService {
     private questGraphql: QuestGraphql,
     private userGraphql: UserGraphql
   ) {}
+
+  async get(questId: number, userId?: string) {
+    const quest = await this.questGraphql.getQuestDetail({
+      id: questId,
+    });
+
+    if (!quest) throw new NotFoundException();
+
+    let reward_status = 0;
+    if (userId) {
+      reward_status = await this.checkRewardStatus(quest.requirement, userId);
+    }
+    quest.reward_status = reward_status;
+
+    return quest;
+  }
+
+  /** Reward status
+   * 0: Can not claim reward
+   * 1: Can claim reward
+   * TODO: 2: Claimed
+   */
+  async checkRewardStatus(requirement: any, userId: string) {
+    const requirementType = Object.keys(requirement);
+
+    if (requirementType.includes('read')) {
+      // TODO: do something
+    }
+
+    if (requirementType.includes('comment')) {
+      // do something
+      const chapterId = requirement.comment.chapter.id;
+    }
+
+    if (requirementType.includes('subscribe')) {
+      // do something
+    }
+    return 0;
+  }
 
   async upload(file: Express.Multer.File) {
     try {
