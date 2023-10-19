@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   UploadedFiles,
@@ -18,6 +19,10 @@ import { RolesGuard } from '../auth/role.guard';
 import { UploadNftImageRequestDto } from './dto/upload-nft-image.dto';
 import { QuestService } from './quest.service';
 import { GetAllCampaignQuestRequestDto } from './dto/get-all-campaign-quest.dto';
+import {
+  GetCampaignQuestParamDto,
+  GetCampaignQuestRequestDto,
+} from './dto/get-campaign-quest.dto';
 
 @Controller('quest')
 @ApiTags('quest')
@@ -26,8 +31,15 @@ export class QuestController {
 
   @Get()
   getAllCampaignQuest(@Query() query: GetAllCampaignQuestRequestDto) {
-    const userId = query.user_id;
-    return this.questSvc.getAllCampaignQuest(userId);
+    return this.questSvc.getAllCampaignQuest(query.user_id);
+  }
+
+  @Get(':quest_id')
+  getCampaignQuestDetail(
+    @Param() param: GetCampaignQuestParamDto,
+    @Query() query: GetCampaignQuestRequestDto
+  ) {
+    return this.questSvc.get(param.quest_id, query.user_id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

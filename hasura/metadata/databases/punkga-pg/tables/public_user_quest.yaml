@@ -1,3 +1,11 @@
 table:
   name: user_quest
   schema: public
+array_relationships:
+  - name: user_quest_rewards
+    using:
+      foreign_key_constraint_on:
+        column: user_quest_id
+        table:
+          name: user_quest_reward
+          schema: public

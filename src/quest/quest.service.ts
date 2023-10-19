@@ -3,6 +3,10 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { FilesService } from '../files/files.service';
 import { QuestGraphql } from './quest.graphql';
 import { UserGraphql } from '../user/user.graphql';
+import { SocialActivitiesGraphql } from '../social-activites/social-activities.graphql';
+import { SubscribersGraphql } from '../subscribers/subscribers.graphql';
+import { UserQuestsGraphql } from '../user-quests/user-quests.graphql';
+import { RepeatQuestsGraphql } from '../repeat-quests/repeat-quests.graphql';
 
 @Injectable()
 export class QuestService {
@@ -11,7 +15,11 @@ export class QuestService {
   constructor(
     private filesService: FilesService,
     private questGraphql: QuestGraphql,
-    private userGraphql: UserGraphql
+    private socialActivitiesGraphql: SocialActivitiesGraphql,
+    private subscribersGraphql: SubscribersGraphql,
+    private userGraphql: UserGraphql,
+    private userQuestGraphql: UserQuestsGraphql,
+    private repeatQuestGraphql: RepeatQuestsGraphql
   ) {}
 
   async get(questId: number, userId?: string) {
@@ -23,11 +31,67 @@ export class QuestService {
 
     let reward_status = 0;
     if (userId) {
-      reward_status = await this.checkRewardStatus(quest.requirement, userId);
+      const isClaimed = await this.isClaimed(quest, userId);
+      if (isClaimed) {
+        reward_status = 2;
+      } else {
+        const canClaimReward = await this.canClaimReward(
+          quest.requirement,
+          userId
+        );
+
+        if (canClaimReward) reward_status = 1;
+      }
     }
     quest.reward_status = reward_status;
 
     return quest;
+  }
+
+  async isClaimed(quest: any, userId: string): Promise<boolean> {
+    let queryUserQuestCondition;
+    // check reward claimed
+    if (quest.type === 'Once') {
+      queryUserQuestCondition = {
+        where: {
+          quest_id: {
+            _eq: quest.id,
+          },
+          user_id: {
+            _eq: userId,
+          },
+        },
+      };
+    } else {
+      // get latest repeat quest by quest id
+      const repeatQuest = await this.repeatQuestGraphql.queryRepeatQuest({
+        quest_id: quest.id,
+      });
+
+      queryUserQuestCondition = {
+        where: {
+          repeat_quest_id: {
+            _eq: repeatQuest.id,
+          },
+          user_id: {
+            _eq: userId,
+          },
+        },
+      };
+    }
+
+    // query user quest
+    const userQuest = await this.userQuestGraphql.queryUserQuests(
+      queryUserQuestCondition
+    );
+
+    if (
+      userQuest?.user_quest_rewards &&
+      userQuest?.user_quest_rewards !== null
+    ) {
+      return true;
+    }
+    return false;
   }
 
   /** Reward status
@@ -35,7 +99,7 @@ export class QuestService {
    * 1: Can claim reward
    * TODO: 2: Claimed
    */
-  async checkRewardStatus(requirement: any, userId: string) {
+  async canClaimReward(requirement: any, userId: string) {
     const requirementType = Object.keys(requirement);
 
     if (requirementType.includes('read')) {
@@ -43,14 +107,26 @@ export class QuestService {
     }
 
     if (requirementType.includes('comment')) {
-      // do something
       const chapterId = requirement.comment.chapter.id;
+      const result = await this.socialActivitiesGraphql.queryActivities({
+        chapter_id: chapterId,
+        user_id: userId,
+      });
+
+      if (result.data.social_activities[0]) return true;
     }
 
     if (requirementType.includes('subscribe')) {
       // do something
+      const mangaId = requirement.subscribe.manga.id;
+      const result = await this.subscribersGraphql.querySubscribers({
+        manga_id: mangaId,
+        user_id: userId,
+      });
+      if (result.data.subscribers[0]) return true;
     }
-    return 0;
+
+    return false;
   }
 
   async upload(file: Express.Multer.File) {
