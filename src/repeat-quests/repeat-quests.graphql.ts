@@ -10,6 +10,25 @@ export class RepeatQuestsGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async getRepeatableQuests() {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query repeatable_quests {
+        quests(where: {type: {_in: ["Daily"]}, status: {_eq: "Published"}}) {
+          id
+          condition
+          status
+        }
+      }
+      `,
+      'repeatable_quests',
+      {}
+    );
+
+    return result.data.quests;
+  }
+
   async queryRepeatQuest(variables: any) {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
@@ -26,5 +45,26 @@ export class RepeatQuestsGraphql {
     );
 
     return result.data.repeat_quests[0];
+  }
+
+  insertRepeatQuests(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_repeat_quests($objects: [repeat_quests_insert_input!] = {quest_id: 10}) {
+        insert_repeat_quests(objects: $objects) {
+          affected_rows
+        }
+      }`,
+      'insert_repeat_quests',
+      variables,
+      headers
+    );
   }
 }

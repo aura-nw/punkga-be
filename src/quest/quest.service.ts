@@ -160,7 +160,7 @@ export class QuestService {
       unlock.push(after < now);
     }
 
-    if (condition.after) {
+    if (condition.before) {
       const before = new Date(condition.before);
       unlock.push(now < before);
     }

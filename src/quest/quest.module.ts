@@ -24,6 +24,6 @@ import { SubscribersModule } from '../subscribers/subscribers.module';
   ],
   providers: [QuestService, QuestGraphql],
   controllers: [QuestController],
-  exports: [],
+  exports: [QuestGraphql],
 })
 export class QuestModule {}
