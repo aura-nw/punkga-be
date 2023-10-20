@@ -20,6 +20,11 @@ export class QuestGraphql {
           name
           status
           requirement
+          reward
+          repeat_quests(order_by: {created_at: desc}, limit: 1) {
+            id
+            created_at
+          }
         }
       }`,
       'quests',

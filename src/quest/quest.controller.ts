@@ -44,6 +44,18 @@ export class QuestController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post(':quest_id/claim')
+  @UseInterceptors(AuthUserInterceptor)
+  claim(
+    @Body() data: UploadNftImageRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.questSvc.upload(files.filter((f) => f.fieldname === 'file')[0]);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles(Role.Admin)
   @Post('upload')
   @ApiConsumes('multipart/form-data')

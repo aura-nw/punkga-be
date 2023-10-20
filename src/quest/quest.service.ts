@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { FilesService } from '../files/files.service';
 import { QuestGraphql } from './quest.graphql';
@@ -7,6 +12,8 @@ import { SocialActivitiesGraphql } from '../social-activites/social-activities.g
 import { SubscribersGraphql } from '../subscribers/subscribers.graphql';
 import { UserQuestsGraphql } from '../user-quests/user-quests.graphql';
 import { RepeatQuestsGraphql } from '../repeat-quests/repeat-quests.graphql';
+import { ContextProvider } from '../providers/contex.provider';
+import { LevelingService } from '../leveling/leveling.service';
 
 @Injectable()
 export class QuestService {
@@ -19,8 +26,24 @@ export class QuestService {
     private subscribersGraphql: SubscribersGraphql,
     private userGraphql: UserGraphql,
     private userQuestGraphql: UserQuestsGraphql,
+    private levelingService: LevelingService,
     private repeatQuestGraphql: RepeatQuestsGraphql
   ) {}
+
+  async upload(file: Express.Multer.File) {
+    try {
+      const url = await this.filesService.uploadImageToS3(`nft`, file);
+
+      this.logger.debug(`uploading nft image ${file.originalname} success`);
+      return {
+        url,
+      };
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
 
   async get(questId: number, userId?: string) {
     const quest = await this.questGraphql.getQuestDetail({
@@ -29,26 +52,93 @@ export class QuestService {
 
     if (!quest) throw new NotFoundException();
 
-    let reward_status = 0;
+    quest.reward_status = await this.getClaimRewardStatus(quest, userId);
+
+    return quest;
+  }
+
+  async claimReward(questId: number) {
+    const { userId, token } = ContextProvider.getAuthUser();
+
+    const quest = await this.questGraphql.getQuestDetail({
+      id: questId,
+    });
+
+    const rewardStatus = await this.getClaimRewardStatus(quest, userId);
+    if (rewardStatus !== 1) throw new ForbiddenException();
+
+    if (quest.reward?.xp) {
+      // increase user xp
+      await this.increaseUserXp(userId, quest.reward?.xp, token);
+    }
+  }
+
+  async getAllCampaignQuest(userId?: string) {
+    const campaigns = await this.questGraphql.getAllCampaignQuest();
+    if (campaigns.length === 0) return campaigns;
+
+    let currentLevel = 0;
+    if (userId) {
+      const user = await this.userGraphql.queryUserLevel({
+        id: userId,
+      });
+
+      if (user?.levels[0]) {
+        currentLevel = user.levels[0].level;
+      }
+    }
+
+    campaigns.forEach((campaign) => {
+      // let data: any;
+      // data.id = campaign.id;
+      campaign.campaign_quests.forEach((quest, index) => {
+        campaign.campaign_quests[index].unlock = this.verifyQuestCondition(
+          quest.condition,
+          currentLevel
+        );
+      });
+    });
+
+    return campaigns;
+  }
+
+  private async increaseUserXp(userId: string, xp: number, userToken: string) {
+    // TODO: execute contract
+    // increase in db
+    const user = await this.userGraphql.queryUserWalletData(
+      {
+        id: userId,
+      },
+      userToken
+    );
+
+    const totalXp = user.levels.xp + xp;
+
+    // calculate level from xp
+    const newLevel = this.levelingService.xpToLevel(totalXp);
+
+    // save db
+  }
+
+  private async getClaimRewardStatus(quest: any, userId: string) {
+    let rewardStatus = 0;
     if (userId) {
       const isClaimed = await this.isClaimed(quest, userId);
       if (isClaimed) {
-        reward_status = 2;
+        rewardStatus = 2;
       } else {
         const canClaimReward = await this.canClaimReward(
           quest.requirement,
           userId
         );
 
-        if (canClaimReward) reward_status = 1;
+        if (canClaimReward) rewardStatus = 1;
       }
     }
-    quest.reward_status = reward_status;
-
-    return quest;
+    return rewardStatus;
   }
 
-  async isClaimed(quest: any, userId: string): Promise<boolean> {
+  private async isClaimed(quest: any, userId: string): Promise<boolean> {
     let queryUserQuestCondition;
     // check reward claimed
     if (quest.type === 'Once') {
@@ -101,7 +191,7 @@ export class QuestService {
    * 1: Can claim reward
    * 2: Claimed
    */
-  async canClaimReward(requirement: any, userId: string) {
+  private async canClaimReward(requirement: any, userId: string) {
     const requirementType = Object.keys(requirement);
 
     if (requirementType.includes('read')) {
@@ -131,22 +221,7 @@ export class QuestService {
     return false;
   }
 
-  async upload(file: Express.Multer.File) {
-    try {
-      const url = await this.filesService.uploadImageToS3(`nft`, file);
-
-      this.logger.debug(`uploading nft image ${file.originalname} success`);
-      return {
-        url,
-      };
-    } catch (errors) {
-      return {
-        errors,
-      };
-    }
-  }
-
-  verifyQuestCondition(condition: any, currentLevel?: number) {
+  private verifyQuestCondition(condition: any, currentLevel?: number) {
     const unlock: boolean[] = [];
 
     if (condition.level && currentLevel) {
@@ -166,34 +241,5 @@ export class QuestService {
     }
 
     return unlock.includes(false) || unlock.length === 0 ? false : true;
-  }
-
-  async getAllCampaignQuest(userId?: string) {
-    const campaigns = await this.questGraphql.getAllCampaignQuest();
-    if (campaigns.length === 0) return campaigns;
-
-    let currentLevel = 0;
-    if (userId) {
-      const user = await this.userGraphql.queryUserLevel({
-        id: userId,
-      });
-
-      if (user?.levels[0]) {
-        currentLevel = user.levels[0].level;
-      }
-    }
-
-    campaigns.forEach((campaign) => {
-      // let data: any;
-      // data.id = campaign.id;
-      campaign.campaign_quests.forEach((quest, index) => {
-        campaign.campaign_quests[index].unlock = this.verifyQuestCondition(
-          quest.condition,
-          currentLevel
-        );
-      });
-    });
-
-    return campaigns;
   }
 }
