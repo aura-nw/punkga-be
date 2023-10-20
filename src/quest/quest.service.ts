@@ -145,25 +145,25 @@ export class QuestService {
   }
 
   verifyQuestCondition(condition: any, currentLevel?: number) {
+    const unlock: boolean[] = [];
+
     if (condition.level && currentLevel) {
       // check user level
-      return currentLevel >= condition.level;
+      unlock.push(currentLevel >= condition.level);
     }
 
-    if (
-      condition.duration &&
-      condition.duration.after &&
-      condition.duration.before
-    ) {
-      const now = new Date();
-      const after = new Date(condition.duration.after);
-      const before = new Date(condition.duration.before);
-      if (after <= now && now <= before) {
-        return true;
-      }
+    const now = new Date();
+    if (condition.after) {
+      const after = new Date(condition.after);
+      unlock.push(after < now);
     }
 
-    return false;
+    if (condition.after) {
+      const before = new Date(condition.before);
+      unlock.push(now < before);
+    }
+
+    return unlock.includes(false) || unlock.length === 0 ? false : true;
   }
 
   async getAllCampaignQuest(userId?: string) {
