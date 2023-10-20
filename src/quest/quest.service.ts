@@ -68,6 +68,8 @@ export class QuestService {
         quest_id: quest.id,
       });
 
+      if (!repeatQuest) return false;
+
       queryUserQuestCondition = {
         where: {
           repeat_quest_id: {
@@ -97,7 +99,7 @@ export class QuestService {
   /** Reward status
    * 0: Can not claim reward
    * 1: Can claim reward
-   * TODO: 2: Claimed
+   * 2: Claimed
    */
   async canClaimReward(requirement: any, userId: string) {
     const requirementType = Object.keys(requirement);

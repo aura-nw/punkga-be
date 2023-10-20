@@ -1,3 +1,26 @@
 table:
   name: user_wallet
   schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - address
+        - created_at
+        - id
+        - updated_at
+        - user_id
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - address
+        - created_at
+        - data
+        - id
+        - is_master_wallet
+        - updated_at
+        - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
