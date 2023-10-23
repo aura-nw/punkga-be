@@ -44,6 +44,15 @@ export class QuestController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post(':quest_id/claim')
+  @UseInterceptors(AuthUserInterceptor)
+  claim(@Param() data: GetCampaignQuestParamDto) {
+    return this.questSvc.claimReward(data.quest_id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
   @Roles(Role.Admin)
   @Post('upload')
   @ApiConsumes('multipart/form-data')

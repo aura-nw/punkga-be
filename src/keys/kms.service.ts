@@ -1,9 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { KMSService } from '@aura-nw/aura-kms';
 import { ConfigService } from '@nestjs/config';
-import { Secp256k1HdWallet } from '@cosmjs/amino';
-import { GasPrice } from '@cosmjs/stargate';
-import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 
 @Injectable()
 export class KMSBuilderService {

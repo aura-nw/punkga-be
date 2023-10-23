@@ -5,6 +5,14 @@ object_relationships:
   - name: quests_campaign
     using:
       foreign_key_constraint_on: campaign_id
+array_relationships:
+  - name: repeat_quests
+    using:
+      foreign_key_constraint_on:
+        column: quest_id
+        table:
+          name: repeat_quests
+          schema: public
 select_permissions:
   - role: anonymous
     permission:

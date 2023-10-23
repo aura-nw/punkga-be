@@ -10,6 +10,9 @@ import { RepeatQuestModule } from '../repeat-quests/repeat-quests.module';
 import { SocialActivitiesModule } from '../social-activites/social-activities.module';
 import { UserQuestModule } from '../user-quests/user-quests.module';
 import { SubscribersModule } from '../subscribers/subscribers.module';
+import { LevelingModule } from '../leveling/leveling.module';
+import { UserLevelModule } from '../user-level/user-level.module';
+import { UserWalletModule } from '../user-wallet/user-wallet.module';
 
 @Module({
   imports: [
@@ -20,7 +23,10 @@ import { SubscribersModule } from '../subscribers/subscribers.module';
     RepeatQuestModule,
     SocialActivitiesModule,
     UserQuestModule,
+    UserLevelModule,
     SubscribersModule,
+    LevelingModule,
+    UserWalletModule,
   ],
   providers: [QuestService, QuestGraphql],
   controllers: [QuestController],
