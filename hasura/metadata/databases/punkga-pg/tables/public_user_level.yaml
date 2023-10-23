@@ -1,6 +1,16 @@
 table:
   name: user_level
   schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - user_id
+        - level
+        - xp
 select_permissions:
   - role: anonymous
     permission:
@@ -17,3 +27,14 @@ select_permissions:
         - xp
       filter: {}
       allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - user_id
+        - level
+        - xp
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null

@@ -22,7 +22,8 @@ export class UserLevelGraphql {
             level
             xp
           }
-        }`,
+        }
+      }`,
       'insert_user_level',
       variables
     );

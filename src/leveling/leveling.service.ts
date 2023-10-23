@@ -1,4 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import { findLast } from 'lodash';
 
 @Injectable()
 export class LevelingService implements OnModuleInit {
@@ -32,6 +33,6 @@ export class LevelingService implements OnModuleInit {
   }
 
   xpToLevel(xp: number): number {
-    return this.levels.find((lvl) => lvl.totalXP >= xp).level;
+    return findLast(this.levels, (lvl) => lvl.totalXP <= xp).level;
   }
 }

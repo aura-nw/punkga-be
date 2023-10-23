@@ -19,6 +19,7 @@ export class QuestGraphql {
           id
           name
           status
+          type
           requirement
           reward
           repeat_quests(order_by: {created_at: desc}, limit: 1) {

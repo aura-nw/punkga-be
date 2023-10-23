@@ -71,7 +71,7 @@ export class QuestService {
 
     if (quest.reward?.xp) {
       // increase user xp
-      await this.increaseUserXp(userId, quest.reward?.xp, token);
+      return this.increaseUserXp(userId, quest.reward?.xp, token);
     }
   }
 
@@ -114,7 +114,9 @@ export class QuestService {
       userToken
     );
 
-    const totalXp = user.levels.xp + xp;
+    const currentXp = user.levels[0] ? user.levels[0].xp : 0;
+
+    const totalXp = currentXp + xp;
 
     // calculate level from xp
     const newLevel = this.levelingService.xpToLevel(totalXp);
@@ -130,6 +132,7 @@ export class QuestService {
     );
     this.logger.debug('Increase user xp result: ');
     this.logger.debug(JSON.stringify(result));
+    return result;
   }
 
   private async getClaimRewardStatus(quest: any, userId: string) {
@@ -217,7 +220,7 @@ export class QuestService {
         user_id: userId,
       });
 
-      if (result.data.social_activities[0]) return true;
+      if (result.data?.social_activities[0]) return true;
     }
 
     if (requirementType.includes('subscribe')) {
