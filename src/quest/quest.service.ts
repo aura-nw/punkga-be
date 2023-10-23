@@ -15,6 +15,7 @@ import { RepeatQuestsGraphql } from '../repeat-quests/repeat-quests.graphql';
 import { ContextProvider } from '../providers/contex.provider';
 import { LevelingService } from '../leveling/leveling.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
+import { MasterWalletService } from '../user-wallet/master-wallet.service';
 
 @Injectable()
 export class QuestService {
@@ -26,6 +27,7 @@ export class QuestService {
     private socialActivitiesGraphql: SocialActivitiesGraphql,
     private subscribersGraphql: SubscribersGraphql,
     private userGraphql: UserGraphql,
+    private masterWalletSerivce: MasterWalletService,
     private userQuestGraphql: UserQuestsGraphql,
     private userLevelGraphql: UserLevelGraphql,
     private levelingService: LevelingService,
@@ -120,6 +122,13 @@ export class QuestService {
 
     // calculate level from xp
     const newLevel = this.levelingService.xpToLevel(totalXp);
+
+    // execute contract
+    await this.masterWalletSerivce.updateUserLevel(
+      user.authorizer_users_user_wallet.address,
+      totalXp,
+      newLevel
+    );
 
     // save db
     const result = await this.userLevelGraphql.insertUserLevel(
@@ -237,6 +246,7 @@ export class QuestService {
   }
 
   private verifyQuestCondition(condition: any, currentLevel?: number) {
+    if (condition.keys().length === 0) return true;
     const unlock: boolean[] = [];
 
     if (condition.level && currentLevel) {

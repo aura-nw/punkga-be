@@ -12,6 +12,7 @@ import { UserQuestModule } from '../user-quests/user-quests.module';
 import { SubscribersModule } from '../subscribers/subscribers.module';
 import { LevelingModule } from '../leveling/leveling.module';
 import { UserLevelModule } from '../user-level/user-level.module';
+import { UserWalletModule } from '../user-wallet/user-wallet.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UserLevelModule } from '../user-level/user-level.module';
     UserLevelModule,
     SubscribersModule,
     LevelingModule,
+    UserWalletModule,
   ],
   providers: [QuestService, QuestGraphql],
   controllers: [QuestController],

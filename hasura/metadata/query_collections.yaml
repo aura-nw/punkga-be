@@ -895,40 +895,6 @@
               }
             }
           }
-      - name: Admin - Query List Manga
-        query: |
-          query QueryListManga {
-            manga(order_by: {created_at:desc}) {
-              id
-              slug
-              banner
-              poster
-              status
-              release_date
-              publish_date
-              created_at
-              manga_creators {
-                creator {
-                  name
-                  pen_name
-                }
-              }
-              chapters_aggregate {
-                aggregate {
-                  count
-                  max {
-                    chapter_number
-                  }
-                }
-              }
-              manga_languages {
-                id
-                title
-                language_id
-                is_main_language
-              }
-            }
-          }
       - name: Admin - Query all campaign
         query: |
           query campaign {
@@ -963,6 +929,45 @@
                 condition
                 reward
                 status
+              }
+            }
+          }
+      - name: Admin - Query List Manga
+        query: |
+          query QueryListManga {
+            manga(order_by: {created_at:desc}) {
+              id
+              slug
+              banner
+              poster
+              status
+              release_date
+              publish_date
+              created_at
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                }
+              }
+              chapters_aggregate {
+                aggregate {
+                  count
+                  max {
+                    chapter_number
+                  }
+                }
+              }
+              published_chapters_aggregate: chapters_aggregate(where: {status:{_eq:"Published"}}) {
+                aggregate {
+                  count
+                }
+              }
+              manga_languages {
+                id
+                title
+                language_id
+                is_main_language
               }
             }
           }

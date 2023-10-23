@@ -13,5 +13,6 @@ import { MasterWalletService } from './master-wallet.service';
   imports: [JwtModule, GraphqlModule, FilesModule, SysKeyModule],
   providers: [UserWalletService, UserWalletGraphql, MasterWalletService],
   controllers: [UserWalletController],
+  exports: [MasterWalletService],
 })
 export class UserWalletModule {}
