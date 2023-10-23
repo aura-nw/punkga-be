@@ -147,6 +147,9 @@ export class QuestService {
   }
 
   verifyQuestCondition(condition: any, currentLevel?: number) {
+    // optional condition
+    if ([...condition.keys()].length === 0) return true;
+
     const unlock: boolean[] = [];
 
     if (condition.level && currentLevel) {
