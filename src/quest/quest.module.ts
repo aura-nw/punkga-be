@@ -11,6 +11,7 @@ import { SocialActivitiesModule } from '../social-activites/social-activities.mo
 import { UserQuestModule } from '../user-quests/user-quests.module';
 import { SubscribersModule } from '../subscribers/subscribers.module';
 import { LevelingModule } from '../leveling/leveling.module';
+import { UserLevelModule } from '../user-level/user-level.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { LevelingModule } from '../leveling/leveling.module';
     RepeatQuestModule,
     SocialActivitiesModule,
     UserQuestModule,
+    UserLevelModule,
     SubscribersModule,
     LevelingModule,
   ],

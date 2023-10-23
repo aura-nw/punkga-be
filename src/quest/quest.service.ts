@@ -14,6 +14,7 @@ import { UserQuestsGraphql } from '../user-quests/user-quests.graphql';
 import { RepeatQuestsGraphql } from '../repeat-quests/repeat-quests.graphql';
 import { ContextProvider } from '../providers/contex.provider';
 import { LevelingService } from '../leveling/leveling.service';
+import { UserLevelGraphql } from '../user-level/user-level.graphql';
 
 @Injectable()
 export class QuestService {
@@ -26,6 +27,7 @@ export class QuestService {
     private subscribersGraphql: SubscribersGraphql,
     private userGraphql: UserGraphql,
     private userQuestGraphql: UserQuestsGraphql,
+    private userLevelGraphql: UserLevelGraphql,
     private levelingService: LevelingService,
     private repeatQuestGraphql: RepeatQuestsGraphql
   ) {}
@@ -118,6 +120,16 @@ export class QuestService {
     const newLevel = this.levelingService.xpToLevel(totalXp);
 
     // save db
+    const result = await this.userLevelGraphql.insertUserLevel(
+      {
+        user_id: userId,
+        xp: totalXp,
+        level: newLevel,
+      },
+      userToken
+    );
+    this.logger.debug('Increase user xp result: ');
+    this.logger.debug(JSON.stringify(result));
   }
 
   private async getClaimRewardStatus(quest: any, userId: string) {
