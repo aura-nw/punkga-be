@@ -1,6 +1,6 @@
 import { Secp256k1HdWallet } from '@cosmjs/amino';
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import { GasPrice } from '@cosmjs/stargate';
+import { GasPrice, calculateFee } from '@cosmjs/stargate';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -23,6 +23,17 @@ export class MasterWalletService implements OnModuleInit {
 
   // init master wallet
   async onModuleInit() {
+    // use mnemonic
+    // const systemMnemonic = this.configService.get<string>(
+    //   'network.systemMnemonic'
+    // );
+    // const wallet = await Secp256k1HdWallet.fromMnemonic(systemMnemonic, {
+    //   prefix: 'aura',
+    // });
+    // const account = await wallet.getAccounts();
+    // this.masterWallet = wallet;
+    // this.masterWalletAddress = account[0].address;
+
     // get from db
     const masterWalletData = await this.userWalletGraphql.getMasterWallet();
     if (masterWalletData) {
@@ -80,18 +91,19 @@ export class MasterWalletService implements OnModuleInit {
         gasPrice,
       }
     );
+    const executeFee = calculateFee(300_000, gasPrice);
 
-    const result = client.execute(
+    const result = await client.execute(
       this.masterWalletAddress,
       contractAddress,
       {
-        UpdateUserInfo: {
+        update_user_info: {
           address: userAddress,
           level,
           total_xp: xp,
         },
       },
-      'auto'
+      executeFee
     );
 
     this.logger.debug(result);

@@ -16,6 +16,7 @@ import { ContextProvider } from '../providers/contex.provider';
 import { LevelingService } from '../leveling/leveling.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
+import { UserRewardGraphql } from '../user-reward/user-reward.graphql';
 
 @Injectable()
 export class QuestService {
@@ -27,6 +28,7 @@ export class QuestService {
     private socialActivitiesGraphql: SocialActivitiesGraphql,
     private subscribersGraphql: SubscribersGraphql,
     private userGraphql: UserGraphql,
+    private userRewardGraphql: UserRewardGraphql,
     private masterWalletSerivce: MasterWalletService,
     private userQuestGraphql: UserQuestsGraphql,
     private userLevelGraphql: UserLevelGraphql,
@@ -56,7 +58,12 @@ export class QuestService {
 
     if (!quest) throw new NotFoundException();
 
-    quest.reward_status = await this.getClaimRewardStatus(quest, userId);
+    const userQuest = await this.getUserQuest(quest, userId);
+    quest.reward_status = await this.getClaimRewardStatus(
+      userQuest,
+      quest,
+      userId
+    );
 
     return quest;
   }
@@ -68,12 +75,17 @@ export class QuestService {
       id: questId,
     });
 
-    const rewardStatus = await this.getClaimRewardStatus(quest, userId);
+    const userQuest = await this.getUserQuest(quest, userId);
+    const rewardStatus = await this.getClaimRewardStatus(
+      userQuest,
+      quest,
+      userId
+    );
     if (rewardStatus !== 1) throw new ForbiddenException();
 
     if (quest.reward?.xp) {
       // increase user xp
-      return this.increaseUserXp(userId, quest.reward?.xp, token);
+      return this.increaseUserXp(userId, quest, quest.reward?.xp, token);
     }
   }
 
@@ -106,7 +118,12 @@ export class QuestService {
     return campaigns;
   }
 
-  private async increaseUserXp(userId: string, xp: number, userToken: string) {
+  private async increaseUserXp(
+    userId: string,
+    quest: any,
+    xp: number,
+    userToken: string
+  ) {
     // TODO: execute contract
     // increase in db
     const user = await this.userGraphql.queryUserWalletData(
@@ -124,13 +141,45 @@ export class QuestService {
     const newLevel = this.levelingService.xpToLevel(totalXp);
 
     // execute contract
-    await this.masterWalletSerivce.updateUserLevel(
+    const tx = await this.masterWalletSerivce.updateUserLevel(
       user.authorizer_users_user_wallet.address,
       totalXp,
       newLevel
     );
 
     // save db
+    let quest_id, repeat_quest_id;
+    if (quest.type === 'Once') {
+      quest_id = quest.id;
+    } else {
+      // get latest repeat quest by quest id
+      const repeatQuest = await this.repeatQuestGraphql.queryRepeatQuest({
+        quest_id: quest.id,
+      });
+
+      if (!repeatQuest) throw new NotFoundException();
+      repeat_quest_id = repeatQuest.id;
+    }
+
+    const insertUserRewardResult =
+      await this.userRewardGraphql.insertUserReward({
+        objects: {
+          quest_id,
+          repeat_quest_id,
+          status: 'Claimed',
+          user_id: userId,
+          user_quest_rewards: {
+            data: {
+              tx_hash: tx.transactionHash,
+            },
+            on_conflict: {
+              constraint: 'user_quest_reward_pkey',
+              update_columns: 'updated_at',
+            },
+          },
+        },
+      });
+
     const result = await this.userLevelGraphql.insertUserLevel(
       {
         user_id: userId,
@@ -140,14 +189,19 @@ export class QuestService {
       userToken
     );
     this.logger.debug('Increase user xp result: ');
+    this.logger.debug(JSON.stringify(insertUserRewardResult));
     this.logger.debug(JSON.stringify(result));
     return result;
   }
 
-  private async getClaimRewardStatus(quest: any, userId: string) {
+  private async getClaimRewardStatus(
+    userQuest: any,
+    quest: any,
+    userId: string
+  ) {
     let rewardStatus = 0;
     if (userId) {
-      const isClaimed = await this.isClaimed(quest, userId);
+      const isClaimed = await this.isClaimed(userQuest);
       if (isClaimed) {
         rewardStatus = 2;
       } else {
@@ -162,7 +216,7 @@ export class QuestService {
     return rewardStatus;
   }
 
-  private async isClaimed(quest: any, userId: string): Promise<boolean> {
+  private async getUserQuest(quest: any, userId: string) {
     let queryUserQuestCondition;
     // check reward claimed
     if (quest.type === 'Once') {
@@ -201,6 +255,10 @@ export class QuestService {
       queryUserQuestCondition
     );
 
+    return userQuest;
+  }
+
+  private async isClaimed(userQuest: any): Promise<boolean> {
     if (
       userQuest?.user_quest_rewards &&
       userQuest?.user_quest_rewards !== null

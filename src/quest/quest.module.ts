@@ -13,6 +13,7 @@ import { SubscribersModule } from '../subscribers/subscribers.module';
 import { LevelingModule } from '../leveling/leveling.module';
 import { UserLevelModule } from '../user-level/user-level.module';
 import { UserWalletModule } from '../user-wallet/user-wallet.module';
+import { UserRewardModule } from '../user-reward/user-reward.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UserWalletModule } from '../user-wallet/user-wallet.module';
     SubscribersModule,
     LevelingModule,
     UserWalletModule,
+    UserRewardModule,
   ],
   providers: [QuestService, QuestGraphql],
   controllers: [QuestController],
