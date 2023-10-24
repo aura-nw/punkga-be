@@ -240,22 +240,6 @@
               affected_rows
             }
           }
-      - name: User - Get Profile
-        query: |
-          query GetUserProfile {
-            authorizer_users {
-              id
-              email
-              email_verified_at
-              bio
-              birthdate
-              gender
-              wallet_address
-              nickname
-              picture
-              signup_methods
-            }
-          }
       - name: Admin - Delete User
         query: |
           mutation DeleteUser ($id: bpchar!) {
@@ -998,5 +982,25 @@
               rank
               user_id
               xp
+            }
+          }
+      - name: User - Get Profile
+        query: |
+          query GetUserProfile {
+            authorizer_users {
+              id
+              email
+              email_verified_at
+              bio
+              birthdate
+              gender
+              wallet_address
+              nickname
+              picture
+              signup_methods
+              levels {
+                xp
+                level
+              }
             }
           }
