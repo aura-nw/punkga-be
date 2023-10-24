@@ -87,6 +87,11 @@ export class QuestService {
       // increase user xp
       return this.increaseUserXp(userId, quest, quest.reward?.xp, token);
     }
+
+    if (quest.reward?.nft) {
+      // mint nft
+      return this.mintNft(userId, quest, token);
+    }
   }
 
   async getAllCampaignQuest(userId?: string) {
@@ -118,14 +123,40 @@ export class QuestService {
     return campaigns;
   }
 
+  private async mintNft(userId: string, quest: any, userToken: string) {
+    const tokenUri = quest.reward.nft.img_url;
+
+    const user = await this.userGraphql.queryUserWalletData(
+      {
+        id: userId,
+      },
+      userToken
+    );
+
+    // execute contract
+    const tx = await this.masterWalletSerivce.mintNft(
+      user.authorizer_users_user_wallet.address,
+      Number(new Date()).toString(),
+      tokenUri
+    );
+
+    const insertUserRewardResult = await this.saveRewardHistory(
+      quest,
+      userId,
+      tx.transactionHash
+    );
+
+    this.logger.debug('Increase user xp result: ');
+    this.logger.debug(JSON.stringify(insertUserRewardResult));
+    return insertUserRewardResult;
+  }
+
   private async increaseUserXp(
     userId: string,
     quest: any,
     xp: number,
     userToken: string
   ) {
-    // TODO: execute contract
-    // increase in db
     const user = await this.userGraphql.queryUserWalletData(
       {
         id: userId,
@@ -134,9 +165,7 @@ export class QuestService {
     );
 
     const currentXp = user.levels[0] ? user.levels[0].xp : 0;
-
     const totalXp = currentXp + xp;
-
     // calculate level from xp
     const newLevel = this.levelingService.xpToLevel(totalXp);
 
@@ -148,6 +177,27 @@ export class QuestService {
     );
 
     // save db
+    const insertUserRewardResult = await this.saveRewardHistory(
+      quest,
+      userId,
+      tx.transactionHash
+    );
+
+    const result = await this.userLevelGraphql.insertUserLevel(
+      {
+        user_id: userId,
+        xp: totalXp,
+        level: newLevel,
+      },
+      userToken
+    );
+    this.logger.debug('Increase user xp result: ');
+    this.logger.debug(JSON.stringify(insertUserRewardResult));
+    this.logger.debug(JSON.stringify(result));
+    return result;
+  }
+
+  private async saveRewardHistory(quest: any, userId: string, txHash: string) {
     let quest_id, repeat_quest_id;
     if (quest.type === 'Once') {
       quest_id = quest.id;
@@ -170,7 +220,7 @@ export class QuestService {
           user_id: userId,
           user_quest_rewards: {
             data: {
-              tx_hash: tx.transactionHash,
+              tx_hash: txHash,
             },
             on_conflict: {
               constraint: 'user_quest_reward_pkey',
@@ -179,19 +229,7 @@ export class QuestService {
           },
         },
       });
-
-    const result = await this.userLevelGraphql.insertUserLevel(
-      {
-        user_id: userId,
-        xp: totalXp,
-        level: newLevel,
-      },
-      userToken
-    );
-    this.logger.debug('Increase user xp result: ');
-    this.logger.debug(JSON.stringify(insertUserRewardResult));
-    this.logger.debug(JSON.stringify(result));
-    return result;
+    return insertUserRewardResult;
   }
 
   private async getClaimRewardStatus(
