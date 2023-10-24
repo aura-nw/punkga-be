@@ -1002,5 +1002,8 @@
                 xp
                 level
               }
+              authorizer_users_user_wallet {
+                address
+              }
             }
           }
