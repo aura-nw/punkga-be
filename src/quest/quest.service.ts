@@ -209,6 +209,7 @@ export class QuestService {
 
       if (!repeatQuest) throw new NotFoundException();
       repeat_quest_id = repeatQuest.id;
+      quest_id = quest.id;
     }
 
     const insertUserRewardResult =
