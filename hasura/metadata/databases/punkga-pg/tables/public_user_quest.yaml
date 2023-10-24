@@ -21,6 +21,7 @@ select_permissions:
         - created_at
         - updated_at
       filter: {}
+      allow_aggregations: true
   - role: user
     permission:
       columns:
@@ -32,3 +33,4 @@ select_permissions:
         - created_at
         - updated_at
       filter: {}
+      allow_aggregations: true

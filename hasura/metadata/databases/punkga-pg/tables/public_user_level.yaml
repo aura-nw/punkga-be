@@ -1,6 +1,10 @@
 table:
   name: user_level
   schema: public
+object_relationships:
+  - name: authorizer_user
+    using:
+      foreign_key_constraint_on: user_id
 insert_permissions:
   - role: user
     permission:
@@ -11,6 +15,7 @@ insert_permissions:
         - user_id
         - level
         - xp
+        - updated_at
 select_permissions:
   - role: anonymous
     permission:
@@ -18,13 +23,16 @@ select_permissions:
         - user_id
         - level
         - xp
+        - updated_at
       filter: {}
+      allow_aggregations: true
   - role: user
     permission:
       columns:
         - user_id
         - level
         - xp
+        - updated_at
       filter: {}
       allow_aggregations: true
 update_permissions:
@@ -34,6 +42,7 @@ update_permissions:
         - user_id
         - level
         - xp
+        - updated_at
       filter:
         user_id:
           _eq: X-Hasura-User-Id

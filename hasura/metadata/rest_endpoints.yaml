@@ -227,6 +227,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Get leaderboard
+  methods:
+    - GET
+  name: Public - Get leaderboard
+  url: pubic/leaderboard
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Get Chapter Comments
   methods:
     - GET

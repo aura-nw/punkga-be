@@ -24,6 +24,13 @@ array_relationships:
         table:
           name: user_level
           schema: public
+  - name: user_quests
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_quest
+          schema: public
 select_permissions:
   - role: anonymous
     permission:
