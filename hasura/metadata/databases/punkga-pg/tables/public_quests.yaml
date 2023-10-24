@@ -44,3 +44,30 @@ select_permissions:
         - updated_at
       filter: {}
       allow_aggregations: true
+event_triggers:
+  - name: generate_repeat_quest
+    definition:
+      enable_manual: false
+      insert:
+        columns: '*'
+      update:
+        columns:
+          - id
+          - type
+          - status
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: '{{WEBHOOK_URL}}/repeat-quest'
+    headers:
+      - name: webhook-secret
+        value_from_env: WEBHOOK_SECRET
+    request_transform:
+      body:
+        action: transform
+        template: '{"quest_id": {{$body.event.data.new.id}}}'
+      method: POST
+      query_params: {}
+      template_engine: Kriti
+      version: 2

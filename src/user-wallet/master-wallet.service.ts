@@ -1,4 +1,4 @@
-import { Secp256k1HdWallet } from '@cosmjs/amino';
+import { Secp256k1HdWallet, StdFee } from '@cosmjs/amino';
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
 import { GasPrice, calculateFee } from '@cosmjs/stargate';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
@@ -13,6 +13,9 @@ export class MasterWalletService implements OnModuleInit {
   private readonly logger = new Logger(MasterWalletService.name);
   private masterWallet = null;
   private masterWalletAddress = '';
+  private contractAddress: string;
+  private executeFee: StdFee;
+  private client: SigningCosmWasmClient;
 
   constructor(
     private configService: ConfigService,
@@ -73,29 +76,30 @@ export class MasterWalletService implements OnModuleInit {
       });
       this.logger.debug(`Insert master wallet: ${JSON.stringify(result)}`);
     }
-  }
 
-  async updateUserLevel(userAddress: string, xp: number, level: number) {
-    const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
     const gasPrice = GasPrice.fromString(
       this.configService.get<string>('network.gasPrice')
     );
-    const contractAddress = this.configService.get<string>(
+    this.executeFee = calculateFee(300_000, gasPrice);
+    this.contractAddress = this.configService.get<string>(
       'network.contractAddress.leveling'
     );
 
-    const client = await SigningCosmWasmClient.connectWithSigner(
+    // build client
+    const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
+    this.client = await SigningCosmWasmClient.connectWithSigner(
       rpcEndpoint,
       this.masterWallet,
       {
         gasPrice,
       }
     );
-    const executeFee = calculateFee(300_000, gasPrice);
+  }
 
-    const result = await client.execute(
+  async updateUserLevel(userAddress: string, xp: number, level: number) {
+    const result = await this.client.execute(
       this.masterWalletAddress,
-      contractAddress,
+      this.contractAddress,
       {
         update_user_info: {
           address: userAddress,
@@ -103,7 +107,7 @@ export class MasterWalletService implements OnModuleInit {
           total_xp: xp,
         },
       },
-      executeFee
+      this.executeFee
     );
 
     this.logger.debug(result);

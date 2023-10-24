@@ -10,18 +10,47 @@ export class RepeatQuestsGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async getRepeatableQuestById(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query repeatable_quest_by_id($id: Int!) {
+        quests(where: {id: {_eq: $id}, type: {_in: ["Daily"]}, status: {_eq: "Published"}}) {
+          id
+          condition
+          type
+          status
+          repeat_quests(limit: 1, order_by: {created_at: desc}) {
+            id
+            quest_id
+            created_at
+          }
+        }
+      }
+      `,
+      'repeatable_quest_by_id',
+      variables
+    );
+
+    return result.data?.quests[0];
+  }
+
   async getRepeatableQuests() {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query repeatable_quests {
-        quests(where: {type: {_in: ["Daily"]}, status: {_eq: "Published"}}) {
+      `query repeatable_quest_by_id($id: Int!) {
+        quests(where: {id: {_eq: $id}, type: {_in: ["Daily"]}, status: {_eq: "Published"}}) {
           id
           condition
+          type
           status
+          repeat_quests(limit: 1, order_by: {created_at: desc}) {
+            id
+            created_at
+          }
         }
-      }
-      `,
+      }`,
       'repeatable_quests',
       {}
     );
