@@ -1,0 +1,15 @@
+table:
+  name: user_xp_rank
+  schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - rank
+        - user_id
+        - level
+        - xp
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      limit: 1

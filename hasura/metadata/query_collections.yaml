@@ -990,3 +990,13 @@
               }
             }
           }
+      - name: User - Query rank
+        query: |
+          query user_xp_rank {
+            user_xp_rank {
+              level
+              rank
+              user_id
+              xp
+            }
+          }

@@ -412,3 +412,12 @@
     - GET
   name: User - Get Profile
   url: user/profile
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Query rank
+  methods:
+    - GET
+  name: User - Query rank
+  url: user/rank

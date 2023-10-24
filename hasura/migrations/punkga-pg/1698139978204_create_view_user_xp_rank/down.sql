@@ -1,0 +1,9 @@
+-- Could not auto-generate a down migration.
+-- Please write an appropriate down migration for the SQL below:
+-- CREATE OR REPLACE VIEW user_xp_rank AS
+--   select
+--   user_id,
+--   xp,
+--   level,
+--   rank() over (order by xp desc, updated_at asc) as rank
+-- from user_level;
