@@ -803,52 +803,6 @@
               affected_rows
             }
           }
-      - name: Admin - Create Quest
-        query: |
-          mutation insert_quests ($name: String = "", $type: String = "", $condition: jsonb = "", $requirement: jsonb = "", $reward: jsonb = "", $status: String = "", $campaign_id: Int = 10) {
-            insert_quests(objects: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,campaign_id:$campaign_id}) {
-              affected_rows
-              returning {
-                id
-                name
-                campaign_id
-                status
-              }
-            }
-          }
-      - name: Admin - Get quest by id
-        query: |
-          query quests_by_pk ($id: Int!) {
-            quests_by_pk(id: $id) {
-              campaign_id
-              condition
-              created_at
-              id
-              name
-              requirement
-              reward
-              status
-              type
-              updated_at
-              quests_campaign {
-                name
-                created_at
-              }
-            }
-          }
-      - name: Admin - Update quest
-        query: |
-          mutation update_quests ($name: String = "", $type: String = "", $condition: jsonb = "", $requirement: jsonb = "", $reward: jsonb = "", $status: String = "", $id: Int!) {
-            update_quests(where: {id:{_eq:$id}}, _set: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status}) {
-              affected_rows
-              returning {
-                id
-                name
-                status
-                updated_at
-              }
-            }
-          }
       - name: Admin - Delete quest
         query: |
           mutation delete_quests_by_pk ($id: Int!) {
@@ -892,27 +846,6 @@
                 aggregate {
                   count
                 }
-              }
-            }
-          }
-      - name: Admin - Query campaign detail
-        query: |
-          query campaign_by_pk ($id: Int!) {
-            campaign_by_pk(id: $id) {
-              created_at
-              updated_at
-              id
-              name
-              status
-              campaign_quests(order_by: {created_at:desc}) {
-                created_at
-                updated_at
-                id
-                name
-                type
-                condition
-                reward
-                status
               }
             }
           }
@@ -1018,6 +951,76 @@
                   name
                   reward
                 }
+              }
+            }
+          }
+      - name: Admin - Create Quest
+        query: |
+          mutation insert_quests ($name: String = "", $type: String = "", $condition: jsonb = "", $requirement: jsonb = "", $reward: jsonb = "", $status: String = "", $campaign_id: Int = 10, $description: String = "") {
+            insert_quests(objects: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,campaign_id:$campaign_id,description:$description}) {
+              affected_rows
+              returning {
+                id
+                name
+                campaign_id
+                status
+                description
+              }
+            }
+          }
+      - name: Admin - Get quest by id
+        query: |
+          query quests_by_pk ($id: Int!) {
+            quests_by_pk(id: $id) {
+              campaign_id
+              condition
+              created_at
+              id
+              name
+              description
+              requirement
+              reward
+              status
+              type
+              updated_at
+              quests_campaign {
+                name
+                created_at
+              }
+            }
+          }
+      - name: Admin - Query campaign detail
+        query: |
+          query campaign_by_pk ($id: Int!) {
+            campaign_by_pk(id: $id) {
+              created_at
+              updated_at
+              id
+              name
+              status
+              campaign_quests(order_by: {created_at:desc}) {
+                created_at
+                updated_at
+                id
+                name
+                description
+                type
+                condition
+                reward
+                status
+              }
+            }
+          }
+      - name: Admin - Update quest
+        query: |
+          mutation update_quests ($name: String = "", $type: String = "", $condition: jsonb = "", $requirement: jsonb = "", $reward: jsonb = "", $status: String = "", $id: Int!, $description: String = "") {
+            update_quests(where: {id:{_eq:$id}}, _set: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,description:$description}) {
+              affected_rows
+              returning {
+                id
+                name
+                status
+                updated_at
               }
             }
           }

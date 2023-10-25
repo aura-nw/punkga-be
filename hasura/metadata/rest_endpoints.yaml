@@ -137,6 +137,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Admin - Delete quest
+  methods:
+    - DELETE
+  name: Admin - Delete quest
+  url: admin/quests/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Admin - Get quest by id
   methods:
     - GET
@@ -150,15 +159,6 @@
   methods:
     - PUT
   name: Admin - Update quest
-  url: admin/quests/:id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Delete quest
-  methods:
-    - DELETE
-  name: Admin - Delete quest
   url: admin/quests/:id
 - comment: ""
   definition:
