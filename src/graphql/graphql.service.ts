@@ -40,6 +40,13 @@ export class GraphqlService {
     return response.data;
   }
 
+  isError(result: any) {
+    if (result.errors && result.errors.length > 0) {
+      return true;
+    }
+    return false;
+  }
+
   errorOrEmpty(result: any, fieldName: string) {
     if (result.errors && result.errors.length > 0) {
       return true;

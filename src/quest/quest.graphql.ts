@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { GraphqlService } from '../graphql/graphql.service';
 
 @Injectable()
 export class QuestGraphql {
+  private readonly logger = new Logger(QuestGraphql.name);
+
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService

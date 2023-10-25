@@ -8,6 +8,7 @@ import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { UserGraphql } from './user.graphql';
+import { verifyQuestCondition } from '../quest/utils';
 
 @Injectable()
 export class UserService {
@@ -17,6 +18,26 @@ export class UserService {
     private filesService: FilesService,
     private userGraphql: UserGraphql
   ) {}
+
+  async getUserAvailableQuest() {
+    const { userId } = ContextProvider.getAuthUser();
+    const quests: any[] = await this.userGraphql.getAllPublishedQuest();
+
+    let currentLevel = 0;
+    if (userId) {
+      const user = await this.userGraphql.queryUserLevel({
+        id: userId,
+      });
+
+      if (user?.levels[0]) {
+        currentLevel = user.levels[0].level;
+      }
+    }
+
+    return quests.filter((quest) =>
+      verifyQuestCondition(quest.condition, currentLevel)
+    );
+  }
 
   async updateProfile(
     data: UpdateProfileRequestDto,

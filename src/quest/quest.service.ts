@@ -17,6 +17,7 @@ import { LevelingService } from '../leveling/leveling.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { UserRewardGraphql } from '../user-reward/user-reward.graphql';
+import { verifyQuestCondition } from './utils';
 
 @Injectable()
 export class QuestService {
@@ -113,7 +114,7 @@ export class QuestService {
       // let data: any;
       // data.id = campaign.id;
       campaign.campaign_quests.forEach((quest, index) => {
-        campaign.campaign_quests[index].unlock = this.verifyQuestCondition(
+        campaign.campaign_quests[index].unlock = verifyQuestCondition(
           quest.condition,
           currentLevel
         );
@@ -340,30 +341,5 @@ export class QuestService {
     }
 
     return false;
-  }
-
-  private verifyQuestCondition(condition: any, currentLevel?: number) {
-    // optional condition
-    if (Object.keys(condition).length === 0) return true;
-
-    const unlock: boolean[] = [];
-
-    if (condition.level && currentLevel) {
-      // check user level
-      unlock.push(currentLevel >= condition.level);
-    }
-
-    const now = new Date();
-    if (condition.after) {
-      const after = new Date(condition.after);
-      unlock.push(after < now);
-    }
-
-    if (condition.before) {
-      const before = new Date(condition.before);
-      unlock.push(now < before);
-    }
-
-    return unlock.includes(false) || unlock.length === 0 ? false : true;
   }
 }

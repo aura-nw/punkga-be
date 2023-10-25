@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Put,
   Query,
   UploadedFiles,
@@ -45,5 +46,14 @@ export class UserController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.userSvc.updateProfile(data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Get('available-quests')
+  @UseInterceptors(AuthUserInterceptor)
+  getAvailableQuests() {
+    return this.userSvc.getUserAvailableQuest();
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+
 import { RepeatQuestsGraphql } from './repeat-quests.graphql';
 import { isActiveQuest } from './utils';
 

@@ -1,14 +1,45 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { GraphqlService } from '../graphql/graphql.service';
 
 @Injectable()
 export class UserGraphql {
+  private readonly logger = new Logger(UserGraphql.name);
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
   ) {}
+
+  async getAllPublishedQuest() {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query quests {
+        quests(where: {quests_campaign: {status: {_eq: "Published"}}, status: {_eq: "Published"}}, order_by: {quests_campaign: {created_at: desc}, created_at: desc}) {
+          id
+          name
+          condition
+          requirement
+          reward
+          status
+          type
+          created_at
+          updated_at
+        }
+      }
+      `,
+      'quests',
+      {}
+    );
+
+    if (this.graphqlSvc.errorOrEmpty(result, 'quests')) {
+      this.logger.error(JSON.stringify(result));
+      return [];
+    }
+
+    return result.data.quests;
+  }
 
   async queryUserWalletData(variables: any, token: string) {
     const result = await this.graphqlSvc.query(
