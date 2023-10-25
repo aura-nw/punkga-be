@@ -48,6 +48,7 @@ export class QuestGraphql {
           campaign_quests(order_by: {created_at: desc}, where: {status: {_eq: "Published"}}) {
             id
             name
+            description
             condition
             requirement
             reward
