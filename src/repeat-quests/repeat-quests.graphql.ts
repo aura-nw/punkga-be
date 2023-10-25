@@ -39,16 +39,11 @@ export class RepeatQuestsGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query repeatable_quest_by_id($id: Int!) {
-        quests(where: {id: {_eq: $id}, type: {_in: ["Daily"]}, status: {_eq: "Published"}}) {
+      `query repeatable_quests {
+        quests(where: {type: {_in: ["Daily"]}, status: {_eq: "Published"}}) {
           id
           condition
-          type
           status
-          repeat_quests(limit: 1, order_by: {created_at: desc}) {
-            id
-            created_at
-          }
         }
       }`,
       'repeatable_quests',
