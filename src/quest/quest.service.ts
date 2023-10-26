@@ -39,11 +39,14 @@ export class QuestService {
 
   async upload(file: Express.Multer.File) {
     try {
-      const url = await this.filesService.uploadImageToS3(`nft`, file);
+      const url = await this.filesService.uploadImageToIpfs(file);
+
+      const ipfs = await this.filesService.uploadImageToIpfs(file);
 
       this.logger.debug(`uploading nft image ${file.originalname} success`);
       return {
         url,
+        ipfs,
       };
     } catch (errors) {
       return {
@@ -125,7 +128,7 @@ export class QuestService {
   }
 
   private async mintNft(userId: string, quest: any, userToken: string) {
-    const tokenUri = quest.reward.nft.img_url;
+    const tokenUri = quest.reward.nft.ipfs;
 
     const user = await this.userGraphql.queryUserWalletData(
       {

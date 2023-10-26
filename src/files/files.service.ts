@@ -1,19 +1,33 @@
+import decompress from 'decompress';
+import { readFileSync } from 'fs';
+import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import { Magic, MAGIC_MIME_TYPE } from 'mmmagic';
+
 import {
   PutObjectCommand,
   PutObjectCommandInput,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { readFileSync } from 'fs';
-import { MAGIC_MIME_TYPE, Magic } from 'mmmagic';
-import decompress from 'decompress';
+
 import { IFileInfo } from '../chapter/interfaces';
 
 @Injectable()
-export class FilesService {
+export class FilesService implements OnModuleInit {
   private readonly logger = new Logger(FilesService.name);
+  private ipfsClient: IPFSHTTPClient;
+
   constructor(private configService: ConfigService) {}
+
+  onModuleInit() {
+    const ipfsUrl = this.configService.get<string>('network.ipfsUrl');
+
+    this.ipfsClient = create({
+      url: ipfsUrl,
+      timeout: 60000,
+    });
+  }
 
   unzipFile(file: string, outputPath: string): Promise<boolean> {
     this.logger.debug(`Unzip ${file}...`);
@@ -71,6 +85,24 @@ export class FilesService {
     }
     return new URL(keyName, this.configService.get<string>('aws.queryEndpoint'))
       .href;
+  }
+
+  async uploadImageToIpfs(file: Express.Multer.File) {
+    if (!file.mimetype.includes('image')) {
+      throw Error('file type is not valid');
+    }
+
+    const response = await this.ipfsClient.add(
+      {
+        path: file.originalname,
+        content: file.buffer,
+      },
+      {
+        wrapWithDirectory: true,
+      }
+    );
+
+    return `/ipfs/${response.cid.toString()}/${file.originalname}`;
   }
 
   async uploadImageToS3(key: string, f: Express.Multer.File): Promise<string> {

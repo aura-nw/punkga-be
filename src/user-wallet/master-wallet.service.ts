@@ -96,7 +96,7 @@ export class MasterWalletService implements OnModuleInit {
     );
   }
 
-  async mintNft(userAddress: string, tokenId: string, tokenUri: string) {
+  async mintNft(userAddress: string, tokenId: string, nftImage: string) {
     const result = await this.client.execute(
       this.masterWalletAddress,
       this.contractAddress,
@@ -104,8 +104,9 @@ export class MasterWalletService implements OnModuleInit {
         mint_reward: {
           user_addr: userAddress,
           token_id: tokenId,
-          token_uri: tokenUri,
-          extension: {},
+          extension: {
+            image: nftImage,
+          },
         },
       },
       this.executeFee
