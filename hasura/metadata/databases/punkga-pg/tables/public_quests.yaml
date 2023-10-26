@@ -18,14 +18,15 @@ select_permissions:
     permission:
       columns:
         - campaign_id
-        - id
         - condition
+        - created_at
+        - description
+        - id
+        - name
         - requirement
         - reward
-        - name
         - status
         - type
-        - created_at
         - updated_at
       filter: {}
       allow_aggregations: true
@@ -33,14 +34,15 @@ select_permissions:
     permission:
       columns:
         - campaign_id
-        - id
         - condition
+        - created_at
+        - description
+        - id
+        - name
         - requirement
         - reward
-        - name
         - status
         - type
-        - created_at
         - updated_at
       filter: {}
       allow_aggregations: true
