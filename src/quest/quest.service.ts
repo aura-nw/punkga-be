@@ -39,7 +39,7 @@ export class QuestService {
 
   async upload(file: Express.Multer.File) {
     try {
-      const url = await this.filesService.uploadImageToIpfs(file);
+      const url = await this.filesService.uploadImageToS3(`nft`, file);
 
       const ipfs = await this.filesService.uploadImageToIpfs(file);
 
