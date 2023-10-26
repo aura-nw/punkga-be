@@ -245,10 +245,7 @@ export class QuestService {
       if (isClaimed) {
         rewardStatus = 2;
       } else {
-        const canClaimReward = await this.canClaimReward(
-          quest.requirement,
-          userId
-        );
+        const canClaimReward = await this.canClaimReward(quest, userId);
 
         if (canClaimReward) rewardStatus = 1;
       }
@@ -313,18 +310,30 @@ export class QuestService {
    * 1: Can claim reward
    * 2: Claimed
    */
-  private async canClaimReward(requirement: any, userId: string) {
-    const requirementType = Object.keys(requirement);
+  private async canClaimReward(quest: any, userId: string) {
+    const { requirement } = quest;
 
+    const requirementType = Object.keys(requirement);
     if (requirementType.includes('read')) {
       // TODO: do something
     }
 
     if (requirementType.includes('comment')) {
       const chapterId = requirement.comment.chapter.id;
+      let compareDate = new Date(new Date().setHours(0, 0, 0, 0));
+
+      if (quest.type === 'Once') {
+        compareDate = new Date(quest.created_at);
+      }
+
+      if (quest.type === 'Daily' && quest.repeat_quests?.length > 0) {
+        compareDate = new Date(quest.repeat_quests[0].created_at);
+      }
+
       const result = await this.socialActivitiesGraphql.queryActivities({
         chapter_id: chapterId,
         user_id: userId,
+        created_at: compareDate,
       });
 
       if (result.data?.social_activities[0]) return true;

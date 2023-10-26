@@ -24,6 +24,7 @@ export class QuestGraphql {
           type
           requirement
           reward
+          created_at
           repeat_quests(order_by: {created_at: desc}, limit: 1) {
             id
             created_at
