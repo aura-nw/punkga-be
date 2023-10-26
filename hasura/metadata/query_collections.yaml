@@ -888,25 +888,6 @@
               }
             }
           }
-      - name: Public - Get leaderboard
-        query: |
-          query leaderboard {
-            user_level(limit: 20, order_by: {xp:desc_nulls_last,updated_at:asc}) {
-              xp
-              level
-              updated_at
-              authorizer_user {
-                id
-                picture
-                nickname
-                user_quests_aggregate {
-                  aggregate {
-                    count
-                  }
-                }
-              }
-            }
-          }
       - name: User - Query rank
         query: |
           query user_xp_rank {
@@ -1021,6 +1002,25 @@
                 name
                 status
                 updated_at
+              }
+            }
+          }
+      - name: Public - Get leaderboard
+        query: |
+          query leaderboard {
+            user_level(limit: 20, order_by: [{xp:desc_nulls_last},{updated_at:asc}]) {
+              xp
+              level
+              updated_at
+              authorizer_user {
+                id
+                picture
+                nickname
+                user_quests_aggregate {
+                  aggregate {
+                    count
+                  }
+                }
               }
             }
           }

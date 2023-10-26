@@ -74,7 +74,7 @@ export class TasksService {
         .split('/');
 
       const { id: mangaId, slug: mangaSlug } = detectSlugOrId(arr[0]);
-      const chapterNumber = arr[2];
+      const chapterNumber = arr[2].match(/\d+/)[0];
 
       return {
         mangaId,
