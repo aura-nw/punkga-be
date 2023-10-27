@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Put,
   Query,
   UploadedFiles,
@@ -20,6 +21,7 @@ import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { UserService } from './user.service';
+import { ReadChapterRequestDto } from './dto/read-chapter-request.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -46,6 +48,15 @@ export class UserController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.userSvc.updateProfile(data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Put('read-chapter/:chapter_id')
+  @UseInterceptors(AuthUserInterceptor)
+  readChapter(@Param() data: ReadChapterRequestDto) {
+    return this.userSvc.readChapter(data.chapter_id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

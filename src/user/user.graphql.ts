@@ -109,4 +109,23 @@ export class UserGraphql {
       variables
     );
   }
+
+  userReadChapter(token: string, variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `mutation insert_user_read_chapter($chapter_id: Int!) {
+        insert_user_read_chapter(objects: {chapter_id: $chapter_id}, on_conflict: {constraint: user_read_chapter_pkey, update_columns: updated_at}) {
+          returning {
+            user_id
+            chapter_id
+            updated_at
+          }
+        }
+      }
+      `,
+      'insert_user_read_chapter',
+      variables
+    );
+  }
 }

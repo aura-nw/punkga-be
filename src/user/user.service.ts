@@ -19,6 +19,13 @@ export class UserService {
     private userGraphql: UserGraphql
   ) {}
 
+  async readChapter(chapterId: number) {
+    const { token } = ContextProvider.getAuthUser();
+    return this.userGraphql.userReadChapter(token, {
+      chapter_id: chapterId,
+    });
+  }
+
   async getUserAvailableQuest() {
     const { userId } = ContextProvider.getAuthUser();
     const quests: any[] = await this.userGraphql.getAllPublishedQuest();

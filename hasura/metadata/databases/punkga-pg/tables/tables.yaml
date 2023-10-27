@@ -25,5 +25,6 @@
 - "!include public_user_level.yaml"
 - "!include public_user_quest.yaml"
 - "!include public_user_quest_reward.yaml"
+- "!include public_user_read_chapter.yaml"
 - "!include public_user_wallet.yaml"
 - "!include public_user_xp_rank.yaml"
