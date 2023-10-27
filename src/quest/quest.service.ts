@@ -141,7 +141,10 @@ export class QuestService {
     const tx = await this.masterWalletSerivce.mintNft(
       user.authorizer_users_user_wallet.address,
       Number(new Date()).toString(),
-      tokenUri
+      {
+        image: tokenUri,
+        name: quest.reward.nft.nft_name,
+      }
     );
 
     const insertUserRewardResult = await this.saveRewardHistory(
