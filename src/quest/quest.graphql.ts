@@ -28,7 +28,7 @@ export class QuestGraphql {
       variables
     );
 
-    return result.data.quests[0];
+    return result.data.user_read_chapter[0];
   }
 
   async getQuestDetail(variables: any) {
