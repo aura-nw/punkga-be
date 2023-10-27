@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Post,
   Put,
   Query,
   UploadedFiles,
@@ -53,7 +54,7 @@ export class UserController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.User)
-  @Put('read-chapter/:chapter_id')
+  @Post('read-chapter/:chapter_id')
   @UseInterceptors(AuthUserInterceptor)
   readChapter(@Param() data: ReadChapterRequestDto) {
     return this.userSvc.readChapter(data.chapter_id);
