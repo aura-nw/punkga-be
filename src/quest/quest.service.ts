@@ -321,7 +321,25 @@ export class QuestService {
 
     const requirementType = Object.keys(requirement);
     if (requirementType.includes('read')) {
-      // TODO: do something
+      const chapterId = requirement.read.chapter.id;
+      let compareDate = new Date(new Date().setHours(0, 0, 0, 0));
+
+      if (quest.type === 'Once') {
+        compareDate = new Date(quest.created_at);
+      }
+
+      if (quest.type === 'Daily' && quest.repeat_quests?.length > 0) {
+        compareDate = new Date(quest.repeat_quests[0].created_at);
+      }
+
+      const userReadChapterData =
+        await this.questGraphql.getUserReadChapterData({
+          user_id: userId,
+          chapter_id: chapterId,
+          compare_date: compareDate,
+        });
+
+      if (userReadChapterData) return true;
     }
 
     if (requirementType.includes('comment')) {

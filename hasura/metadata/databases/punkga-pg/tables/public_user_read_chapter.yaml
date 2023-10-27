@@ -14,15 +14,20 @@ insert_permissions:
         - chapter_id
         - updated_at
 select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - user_id
+        - chapter_id
+        - updated_at
+      filter: {}
   - role: user
     permission:
       columns:
         - user_id
         - chapter_id
         - updated_at
-      filter:
-        user_id:
-          _eq: X-Hasura-User-Id
+      filter: {}
       allow_aggregations: true
 update_permissions:
   - role: user

@@ -12,6 +12,25 @@ export class QuestGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async getUserReadChapterData(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query user_read_chapter($user_id: bpchar!, $chapter_id: Int!, $compare_date: timestamptz = "") {
+        user_read_chapter(where: {user_id: {_eq: $user_id}, chapter_id: {_eq: $chapter_id}, updated_at: {_gte: $compare_date}}) {
+          user_id
+          chapter_id
+          updated_at
+        }
+      }      
+      `,
+      'user_read_chapter',
+      variables
+    );
+
+    return result.data.quests[0];
+  }
+
   async getQuestDetail(variables: any) {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
