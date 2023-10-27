@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { GraphqlService } from '../graphql/graphql.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class MangaGraphql {
@@ -227,18 +227,28 @@ export class MangaGraphql {
     );
   }
 
-  queryUserAddress(token: string) {
-    return this.graphqlSvc.query(
+  async queryUserAddress(token: string): Promise<string> {
+    const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
       `query QueryUserAddress {
-      authorizer_users {
-        wallet_address
+        authorizer_users {
+          authorizer_users_user_wallet {
+            address
+          }
+        }
       }
-    }`,
+      `,
       'QueryUserAddress',
       {}
     );
+
+    if (result.data.authorizer_users[0]?.authorizer_users_user_wallet.address) {
+      return result.data.authorizer_users[0]?.authorizer_users_user_wallet
+        .address;
+    } else {
+      throw new NotFoundException();
+    }
   }
 
   queryMangaContractAddr(token: string, variables: any) {

@@ -1,5 +1,5 @@
 import { Authorizer } from '@authorizerdev/authorizer-js';
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { FilesService } from '../files/files.service';
@@ -9,6 +9,7 @@ import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { UserGraphql } from './user.graphql';
 import { verifyQuestCondition } from '../quest/utils';
+import { MangaService } from '../manga/manga.service';
 
 @Injectable()
 export class UserService {
@@ -16,10 +17,20 @@ export class UserService {
   constructor(
     private configService: ConfigService,
     private filesService: FilesService,
+    private mangaService: MangaService,
     private userGraphql: UserGraphql
   ) {}
 
   async readChapter(chapterId: number) {
+    const chapter = await this.userGraphql.getChapterDetail({
+      id: chapterId,
+    });
+
+    if (chapter.chapter_type === 'NFTs only') {
+      const { nft } = await this.mangaService.getAccess(chapter.manga_id);
+      if (!nft) throw new ForbiddenException();
+    }
+
     const { token } = ContextProvider.getAuthUser();
     return this.userGraphql.userReadChapter(token, {
       chapter_id: chapterId,

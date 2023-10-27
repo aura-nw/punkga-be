@@ -5,9 +5,10 @@ import { UserController } from './user.controller';
 import { GraphqlModule } from '../graphql/graphql.module';
 import { FilesModule } from '../files/files.module';
 import { UserGraphql } from './user.graphql';
+import { MangaModule } from '../manga/manga.module';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, FilesModule],
+  imports: [JwtModule, GraphqlModule, FilesModule, MangaModule],
   providers: [UserService, UserGraphql],
   controllers: [UserController],
   exports: [UserGraphql],

@@ -187,13 +187,8 @@ export class MangaService {
       const network = this.configSvc.get<string>('horosope.network');
       let nft = false;
       const { token } = ContextProvider.getAuthUser();
-      const result = await this.mangaGraphql.queryUserAddress(token);
+      const walletAddress = await this.mangaGraphql.queryUserAddress(token);
 
-      if (this.graphqlSvc.errorOrEmpty(result, 'authorizer_users')) {
-        return result;
-      }
-
-      const walletAddress = result.data.authorizer_users[0].wallet_address;
       if (walletAddress === null)
         return {
           nft,

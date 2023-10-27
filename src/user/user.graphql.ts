@@ -11,6 +11,26 @@ export class UserGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async getChapterDetail(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query chapters($id: Int!) {
+        chapters(where: {id: {_eq: $id}}) {
+          chapter_type
+          manga_id
+        }
+      }`,
+      'chapters',
+      variables
+    );
+
+    if (this.graphqlSvc.errorOrEmpty(result, 'chapters'))
+      throw new NotFoundException();
+
+    return result.data.chapters[0];
+  }
+
   async getAllPublishedQuest() {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
