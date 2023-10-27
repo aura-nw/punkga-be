@@ -143,7 +143,7 @@ export class QuestService {
       Number(new Date()).toString(),
       {
         image: tokenUri,
-        name: quest.reward.nft.nft_name,
+        name: quest.reward.nft.nft_name || '',
       }
     );
 
