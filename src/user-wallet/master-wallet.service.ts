@@ -26,7 +26,7 @@ export class MasterWalletService implements OnModuleInit {
 
   // init master wallet
   async onModuleInit() {
-    // await this.initMasterWallet();
+    await this.initMasterWallet();
   }
 
   async initMasterWallet() {

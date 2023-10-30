@@ -24,6 +24,10 @@ export class UserWalletService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    // await this.insertAllUserWallet();
+  }
+
+  async insertAllUserWallet() {
     const data = [];
     do {
       const users = await this.userWalletGraphql.queryEmptyUserWallet();
