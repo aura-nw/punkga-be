@@ -26,17 +26,10 @@ export class MasterWalletService implements OnModuleInit {
 
   // init master wallet
   async onModuleInit() {
-    // use mnemonic
-    // const systemMnemonic = this.configService.get<string>(
-    //   'network.systemMnemonic'
-    // );
-    // const wallet = await Secp256k1HdWallet.fromMnemonic(systemMnemonic, {
-    //   prefix: 'aura',
-    // });
-    // const account = await wallet.getAccounts();
-    // this.masterWallet = wallet;
-    // this.masterWalletAddress = account[0].address;
+    // await this.initMasterWallet();
+  }
 
+  async initMasterWallet() {
     // get from db
     const masterWalletData = await this.userWalletGraphql.getMasterWallet();
     if (masterWalletData) {

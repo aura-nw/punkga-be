@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
 import { TaskGraphql } from './task.graphql';
 import { detectSlugOrId } from '../utils/utils';
@@ -42,8 +42,7 @@ export class TasksService {
     }
   }
 
-  // every day, on the 1st second
-  @Cron('1 0 0 * * *')
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async getViewsReport() {
     const response = await this.runReport();
     const env = this.configService.get<string>('app.env');
