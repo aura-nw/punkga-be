@@ -24,7 +24,7 @@ export class UserWalletService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // await this.insertAllUserWallet();
+    await this.insertAllUserWallet();
   }
 
   async insertAllUserWallet() {
