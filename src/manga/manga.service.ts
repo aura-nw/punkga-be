@@ -25,7 +25,7 @@ export class MangaService {
     private filesService: FilesService,
     private graphqlSvc: GraphqlService,
     private mangaGraphql: MangaGraphql
-  ) {}
+  ) { }
 
   async get(slug: string, user_id = '') {
     const { id, slug: mangaSlug } = detectSlugOrId(slug);
@@ -221,8 +221,9 @@ export class MangaService {
 
       if (
         getCw721TokenResult.data[`${network}`].cw721_contract.length > 0 &&
-        getCw721TokenResult.data[`${network}`].cw721_contract[0].cw721_tokens
-          .length > 0
+        getCw721TokenResult.data[`${network}`].cw721_contract.find((contract) =>
+          contract.cw721_tokens.length > 0
+        )
       ) {
         nft = true;
       }
