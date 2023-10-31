@@ -9,7 +9,7 @@ export class UserGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) {}
+  ) { }
 
   async getChapterDetail(variables: any) {
     const result = await this.graphqlSvc.query(
@@ -39,6 +39,7 @@ export class UserGraphql {
         quests(where: {quests_campaign: {status: {_eq: "Published"}}, status: {_eq: "Published"}}, order_by: {quests_campaign: {created_at: desc}, created_at: desc}) {
           id
           name
+          description
           condition
           requirement
           reward
