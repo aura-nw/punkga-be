@@ -1021,6 +1021,10 @@
                     count
                   }
                 }
+                email
+                gender
+                bio
+                birthdate
               }
             }
           }
