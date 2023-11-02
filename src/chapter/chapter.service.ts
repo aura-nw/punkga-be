@@ -30,7 +30,7 @@ export class ChapterService {
     private mangaService: MangaService,
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService
-  ) {}
+  ) { }
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
     try {
@@ -38,8 +38,7 @@ export class ChapterService {
       const { name, currentChunkIndex, totalChunks } = data;
 
       this.logger.debug(
-        `uploading file ${name}: ${
-          Number(currentChunkIndex) + 1
+        `uploading file ${name}: ${Number(currentChunkIndex) + 1
         }/${totalChunks}`
       );
 
@@ -252,15 +251,18 @@ export class ChapterService {
 
           _.remove(detail, (image: any) => delete_images.includes(image.name));
 
-          detail.push(
-            ...uploadChapterResult
-              .filter((uploadResult) => add_images.includes(uploadResult.name))
-              .map((uploadResult) => ({
-                order: uploadResult.order,
-                image_path: uploadResult.image_path,
-                name: uploadResult.name,
-              }))
-          );
+          uploadChapterResult
+            .filter((uploadResult) => add_images.includes(uploadResult.name))
+            .forEach((uploadResult) => {
+              const isNameExists = detail.some((item) => item.name === uploadResult.name);
+              if (!isNameExists) {
+                detail.push({
+                  order: uploadResult.order,
+                  image_path: uploadResult.image_path,
+                  name: uploadResult.name,
+                });
+              }
+            });
 
           return {
             languageId: language_id,
