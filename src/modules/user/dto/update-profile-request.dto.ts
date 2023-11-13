@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Gender } from '../../common/enum';
+import { Gender } from '../../../common/enum';
 
 export class UpdateProfileRequestDto {
   @ApiPropertyOptional({ example: '2020-07-05' })

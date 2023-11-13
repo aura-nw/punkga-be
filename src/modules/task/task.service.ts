@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
 import { TaskGraphql } from './task.graphql';
-import { detectSlugOrId } from '../utils/utils';
+import { detectSlugOrId } from '../../utils/utils';
 
 @Injectable()
 export class TasksService {

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsNumber } from 'class-validator';
-import { MangaStatus } from '../../common/enum';
+import { MangaStatus } from '../../../common/enum';
 
 export class MangaTag {
   @ApiProperty()

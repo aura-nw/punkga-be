@@ -7,12 +7,12 @@ import {
   MangaLanguage,
   MangaTag,
 } from './dto/create-manga-request.dto';
-import { ContextProvider } from '../providers/contex.provider';
+import { ContextProvider } from '../../providers/contex.provider';
 import { FilesService } from '../files/files.service';
 import { GraphqlService } from '../graphql/graphql.service';
 import { UpdateMangaRequestDto } from './dto/update-manga-request.dto';
 import { generateSlug } from './util';
-import { detectSlugOrId } from '../utils/utils';
+import { detectSlugOrId } from '../../utils/utils';
 import { GetChapterByMangaParamDto } from './dto/get-chapter-by-manga-request.dto';
 import { MangaGraphql } from './manga.graphql';
 
@@ -25,7 +25,7 @@ export class MangaService {
     private filesService: FilesService,
     private graphqlSvc: GraphqlService,
     private mangaGraphql: MangaGraphql
-  ) { }
+  ) {}
 
   async get(slug: string, user_id = '') {
     const { id, slug: mangaSlug } = detectSlugOrId(slug);
@@ -221,8 +221,8 @@ export class MangaService {
 
       if (
         getCw721TokenResult.data[`${network}`].cw721_contract.length > 0 &&
-        getCw721TokenResult.data[`${network}`].cw721_contract.find((contract) =>
-          contract.cw721_tokens.length > 0
+        getCw721TokenResult.data[`${network}`].cw721_contract.find(
+          (contract) => contract.cw721_tokens.length > 0
         )
       ) {
         nft = true;

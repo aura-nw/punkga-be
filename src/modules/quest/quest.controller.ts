@@ -9,13 +9,13 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard } from '../../auth/auth.guard';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
+import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { Roles } from '../auth/roles.decorator';
-import { Role } from '../auth/role.enum';
-import { RolesGuard } from '../auth/role.guard';
+import { Roles } from '../../auth/roles.decorator';
+import { Role } from '../../auth/role.enum';
+import { RolesGuard } from '../../auth/role.guard';
 import { UploadNftImageRequestDto } from './dto/upload-nft-image.dto';
 import { QuestService } from './quest.service';
 import { GetAllCampaignQuestRequestDto } from './dto/get-all-campaign-quest.dto';

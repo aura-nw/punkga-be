@@ -11,18 +11,18 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { MangaService } from './manga.service';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard } from '../../auth/auth.guard';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
+import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CreateMangaRequestDto } from './dto/create-manga-request.dto';
 import {
   UpdateMangaParamDto,
   UpdateMangaRequestDto,
 } from './dto/update-manga-request.dto';
-import { Roles } from '../auth/roles.decorator';
-import { Role } from '../auth/role.enum';
-import { RolesGuard } from '../auth/role.guard';
+import { Roles } from '../../auth/roles.decorator';
+import { Role } from '../../auth/role.enum';
+import { RolesGuard } from '../../auth/role.guard';
 import { GetAccessMangaParamDto } from './dto/get-access-manga-request.dto';
 import {
   GetMangaParamDto,

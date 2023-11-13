@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
-import { ChapterStatus, ChapterType } from '../../common/enum';
+import { ChapterStatus, ChapterType } from '../../../common/enum';
 import { ChapterLanguage } from './create-chapter-request.dto';
 
 export class UpdateChapterLanguage extends ChapterLanguage {

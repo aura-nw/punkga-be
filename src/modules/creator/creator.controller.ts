@@ -10,20 +10,21 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { Roles } from '../auth/roles.decorator';
-import { Role } from '../auth/role.enum';
-import { RolesGuard } from '../auth/role.guard';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+
+import { AuthGuard } from '../../auth/auth.guard';
+import { Role } from '../../auth/role.enum';
+import { RolesGuard } from '../../auth/role.guard';
+import { Roles } from '../../auth/roles.decorator';
+import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { CreatorService } from './creator.service';
 import { CreateCreatorRequestDto } from './dto/create-creator-request.dto';
+import { GetCreatorParamDto } from './dto/get-creator-request.dto';
 import {
   UpdateCreatorParamDto,
   UpdateCreatorRequestDto,
 } from './dto/update-creator-request.dto';
-import { GetCreatorParamDto } from './dto/get-creator-request.dto';
 
 @Controller('creator')
 @ApiTags('creator')

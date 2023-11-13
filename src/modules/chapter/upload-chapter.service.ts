@@ -1,13 +1,15 @@
-import { ConfigService } from '@nestjs/config';
-import { FilesService } from '../files/files.service';
-import { Injectable, Logger } from '@nestjs/common';
-import { IFileInfo, IUploadedFile } from './interfaces';
-import path from 'path';
 import { readdirSync } from 'fs';
+import path from 'path';
+
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+import { FilesService } from '../files/files.service';
 import {
   ChapterImage,
   ChapterLanguage,
 } from './dto/create-chapter-request.dto';
+import { IFileInfo, IUploadedFile } from './interfaces';
 
 @Injectable()
 export class UploadChapterService {

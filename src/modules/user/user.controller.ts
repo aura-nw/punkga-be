@@ -14,11 +14,11 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
-import { AuthGuard } from '../auth/auth.guard';
-import { Role } from '../auth/role.enum';
-import { RolesGuard } from '../auth/role.guard';
-import { Roles } from '../auth/roles.decorator';
-import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
+import { AuthGuard } from '../../auth/auth.guard';
+import { Role } from '../../auth/role.enum';
+import { RolesGuard } from '../../auth/role.guard';
+import { Roles } from '../../auth/roles.decorator';
+import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { UserService } from './user.service';

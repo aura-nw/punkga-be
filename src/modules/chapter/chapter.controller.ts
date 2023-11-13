@@ -14,16 +14,16 @@ import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { CreateChapterRequestDto } from './dto/create-chapter-request.dto';
 import { ChapterService } from './chapter.service';
-import { AuthGuard } from '../auth/auth.guard';
-import { AuthUserInterceptor } from '../interceptors/auth-user.interceptor';
+import { AuthGuard } from '../../auth/auth.guard';
+import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import {
   UpdateChapterParamDto,
   UpdateChapterRequestDto,
 } from './dto/update-chapter-request.dto';
-import { Role } from '../auth/role.enum';
-import { Roles } from '../auth/roles.decorator';
-import { RolesGuard } from '../auth/role.guard';
-import { SetRequestTimeout } from '../decorators/set-timeout.decorator';
+import { Role } from '../../auth/role.enum';
+import { Roles } from '../../auth/roles.decorator';
+import { RolesGuard } from '../../auth/role.guard';
+import { SetRequestTimeout } from '../../decorators/set-timeout.decorator';
 import { UploadInputDto } from './dto/upload.dto';
 import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
 

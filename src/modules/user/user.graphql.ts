@@ -9,7 +9,7 @@ export class UserGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
 
   async getChapterDetail(variables: any) {
     const result = await this.graphqlSvc.query(

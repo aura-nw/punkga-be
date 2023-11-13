@@ -1,26 +1,27 @@
+import { plainToInstance } from 'class-transformer';
+import { appendFileSync, existsSync, renameSync, unlinkSync } from 'fs';
+import * as _ from 'lodash';
+import md5 from 'md5';
+import rimraf from 'rimraf';
+
 import { Injectable, Logger } from '@nestjs/common';
 
-import * as _ from 'lodash';
-import { appendFileSync, existsSync, renameSync, unlinkSync } from 'fs';
-import { plainToInstance } from 'class-transformer';
-import rimraf from 'rimraf';
-import md5 from 'md5';
+import { ContextProvider } from '../../providers/contex.provider';
+import { MangaService } from '../manga/manga.service';
+import { ChapterGraphql } from './chapter.graphql';
 import {
   ChapterImage,
   CreateChapterRequestDto,
 } from './dto/create-chapter-request.dto';
-import { ContextProvider } from '../providers/contex.provider';
 import {
   UpdateChapterImage,
   UpdateChapterParamDto,
   UpdateChapterRequestDto,
 } from './dto/update-chapter-request.dto';
 import { UploadInputDto } from './dto/upload.dto';
-import { MangaService } from '../manga/manga.service';
 import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
-import { ChapterGraphql } from './chapter.graphql';
-import { mkdirp, writeFilesToFolder } from './utils';
 import { UploadChapterService } from './upload-chapter.service';
+import { mkdirp, writeFilesToFolder } from './utils';
 
 @Injectable()
 export class ChapterService {
@@ -30,7 +31,7 @@ export class ChapterService {
     private mangaService: MangaService,
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService
-  ) { }
+  ) {}
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
     try {
@@ -38,7 +39,8 @@ export class ChapterService {
       const { name, currentChunkIndex, totalChunks } = data;
 
       this.logger.debug(
-        `uploading file ${name}: ${Number(currentChunkIndex) + 1
+        `uploading file ${name}: ${
+          Number(currentChunkIndex) + 1
         }/${totalChunks}`
       );
 
@@ -254,7 +256,9 @@ export class ChapterService {
           uploadChapterResult
             .filter((uploadResult) => add_images.includes(uploadResult.name))
             .forEach((uploadResult) => {
-              const isNameExists = detail.some((item) => item.name === uploadResult.name);
+              const isNameExists = detail.some(
+                (item) => item.name === uploadResult.name
+              );
               if (!isNameExists) {
                 detail.push({
                   order: uploadResult.order,

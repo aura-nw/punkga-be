@@ -3,7 +3,7 @@ import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { FilesService } from '../files/files.service';
-import { ContextProvider } from '../providers/contex.provider';
+import { ContextProvider } from '../../providers/contex.provider';
 import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';

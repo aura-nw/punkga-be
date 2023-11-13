@@ -5,18 +5,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { ContextProvider } from '../../providers/contex.provider';
 import { FilesService } from '../files/files.service';
-import { QuestGraphql } from './quest.graphql';
-import { UserGraphql } from '../user/user.graphql';
+import { LevelingService } from '../leveling/leveling.service';
+import { RepeatQuestsGraphql } from '../repeat-quests/repeat-quests.graphql';
 import { SocialActivitiesGraphql } from '../social-activites/social-activities.graphql';
 import { SubscribersGraphql } from '../subscribers/subscribers.graphql';
-import { UserQuestsGraphql } from '../user-quests/user-quests.graphql';
-import { RepeatQuestsGraphql } from '../repeat-quests/repeat-quests.graphql';
-import { ContextProvider } from '../providers/contex.provider';
-import { LevelingService } from '../leveling/leveling.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
-import { MasterWalletService } from '../user-wallet/master-wallet.service';
+import { UserQuestsGraphql } from '../user-quests/user-quests.graphql';
 import { UserRewardGraphql } from '../user-reward/user-reward.graphql';
+import { MasterWalletService } from '../user-wallet/master-wallet.service';
+import { UserGraphql } from '../user/user.graphql';
+import { QuestGraphql } from './quest.graphql';
 import { verifyQuestCondition } from './utils';
 
 @Injectable()
