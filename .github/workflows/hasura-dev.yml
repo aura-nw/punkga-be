@@ -14,7 +14,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Uppercase branch name
         run: |
-          echo "BRANCH_NAME=${github.ref^^}" >>${GITHUB_ENV}
+          branch_name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          echo "BRANCH_NAME=${branch_name^^}" >>${GITHUB_ENV}
       - name: Apply hasura migrations
         uses: tibotiber/hasura-action@master # use a tagged version instead of master
         with:
