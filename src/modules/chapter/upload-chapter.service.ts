@@ -74,7 +74,7 @@ export class UploadChapterService {
       uploadImageData.map((element) => {
         const outputPath = path.join(
           __dirname,
-          '../../uploads',
+          '../../../uploads',
           userId,
           'unzip',
           element.languageId.toString()
