@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - dev
+    paths:
+      - hasura/**
 jobs:
   hasura_migration:
     name: Hasura migration
@@ -15,7 +17,8 @@ jobs:
         with:
           args: deploy --endpoint $HASURA_ENDPOINT --admin-secret $HASURA_ADMIN_SECRET
         env:
-          HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
-          HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
+          branch_name: github.ref
+          HASURA_ENDPOINT: ${{ secrets[format('HASURA_{0}_ENDPOINT', env.branch_name)] }}
+          HASURA_ADMIN_SECRET: ${{ secrets[format('HASURA_{0}_SECRET', env.branch_name)] }}
           HASURA_WORKDIR: hasura # replace this by your own path if needed
           HASURA_ENGINE_VERSION: v2.6.2 # replace this by the version you need, remove to use stable
