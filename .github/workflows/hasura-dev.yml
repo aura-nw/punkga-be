@@ -21,7 +21,7 @@ jobs:
         with:
           args: deploy --endpoint $HASURA_ENDPOINT --admin-secret $HASURA_ADMIN_SECRET
         env:
-          HASURA_ENDPOINT: ${{ secrets[format('HASURA_{0^^}_ENDPOINT', env.BRANCH_NAME)] }}
+          HASURA_ENDPOINT: ${{ secrets[format('HASURA_{0}_ENDPOINT', env.BRANCH_NAME)] }}
           HASURA_ADMIN_SECRET: ${{ secrets[format('HASURA_{0}_SECRET', env.BRANCH_NAME)] }}
           HASURA_WORKDIR: hasura # replace this by your own path if needed
           HASURA_ENGINE_VERSION: v2.6.2 # replace this by the version you need, remove to use stable
