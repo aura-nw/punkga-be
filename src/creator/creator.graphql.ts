@@ -68,6 +68,7 @@ export class CreatorGraphql {
                 is_main_language
                 title
                 description
+                language_id
               }
             }
           }
