@@ -977,20 +977,6 @@
               }
             }
           }
-      - name: Admin - Create Campaign
-        query: |
-          mutation insert_campaign_one ($name: String = "", $status: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "", $reward: jsonb = "", $description: String = "") {
-            insert_campaign(objects: {name:$name,status:$status,start_date:$start_date,end_date:$end_date,reward:$reward,description:$description}) {
-              returning {
-                id
-                name
-                status
-                start_date
-                end_date
-                description
-              }
-            }
-          }
       - name: Admin - Update campaign
         query: |
           mutation update_campaign ($id: Int!, $name: String!, $status: String!, $description: String!) {
@@ -1048,6 +1034,20 @@
                 condition
                 reward
                 status
+              }
+            }
+          }
+      - name: Admin - Create Campaign
+        query: |
+          mutation insert_campaign_one ($name: String = "", $status: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "", $reward: jsonb!, $description: String!) {
+            insert_campaign(objects: {name:$name,status:$status,start_date:$start_date,end_date:$end_date,reward:$reward,description:$description}) {
+              returning {
+                id
+                name
+                status
+                start_date
+                end_date
+                description
               }
             }
           }
