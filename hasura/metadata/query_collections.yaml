@@ -720,17 +720,6 @@
               }
             }
           }
-      - name: Public - Get all manga
-        query: |
-          query QueryAllManga {
-            manga {
-              id
-              slug
-              chapters {
-                chapter_number
-              }
-            }
-          }
       - name: Public - Get subscribe list
         query: |
           query GetSubscribeList ($user_id: bpchar = "") {
@@ -1036,6 +1025,17 @@
                 gender
                 bio
                 birthdate
+              }
+            }
+          }
+      - name: Public - Get all manga
+        query: |
+          query QueryAllManga {
+            manga {
+              id
+              slug
+              chapters {
+                chapter_number
               }
             }
           }

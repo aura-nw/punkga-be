@@ -263,20 +263,20 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Public - Get all manga
-  methods:
-    - GET
-  name: Public - Get all manga
-  url: public/manga
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Public - Get manga list by list id
   methods:
     - POST
   name: Public - Get manga list by list id
   url: public/list_manga
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get all manga
+  methods:
+    - GET
+  name: Public - Get all manga
+  url: public/manga
 - comment: ""
   definition:
     query:

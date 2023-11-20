@@ -14,9 +14,12 @@ select_permissions:
     permission:
       columns:
         - id
+        - reward
         - name
         - status
         - created_at
+        - end_date
+        - start_date
         - updated_at
       filter: {}
       allow_aggregations: true
@@ -24,9 +27,12 @@ select_permissions:
     permission:
       columns:
         - id
+        - reward
         - name
         - status
         - created_at
+        - end_date
+        - start_date
         - updated_at
       filter: {}
       allow_aggregations: true
