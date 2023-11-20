@@ -127,6 +127,20 @@ export class QuestService {
     return campaigns;
   }
 
+  async deleteQuest(questId: number) {
+    const { token } = ContextProvider.getAuthUser();
+    const refQuest = await this.questGraphql.getRefQuest(questId, token);
+
+    if (refQuest && refQuest.length > 0) {
+      return {
+        success: false,
+        ref_quest: refQuest,
+      };
+    }
+
+    return this.questGraphql.deleteQuest(questId, token);
+  }
+
   private async mintNft(userId: string, quest: any, userToken: string) {
     const tokenUri = quest.reward.nft.ipfs;
 

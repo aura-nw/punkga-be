@@ -895,54 +895,6 @@
               }
             }
           }
-      - name: Admin - Create Quest
-        query: |
-          mutation insert_quests ($name: String = "", $type: String = "", $condition: jsonb = "", $requirement: jsonb = "", $reward: jsonb = "", $status: String = "", $campaign_id: Int = 10, $description: String = "") {
-            insert_quests(objects: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,campaign_id:$campaign_id,description:$description}) {
-              affected_rows
-              returning {
-                id
-                name
-                campaign_id
-                status
-                description
-              }
-            }
-          }
-      - name: Admin - Get quest by id
-        query: |
-          query quests_by_pk ($id: Int!) {
-            quests_by_pk(id: $id) {
-              campaign_id
-              condition
-              created_at
-              id
-              name
-              description
-              requirement
-              reward
-              status
-              type
-              updated_at
-              quests_campaign {
-                name
-                created_at
-              }
-            }
-          }
-      - name: Admin - Update quest
-        query: |
-          mutation update_quests ($name: String = "", $type: String = "", $condition: jsonb = "", $requirement: jsonb = "", $reward: jsonb = "", $status: String = "", $id: Int!, $description: String = "") {
-            update_quests(where: {id:{_eq:$id}}, _set: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,description:$description}) {
-              affected_rows
-              returning {
-                id
-                name
-                status
-                updated_at
-              }
-            }
-          }
       - name: Public - Get leaderboard
         query: |
           query leaderboard {
@@ -1048,6 +1000,55 @@
                 start_date
                 end_date
                 description
+              }
+            }
+          }
+      - name: Admin - Create Quest
+        query: |
+          mutation insert_quests ($name: String!, $type: String!, $condition: jsonb = "", $requirement: jsonb!, $reward: jsonb!, $status: String!, $campaign_id: Int!, $description: String!, $repeat: String!) {
+            insert_quests(objects: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,campaign_id:$campaign_id,description:$description,repeat:$repeat}) {
+              affected_rows
+              returning {
+                id
+                name
+                campaign_id
+                status
+                description
+              }
+            }
+          }
+      - name: Admin - Get quest by id
+        query: |
+          query quests_by_pk ($id: Int!) {
+            quests_by_pk(id: $id) {
+              campaign_id
+              condition
+              created_at
+              id
+              name
+              description
+              requirement
+              reward
+              status
+              type
+              repeat
+              updated_at
+              quests_campaign {
+                name
+                created_at
+              }
+            }
+          }
+      - name: Admin - Update quest
+        query: |
+          mutation update_quests ($name: String!, $type: String!, $condition: jsonb = "", $requirement: jsonb!, $reward: jsonb!, $status: String!, $id: Int!, $description: String!, $repeat: String!) {
+            update_quests(where: {id:{_eq:$id}}, _set: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,description:$description,repeat:$repeat}) {
+              affected_rows
+              returning {
+                id
+                name
+                status
+                updated_at
               }
             }
           }

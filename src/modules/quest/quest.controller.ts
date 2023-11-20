@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -23,6 +24,7 @@ import {
   GetCampaignQuestParamDto,
   GetCampaignQuestRequestDto,
 } from './dto/get-campaign-quest.dto';
+import { DeleteQuestParamDto } from './dto/delete-quest.dto';
 
 @Controller('quest')
 @ApiTags('quest')
@@ -62,5 +64,14 @@ export class QuestController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.questSvc.upload(files.filter((f) => f.fieldname === 'file')[0]);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @Delete(':quest_id')
+  @UseInterceptors(AuthUserInterceptor)
+  delete(@Param() data: DeleteQuestParamDto) {
+    return this.questSvc.deleteQuest(data.quest_id);
   }
 }

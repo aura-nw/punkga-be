@@ -86,4 +86,51 @@ export class QuestGraphql {
 
     return result.data.campaign;
   }
+
+  async getRefQuest(questId: number, token: string) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `query findRefQuest($_contains: jsonb!) {
+        quests(where: {condition: {_contains: $_contains}}) {
+          id
+          name
+        }
+      }`,
+      'findRefQuest',
+      {
+        _contains: {
+          quest_id: questId,
+        },
+      }
+    );
+
+    return result.data.quests;
+  }
+
+  async deleteQuest(questId: number, token: string) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `mutation delete_quests_by_pk ($id: Int!) {
+        delete_quests_by_pk(id: $id) {
+          campaign_id
+          condition
+          created_at
+          id
+          name
+          requirement
+          reward
+          status
+          type
+          updated_at
+        }
+      }
+      `,
+      'delete_quests_by_pk',
+      {
+        id: questId,
+      }
+    );
+  }
 }
