@@ -22,6 +22,8 @@
 - "!include public_system_key.yaml"
 - "!include public_tag_languages.yaml"
 - "!include public_tags.yaml"
+- "!include public_user_campaign.yaml"
+- "!include public_user_campaign_reward.yaml"
 - "!include public_user_level.yaml"
 - "!include public_user_quest.yaml"
 - "!include public_user_quest_reward.yaml"

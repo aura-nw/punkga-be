@@ -1,0 +1,1 @@
+CREATE TABLE "public"."user_campaign_reward" ("id" serial NOT NULL, "user_campaign_id" integer NOT NULL, "tx_hash" text NOT NULL, "created_at" timestamptz NOT NULL DEFAULT now(), PRIMARY KEY ("id") , FOREIGN KEY ("user_campaign_id") REFERENCES "public"."user_campaign"("id") ON UPDATE cascade ON DELETE cascade);

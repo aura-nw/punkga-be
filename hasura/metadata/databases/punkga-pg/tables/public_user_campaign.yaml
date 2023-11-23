@@ -1,0 +1,57 @@
+table:
+  name: user_campaign
+  schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - user_id
+        - campaign_id
+        - id
+        - total_reward_xp
+        - created_at
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - user_id
+        - campaign_id
+        - id
+        - total_reward_xp
+        - created_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - user_id
+        - campaign_id
+        - id
+        - total_reward_xp
+        - created_at
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - user_id
+        - campaign_id
+        - id
+        - total_reward_xp
+        - created_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

@@ -16,6 +16,7 @@ import { UserModule } from './modules/user/user.module';
 import { QuestModule } from './modules/quest/quest.module';
 import { SysKeyModule } from './modules/keys/syskey.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
+import { CampaignModule } from './modules/campaign/campaign.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
     QuestModule,
     SysKeyModule,
     UserWalletModule,
+    CampaignModule,
   ],
   controllers: [],
   providers: [
