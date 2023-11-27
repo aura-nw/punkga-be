@@ -12,6 +12,27 @@ export class QuestGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async likeChapter(variables: any): Promise<boolean> {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query query_like($chapter_id: Int!, $user_id: bpchar!) {
+        likes(where: {chapter_id: {_eq: $chapter_id}, user_id: {_eq: $user_id}}) {
+          id
+          created_at
+        }
+      }`,
+      'query_like',
+      variables
+    );
+
+    if (this.graphqlSvc.errorOrEmpty(result, 'likes')) {
+      return false;
+    }
+
+    return true;
+  }
+
   async getUserReadChapterData(variables: any) {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),

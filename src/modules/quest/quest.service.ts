@@ -17,7 +17,6 @@ import { UserRewardGraphql } from '../user-reward/user-reward.graphql';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { UserGraphql } from '../user/user.graphql';
 import { QuestGraphql } from './quest.graphql';
-import { verifyQuestCondition } from './utils';
 
 @Injectable()
 export class QuestService {
@@ -102,24 +101,20 @@ export class QuestService {
     const campaigns = await this.questGraphql.getAllCampaignQuest();
     if (campaigns.length === 0) return campaigns;
 
-    let currentLevel = 0;
+    let user;
     if (userId) {
-      const user = await this.userGraphql.queryUserLevel({
+      user = await this.userGraphql.queryUserLevel({
         id: userId,
       });
-
-      if (user?.levels[0]) {
-        currentLevel = user.levels[0].level;
-      }
     }
 
     campaigns.forEach((campaign) => {
       // let data: any;
       // data.id = campaign.id;
       campaign.campaign_quests.forEach((quest, index) => {
-        campaign.campaign_quests[index].unlock = verifyQuestCondition(
+        campaign.campaign_quests[index].unlock = this.verifyQuestCondition(
           quest.condition,
-          currentLevel
+          user
         );
       });
     });
@@ -139,6 +134,34 @@ export class QuestService {
     }
 
     return this.questGraphql.deleteQuest(questId, token);
+  }
+
+  async verifyQuestCondition(condition: any, user: any) {
+    // optional condition
+    if (Object.keys(condition).length === 0) return true;
+
+    const unlock: boolean[] = [];
+
+    if (condition.leveling) {
+      const currentLevel = user?.levels[0] ? user.levels[0].level : 0;
+      // check user level
+      unlock.push(currentLevel >= condition.level);
+    }
+
+    if (condition.quest_id) {
+      // check quest condition
+      const quest = await this.questGraphql.getQuestDetail({
+        id: condition.quest_id,
+      });
+
+      if (!quest) throw new NotFoundException('quest not found');
+
+      const userQuest = await this.getUserQuest(quest, user.id);
+      const isCompleted = await this.isClaimed(userQuest);
+      unlock.push(isCompleted);
+    }
+
+    return unlock.includes(false) || unlock.length === 0 ? false : true;
   }
 
   private async mintNft(userId: string, quest: any, userToken: string) {
@@ -254,6 +277,11 @@ export class QuestService {
     return insertUserRewardResult;
   }
 
+  /** Reward status
+   * 0: Can not claim reward
+   * 1: Can claim reward
+   * 2: Claimed
+   */
   private async getClaimRewardStatus(
     userQuest: any,
     quest: any,
@@ -325,11 +353,6 @@ export class QuestService {
     return false;
   }
 
-  /** Reward status
-   * 0: Can not claim reward
-   * 1: Can claim reward
-   * 2: Claimed
-   */
   private async canClaimReward(quest: any, userId: string) {
     const { requirement } = quest;
 
@@ -385,6 +408,16 @@ export class QuestService {
         user_id: userId,
       });
       if (result.data.subscribers[0]) return true;
+    }
+
+    if (requirementType.includes('like')) {
+      const chapterId = requirement.like.chapter.id;
+      const isLiked = await this.questGraphql.likeChapter({
+        chapter_id: chapterId,
+        user_id: userId,
+      });
+
+      return isLiked;
     }
 
     return false;
