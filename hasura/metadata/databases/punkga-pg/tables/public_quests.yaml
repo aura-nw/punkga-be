@@ -13,6 +13,12 @@ array_relationships:
         table:
           name: repeat_quests
           schema: public
+computed_fields:
+  - name: quest_reward_claimed
+    definition:
+      function:
+        name: quest_reward_claimed
+        schema: public
 select_permissions:
   - role: anonymous
     permission:
@@ -29,6 +35,8 @@ select_permissions:
         - status
         - type
         - updated_at
+      computed_fields:
+        - quest_reward_claimed
       filter: {}
       allow_aggregations: true
   - role: user
@@ -46,6 +54,8 @@ select_permissions:
         - status
         - type
         - updated_at
+      computed_fields:
+        - quest_reward_claimed
       filter: {}
       allow_aggregations: true
 event_triggers:

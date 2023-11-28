@@ -15,6 +15,7 @@ import { generateSlug } from './util';
 import { detectSlugOrId } from '../../utils/utils';
 import { GetChapterByMangaParamDto } from './dto/get-chapter-by-manga-request.dto';
 import { MangaGraphql } from './manga.graphql';
+import { errorOrEmpty } from '../graphql/utils';
 
 @Injectable()
 export class MangaService {
@@ -202,7 +203,7 @@ export class MangaService {
         }
       );
 
-      if (this.graphqlSvc.errorOrEmpty(queryMangaResult, 'manga_by_pk')) {
+      if (errorOrEmpty(queryMangaResult, 'manga_by_pk')) {
         return queryMangaResult;
       }
 

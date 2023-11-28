@@ -8,7 +8,6 @@ import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { UserGraphql } from './user.graphql';
-import { verifyQuestCondition } from '../quest/utils';
 import { MangaService } from '../manga/manga.service';
 
 @Injectable()
@@ -52,9 +51,11 @@ export class UserService {
       }
     }
 
-    return quests.filter((quest) =>
-      verifyQuestCondition(quest.condition, currentLevel)
-    );
+    return quests[0];
+
+    // return quests.filter((quest) =>
+    //   verifyQuestCondition(quest.condition, currentLevel)
+    // );
   }
 
   async updateProfile(

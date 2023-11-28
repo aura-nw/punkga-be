@@ -25,6 +25,10 @@ import {
   GetCampaignQuestRequestDto,
 } from './dto/get-campaign-quest.dto';
 import { DeleteQuestParamDto } from './dto/delete-quest.dto';
+import {
+  AnswerQuestParamDto,
+  AnswerQuestRequestDto,
+} from './dto/answer-quest.dto';
 
 @Controller('quest')
 @ApiTags('quest')
@@ -51,6 +55,18 @@ export class QuestController {
   @UseInterceptors(AuthUserInterceptor)
   claim(@Param() data: GetCampaignQuestParamDto) {
     return this.questSvc.claimReward(data.quest_id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post(':quest_id/answer')
+  @UseInterceptors(AuthUserInterceptor)
+  answer(
+    @Param() param: AnswerQuestParamDto,
+    @Body() body: AnswerQuestRequestDto
+  ) {
+    return this.questSvc.answerQuest(param.quest_id, body.answer);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

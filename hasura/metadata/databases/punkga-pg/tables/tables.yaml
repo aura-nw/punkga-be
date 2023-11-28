@@ -15,6 +15,7 @@
 - "!include public_manga_tag.yaml"
 - "!include public_manga_total_likes.yaml"
 - "!include public_manga_total_views.yaml"
+- "!include public_quest_activities.yaml"
 - "!include public_quests.yaml"
 - "!include public_repeat_quests.yaml"
 - "!include public_social_activities.yaml"

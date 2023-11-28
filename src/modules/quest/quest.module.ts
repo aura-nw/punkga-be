@@ -8,12 +8,15 @@ import { GraphqlModule } from '../graphql/graphql.module';
 import { UserModule } from '../user/user.module';
 import { RepeatQuestModule } from '../repeat-quests/repeat-quests.module';
 import { SocialActivitiesModule } from '../social-activites/social-activities.module';
-import { UserQuestModule } from '../user-quests/user-quests.module';
 import { SubscribersModule } from '../subscribers/subscribers.module';
 import { LevelingModule } from '../leveling/leveling.module';
 import { UserLevelModule } from '../user-level/user-level.module';
 import { UserWalletModule } from '../user-wallet/user-wallet.module';
 import { UserRewardModule } from '../user-reward/user-reward.module';
+import { CheckRequirementService } from './check-requirement.service';
+import { CheckRewardService } from './check-reward.service';
+import { CheckConditionService } from './check-condition.service';
+import { QuestRewardService } from './reward.service';
 
 @Module({
   imports: [
@@ -23,14 +26,20 @@ import { UserRewardModule } from '../user-reward/user-reward.module';
     UserModule,
     RepeatQuestModule,
     SocialActivitiesModule,
-    UserQuestModule,
     UserLevelModule,
     SubscribersModule,
     LevelingModule,
     UserWalletModule,
     UserRewardModule,
   ],
-  providers: [QuestService, QuestGraphql],
+  providers: [
+    QuestService,
+    CheckRequirementService,
+    CheckConditionService,
+    CheckRewardService,
+    QuestRewardService,
+    QuestGraphql,
+  ],
   controllers: [QuestController],
   exports: [QuestGraphql],
 })

@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { GraphqlService } from '../graphql/graphql.service';
+import { errorOrEmpty } from '../graphql/utils';
 
 @Injectable()
 export class UserGraphql {
@@ -25,8 +26,7 @@ export class UserGraphql {
       variables
     );
 
-    if (this.graphqlSvc.errorOrEmpty(result, 'chapters'))
-      throw new NotFoundException();
+    if (errorOrEmpty(result, 'chapters')) throw new NotFoundException();
 
     return result.data.chapters[0];
   }
@@ -54,7 +54,7 @@ export class UserGraphql {
       {}
     );
 
-    if (this.graphqlSvc.errorOrEmpty(result, 'quests')) {
+    if (errorOrEmpty(result, 'quests')) {
       this.logger.error(JSON.stringify(result));
       return [];
     }
@@ -85,8 +85,7 @@ export class UserGraphql {
       variables
     );
 
-    if (this.graphqlSvc.errorOrEmpty(result, 'authorizer_users'))
-      throw new NotFoundException();
+    if (errorOrEmpty(result, 'authorizer_users')) throw new NotFoundException();
 
     return result.data.authorizer_users[0];
   }

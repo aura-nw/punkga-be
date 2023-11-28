@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { GraphqlService } from '../graphql/graphql.service';
+import { errorOrEmpty } from '../graphql/utils';
 
 @Injectable()
 export class CampaignGraphql {
@@ -25,7 +26,7 @@ export class CampaignGraphql {
         id: campaignId,
       }
     );
-    if (this.graphqlSvc.errorOrEmpty(result, 'campaign')) {
+    if (errorOrEmpty(result, 'campaign')) {
       throw new ForbiddenException('campaign invalid');
     }
 

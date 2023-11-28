@@ -1,6 +1,12 @@
 table:
   name: repeat_quests
   schema: public
+computed_fields:
+  - name: repeat_quest_reward_claimed
+    definition:
+      function:
+        name: repeat_quest_reward_claimed
+        schema: public
 select_permissions:
   - role: anonymous
     permission:

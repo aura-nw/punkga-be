@@ -23,7 +23,7 @@ export class RepeatQuestService {
 
     if (
       quest &&
-      quest.type === 'Daily' &&
+      quest.repeat === 'Daily' &&
       isActiveQuest(quest.condition) &&
       this.notExistRepeatQuestToday(quest.repeat_quests)
     ) {
