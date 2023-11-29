@@ -9,6 +9,13 @@ array_relationships:
         table:
           name: quests
           schema: public
+  - name: campaign_user
+    using:
+      foreign_key_constraint_on:
+        column: campaign_id
+        table:
+          name: user_campaign
+          schema: public
 select_permissions:
   - role: anonymous
     permission:

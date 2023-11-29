@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Param,
+  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -14,11 +15,17 @@ import { Roles } from '../../auth/roles.decorator';
 import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { CampaignService } from './campaign.service';
 import { EnrollCampaignDto } from './dto/enroll-campaign.dto';
+import { GetAllCampaignQuery } from './dto/get-all-campaign.dto';
 
 @Controller('campaign')
 @ApiTags('campaign')
 export class CampaignController {
   constructor(private readonly campaignSvc: CampaignService) {}
+
+  @Get()
+  getAll(@Query() query: GetAllCampaignQuery) {
+    return this.campaignSvc.getAll(query.user_id);
+  }
 
   @Get(':campaign_id/enroll')
   @UseGuards(AuthGuard, RolesGuard)

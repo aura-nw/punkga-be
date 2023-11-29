@@ -8,6 +8,10 @@ export class CampaignService {
 
   constructor(private campaignGraphql: CampaignGraphql) {}
 
+  async getAll(userId: string) {
+    return this.campaignGraphql.getAllPublishedCampaign(userId);
+  }
+
   async enroll(campaignId: number) {
     const { userId, token } = ContextProvider.getAuthUser();
 

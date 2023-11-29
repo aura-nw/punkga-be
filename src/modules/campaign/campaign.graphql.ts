@@ -11,6 +11,33 @@ export class CampaignGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async getAllPublishedCampaign(userId: string) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query campaign($user_id: bpchar = "") {
+        campaign(where: {status: {_eq: "Published"}}, order_by: {created_at: desc}) {
+          id
+          name
+          description
+          start_date
+          end_date
+          status
+          reward
+          campaign_user(where: {user_id: {_eq: $user_id}}) {
+            id
+            created_at
+          }
+        }
+      }
+      `,
+      'campaign',
+      {
+        user_id: userId,
+      }
+    );
+  }
+
   async getPublishedOngoingCampaign(campaignId: number) {
     const result = await this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
