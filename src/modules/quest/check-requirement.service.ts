@@ -12,7 +12,7 @@ export class CheckRequirementService {
     private subscribersGraphql: SubscribersGraphql
   ) {}
 
-  async canClaimReward(quest: any, userId: string) {
+  canClaimReward(quest: any, userId: string) {
     const { requirement } = quest;
 
     const requirementType = Object.keys(requirement);

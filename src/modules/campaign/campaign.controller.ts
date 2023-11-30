@@ -16,6 +16,7 @@ import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { CampaignService } from './campaign.service';
 import { EnrollCampaignDto } from './dto/enroll-campaign.dto';
 import { GetAllCampaignQuery } from './dto/get-all-campaign.dto';
+import { GetCampaignDetailDto } from './dto/get-campaign-detail.dto';
 
 @Controller('campaign')
 @ApiTags('campaign')
@@ -25,6 +26,20 @@ export class CampaignController {
   @Get()
   getAll(@Query() query: GetAllCampaignQuery) {
     return this.campaignSvc.getAll(query.user_id);
+  }
+
+  @Get(':campaign_id')
+  getPublicCampaignDetail(@Param() param: GetCampaignDetailDto) {
+    return this.campaignSvc.getPublicCampaignDetail(param.campaign_id);
+  }
+
+  @Get(':campaign_id/authorized')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @UseInterceptors(AuthUserInterceptor)
+  getAuthorizedCampaignDetail(@Param() param: GetCampaignDetailDto) {
+    return this.campaignSvc.getAuthorizedCampaignDetail(param.campaign_id);
   }
 
   @Get(':campaign_id/enroll')

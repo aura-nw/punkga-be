@@ -11,6 +11,109 @@ export class CampaignGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async getUserCampaign(campaignId: number, userId: string) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query user_campaign($campaign_id: Int!, $user_id: bpchar!) {
+        user_campaign(where: {campaign_id: {_eq: $campaign_id}, user_id: {_eq: $user_id}}) {
+          id
+          user_id
+          campaign_id
+          created_at
+        }
+      }`,
+      'user_campaign',
+      {
+        campaign_id: campaignId,
+        user_id: userId,
+      }
+    );
+  }
+
+  async getCampaignPublicDetail(id: number) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query campaign_detail($id: Int!) {
+        campaign(where: {id: {_eq: $id}}) {
+          id
+          name
+          start_date
+          end_date
+          description
+          reward
+          participants: campaign_user_aggregate {
+            aggregate {
+              count
+            }
+          }
+        }
+      }`,
+      'campaign_detail',
+      {
+        id,
+      }
+    );
+  }
+
+  async getCampaignAuthDetail(id: number, userId: string) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query campaign_detail($id: Int!, $user_id: bpchar!) {
+        campaign(where: {id: {_eq: $id}}) {
+          id
+          name
+          start_date
+          end_date
+          description
+          reward
+          participants: campaign_user_aggregate {
+            aggregate {
+              count
+            }
+          }
+          campaign_quests {
+            id
+            name
+            description
+            condition
+            requirement
+            reward
+            status
+            type
+            repeat
+            quest_reward_claimed
+            repeat_quests {
+              id
+              repeat_quest_reward_claimed
+              repeat_quests_quest_activities(where: {user_id: {_eq: $user_id}}, limit: 1, order_by: {created_at: desc}) {
+                id
+                activity
+                quest_id
+                repeat_quest_id
+                user_id
+                created_at
+              }
+            }
+            quests_quest_activities(where: {user_id: {_eq: $user_id}}, limit: 1, order_by: {created_at: desc}) {
+              activity
+              quest_id
+              user_id
+              created_at
+            }
+          }
+        }
+      }`,
+      'campaign_detail',
+      {
+        id,
+        user_id: userId,
+      }
+    );
+  }
+
   async getAllPublishedCampaign(userId: string) {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),

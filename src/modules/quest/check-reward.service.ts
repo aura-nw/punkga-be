@@ -1,29 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { isClaimed } from './utils';
 import { CheckRequirementService } from './check-requirement.service';
+import { QuestGraphql } from './quest.graphql';
+import { RewardStatus } from '../../common/enum';
 
 @Injectable()
 export class CheckRewardService {
-  constructor(private checkRequirementService: CheckRequirementService) {}
+  constructor(
+    private checkRequirementService: CheckRequirementService,
+    private questGraphql: QuestGraphql
+  ) {}
 
-  /** Reward status
-   * TODO: Use string status
-   * 0: Can not claim reward
-   * 1: Can claim reward
-   * 2: Claimed
-   * 3: Out of slot
-   */
-  async getClaimRewardStatus(userQuest: any, quest: any, userId: string) {
-    let rewardStatus = this.isOutOfSlot(quest) ? 3 : 0;
+  async getClaimRewardStatus(quest: any, userId: string) {
+    const userQuest = await this.questGraphql.getUserQuest(quest, userId);
+
+    let rewardStatus = this.isOutOfSlot(quest)
+      ? RewardStatus.OutOfSlot
+      : RewardStatus.NotSatisfy;
     if (userId) {
       const claimed = isClaimed(userQuest);
       if (claimed) {
-        rewardStatus = 2;
+        rewardStatus = RewardStatus.Claimed;
       } else {
         const canClaimReward =
           await this.checkRequirementService.canClaimReward(quest, userId);
 
-        if (canClaimReward && rewardStatus === 0) rewardStatus = 1;
+        if (canClaimReward && rewardStatus === RewardStatus.NotSatisfy)
+          rewardStatus = RewardStatus.CanClaimReward;
       }
     }
     return rewardStatus;

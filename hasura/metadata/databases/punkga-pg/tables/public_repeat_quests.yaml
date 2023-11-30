@@ -1,6 +1,21 @@
 table:
   name: repeat_quests
   schema: public
+array_relationships:
+  - name: repeat_quests_quest_activities
+    using:
+      foreign_key_constraint_on:
+        column: repeat_quest_id
+        table:
+          name: quest_activities
+          schema: public
+  - name: repeat_quests_user_quests
+    using:
+      foreign_key_constraint_on:
+        column: repeat_quest_id
+        table:
+          name: user_quest
+          schema: public
 computed_fields:
   - name: repeat_quest_reward_claimed
     definition:
@@ -15,6 +30,8 @@ select_permissions:
         - quest_id
         - created_at
         - updated_at
+      computed_fields:
+        - repeat_quest_reward_claimed
       filter: {}
   - role: user
     permission:
@@ -23,4 +40,6 @@ select_permissions:
         - quest_id
         - created_at
         - updated_at
+      computed_fields:
+        - repeat_quest_reward_claimed
       filter: {}

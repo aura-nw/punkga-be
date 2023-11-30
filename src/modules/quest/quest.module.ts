@@ -41,6 +41,6 @@ import { QuestRewardService } from './reward.service';
     QuestGraphql,
   ],
   controllers: [QuestController],
-  exports: [QuestGraphql],
+  exports: [QuestGraphql, CheckConditionService, CheckRewardService],
 })
 export class QuestModule {}

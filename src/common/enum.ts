@@ -20,3 +20,10 @@ export enum Gender {
   Male = 'Male',
   Femail = 'Female',
 }
+
+export enum RewardStatus {
+  NotSatisfy = 'NOT_SATISFY',
+  CanClaimReward = 'CAN_CLAIM',
+  Claimed = 'CLAIMED',
+  OutOfSlot = 'OUT_OF_SLOT',
+}

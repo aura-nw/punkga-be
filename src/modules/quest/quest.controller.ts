@@ -19,7 +19,7 @@ import { Role } from '../../auth/role.enum';
 import { RolesGuard } from '../../auth/role.guard';
 import { UploadNftImageRequestDto } from './dto/upload-nft-image.dto';
 import { QuestService } from './quest.service';
-import { GetAllCampaignQuestRequestDto } from './dto/get-all-campaign-quest.dto';
+// import { GetAllCampaignQuestRequestDto } from './dto/get-all-campaign-quest.dto';
 import {
   GetCampaignQuestParamDto,
   GetCampaignQuestRequestDto,
@@ -35,10 +35,10 @@ import {
 export class QuestController {
   constructor(private readonly questSvc: QuestService) {}
 
-  @Get()
-  getAllCampaignQuest(@Query() query: GetAllCampaignQuestRequestDto) {
-    return this.questSvc.getAllCampaignQuest(query.user_id);
-  }
+  // @Get()
+  // getAllCampaignQuest(@Query() query: GetAllCampaignQuestRequestDto) {
+  //   return this.questSvc.getAllCampaignQuest(query.user_id);
+  // }
 
   @Get(':quest_id')
   getCampaignQuestDetail(

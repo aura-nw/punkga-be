@@ -12,6 +12,7 @@ import { QuestGraphql } from './quest.graphql';
 import { CheckRewardService } from './check-reward.service';
 import { CheckConditionService } from './check-condition.service';
 import { QuestRewardService } from './reward.service';
+import { RewardStatus } from '../../common/enum';
 
 @Injectable()
 export class QuestService {
@@ -82,9 +83,7 @@ export class QuestService {
 
     if (!quest) throw new NotFoundException();
 
-    const userQuest = await this.questGraphql.getUserQuest(quest, userId);
     quest.reward_status = await this.checkRewardService.getClaimRewardStatus(
-      userQuest,
       quest,
       userId
     );
@@ -99,13 +98,12 @@ export class QuestService {
       id: questId,
     });
 
-    const userQuest = await this.questGraphql.getUserQuest(quest, userId);
     const rewardStatus = await this.checkRewardService.getClaimRewardStatus(
-      userQuest,
       quest,
       userId
     );
-    if (rewardStatus !== 1) throw new ForbiddenException();
+    if (rewardStatus !== RewardStatus.CanClaimReward)
+      throw new ForbiddenException();
 
     if (quest.reward?.xp) {
       // increase user xp
@@ -123,28 +121,28 @@ export class QuestService {
     }
   }
 
-  async getAllCampaignQuest(userId?: string) {
-    const campaigns = await this.questGraphql.getAllCampaignQuest();
-    if (campaigns.length === 0) return campaigns;
+  // async getAllCampaignQuest(userId?: string) {
+  //   const campaigns = await this.questGraphql.getAllCampaignQuest();
+  //   if (campaigns.length === 0) return campaigns;
 
-    let user;
-    if (userId) {
-      user = await this.userGraphql.queryUserLevel({
-        id: userId,
-      });
-    }
+  //   let user;
+  //   if (userId) {
+  //     user = await this.userGraphql.queryUserLevel({
+  //       id: userId,
+  //     });
+  //   }
 
-    campaigns.forEach((campaign) => {
-      // let data: any;
-      // data.id = campaign.id;
-      campaign.campaign_quests.forEach((quest, index) => {
-        campaign.campaign_quests[index].unlock =
-          this.checkConditionService.verify(quest.condition, user);
-      });
-    });
+  //   campaigns.forEach((campaign) => {
+  //     // let data: any;
+  //     // data.id = campaign.id;
+  //     campaign.campaign_quests.forEach((quest, index) => {
+  //       campaign.campaign_quests[index].unlock =
+  //         this.checkConditionService.verify(quest.condition, user);
+  //     });
+  //   });
 
-    return campaigns;
-  }
+  //   return campaigns;
+  // }
 
   async deleteQuest(questId: number) {
     const { token } = ContextProvider.getAuthUser();
