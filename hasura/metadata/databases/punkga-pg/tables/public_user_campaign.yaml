@@ -1,6 +1,27 @@
 table:
   name: user_campaign
   schema: public
+object_relationships:
+  - name: user_campaign_authorizer_user
+    using:
+      foreign_key_constraint_on: user_id
+  - name: user_campaign_campaign
+    using:
+      foreign_key_constraint_on: campaign_id
+array_relationships:
+  - name: user_campaign_user_campaign_rewards
+    using:
+      foreign_key_constraint_on:
+        column: user_campaign_id
+        table:
+          name: user_campaign_reward
+          schema: public
+computed_fields:
+  - name: user_campaign_rank
+    definition:
+      function:
+        name: calculate_user_campaign_rank
+        schema: public
 insert_permissions:
   - role: user
     permission:
@@ -8,11 +29,12 @@ insert_permissions:
         user_id:
           _eq: X-Hasura-User-Id
       columns:
-        - user_id
         - campaign_id
+        - created_at
         - id
         - total_reward_xp
-        - created_at
+        - updated_at
+        - user_id
 select_permissions:
   - role: anonymous
     permission:
@@ -22,16 +44,20 @@ select_permissions:
         - id
         - total_reward_xp
         - created_at
+        - updated_at
       filter: {}
       allow_aggregations: true
   - role: user
     permission:
       columns:
-        - user_id
         - campaign_id
+        - created_at
         - id
         - total_reward_xp
-        - created_at
+        - updated_at
+        - user_id
+      computed_fields:
+        - user_campaign_rank
       filter: {}
       allow_aggregations: true
 update_permissions:
@@ -43,6 +69,7 @@ update_permissions:
         - id
         - total_reward_xp
         - created_at
+        - updated_at
       filter:
         user_id:
           _eq: X-Hasura-User-Id

@@ -184,4 +184,63 @@ export class CampaignGraphql {
     if (result.errors) throw new ForbiddenException(result.errors);
     return result;
   }
+
+  async getTop1UserCampaign(
+    campaignId: number,
+    userToken: string
+  ): Promise<any> {
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      userToken,
+      `query top_user_campaign($id: Int!) {
+        user_campaign(where: {campaign_id: {_eq: $id}}, order_by: {total_reward_xp: desc_nulls_last, created_at: asc}, limit: 1) {
+          id
+          user_id
+          campaign_id
+          total_reward_xp
+          user_campaign_rank
+          campaign_id
+          user_campaign_campaign {
+            reward
+          }
+          user_campaign_user_campaign_rewards {
+            tx_hash
+            created_at
+          }
+        }
+      }`,
+      'top_user_campaign',
+      {
+        id: campaignId,
+      }
+    );
+
+    if (errorOrEmpty(result, 'user_campaign'))
+      throw new ForbiddenException(result.errors);
+
+    return result.data.user_campaign[0];
+  }
+
+  async insertUserCampaignReward(
+    campaignId: number,
+    txHash: string,
+    userCampaignId: number,
+    userToken: string
+  ) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      userToken,
+      `mutation insert_user_campaign_reward($campaign_id: Int!, $tx_hash: String!, $user_campaign_id: Int!) {
+        insert_user_campaign_reward(objects: {campaign_id: $campaign_id, tx_hash: $tx_hash, user_campaign_id: $user_campaign_id}) {
+          affected_rows
+        }
+      }`,
+      'insert_user_campaign_reward',
+      {
+        campaign_id: campaignId,
+        tx_hash: txHash,
+        user_campaign_id: userCampaignId,
+      }
+    );
+  }
 }

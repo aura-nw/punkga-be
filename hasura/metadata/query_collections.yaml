@@ -1069,3 +1069,30 @@
               }
             }
           }
+      - name: Public - Get campaign leaderboard
+        query: |
+          query user_campaign_leaderboard ($id: Int!) {
+            user_campaign(limit: 20, order_by: {total_reward_xp:desc_nulls_last,updated_at:asc}, where: {campaign_id:{_eq:$id}}) {
+              user_id
+              total_reward_xp
+              user_campaign_authorizer_user {
+                id
+                picture
+                nickname
+                email
+                gender
+                bio
+                birthdate
+              }
+            }
+          }
+      - name: User - Get user campaign rank
+        query: |
+          query user_campaign_rank ($id: Int!, $user_id: bpchar!) {
+            user_campaign(where: {campaign_id:{_eq:$id},user_id:{_eq:$user_id}}) {
+              user_id
+              total_reward_xp
+              user_campaign_rank
+              campaign_id
+            }
+          }

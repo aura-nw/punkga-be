@@ -1,3 +1,43 @@
 table:
   name: user_campaign_reward
   schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - campaign_id
+        - id
+        - user_campaign_id
+        - tx_hash
+        - created_at
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - campaign_id
+        - id
+        - user_campaign_id
+        - tx_hash
+        - created_at
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - campaign_id
+        - id
+        - user_campaign_id
+        - tx_hash
+        - created_at
+      filter: {}
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - campaign_id
+        - id
+        - user_campaign_id
+        - tx_hash
+        - created_at
+      filter: {}
+      check: {}

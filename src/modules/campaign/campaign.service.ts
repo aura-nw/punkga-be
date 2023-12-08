@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { CampaignGraphql } from './campaign.graphql';
 import { ContextProvider } from '../../providers/contex.provider';
 import { errorOrEmpty } from '../graphql/utils';
 import { CheckConditionService } from '../quest/check-condition.service';
 import { UserGraphql } from '../user/user.graphql';
 import { CheckRewardService } from '../quest/check-reward.service';
+import { CampaignRewardService } from './reward.service';
 
 @Injectable()
 export class CampaignService {
@@ -14,7 +15,8 @@ export class CampaignService {
     private campaignGraphql: CampaignGraphql,
     private checkConditionService: CheckConditionService,
     private checkRewardService: CheckRewardService,
-    private userGraphql: UserGraphql
+    private userGraphql: UserGraphql,
+    private campaignRewardService: CampaignRewardService
   ) {}
 
   async getAll(userId: string) {
@@ -80,5 +82,38 @@ export class CampaignService {
     );
 
     return result;
+  }
+
+  async claimReward(campaignId: number) {
+    const { userId, token } = ContextProvider.getAuthUser();
+    // check top 1 user of campaign
+    const top1UserCampaign = await this.campaignGraphql.getTop1UserCampaign(
+      campaignId,
+      token
+    );
+    if (userId !== top1UserCampaign.user_id) throw new ForbiddenException();
+
+    // check claim status
+    if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
+      throw new ForbiddenException();
+
+    // reward
+    if (top1UserCampaign.user_campaign_campaign.reward?.xp) {
+      // return this.questRewardService.increaseUserXp(
+      //   userId,
+      //   quest,
+      //   quest.reward?.xp,
+      //   token
+      // );
+    }
+
+    if (top1UserCampaign.user_campaign_campaign.reward?.nft) {
+      // mint nft
+      return this.campaignRewardService.mintNft(
+        userId,
+        top1UserCampaign,
+        token
+      );
+    }
   }
 }

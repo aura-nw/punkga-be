@@ -45,7 +45,7 @@ export class QuestRewardService {
       tx.transactionHash
     );
 
-    this.logger.debug('Increase user xp result: ');
+    this.logger.debug('Mint nft result: ');
     this.logger.debug(JSON.stringify(insertUserRewardResult));
     return insertUserRewardResult;
   }

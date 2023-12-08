@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Param,
+  Post,
   Query,
   UseGuards,
   UseInterceptors,
@@ -48,6 +49,15 @@ export class CampaignController {
   @Roles(Role.User)
   @UseInterceptors(AuthUserInterceptor)
   enroll(@Param() param: EnrollCampaignDto) {
+    return this.campaignSvc.enroll(param.campaign_id);
+  }
+
+  @Post(':campaign_id/claim')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @UseInterceptors(AuthUserInterceptor)
+  claim(@Param() param: EnrollCampaignDto) {
     return this.campaignSvc.enroll(param.campaign_id);
   }
 }

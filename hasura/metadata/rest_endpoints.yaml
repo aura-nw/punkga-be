@@ -245,6 +245,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Get campaign leaderboard
+  methods:
+    - GET
+  name: Public - Get campaign leaderboard
+  url: public/campaign/:id/leaderboard
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Get Chapter Comments
   methods:
     - GET
@@ -376,6 +385,15 @@
     - POST
   name: User - Set address
   url: user/address
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Get user campaign rank
+  methods:
+    - GET
+  name: User - Get user campaign rank
+  url: user/campaign/:id/users/:user_id/rank
 - comment: ""
   definition:
     query:
