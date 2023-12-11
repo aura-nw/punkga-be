@@ -1096,3 +1096,19 @@
               campaign_id
             }
           }
+      - name: Public - Get quest info
+        query: |
+          query quests ($id: Int!) {
+            quests(where: {id:{_eq:$id}}) {
+              id
+              name
+              condition
+              description
+              repeat
+              requirement
+              reward
+              status
+              type
+              created_at
+            }
+          }

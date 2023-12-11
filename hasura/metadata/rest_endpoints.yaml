@@ -326,6 +326,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Get quest info
+  methods:
+    - GET
+  name: Public - Get quest info
+  url: public/quests/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Search manga
   methods:
     - GET
