@@ -25,7 +25,7 @@ export class QuestService {
     private checkRewardService: CheckRewardService,
     private checkConditionService: CheckConditionService,
     private questRewardService: QuestRewardService
-  ) {}
+  ) { }
 
   async answerQuest(questId: number, answer: string) {
     const { userId, token } = ContextProvider.getAuthUser();
@@ -105,20 +105,24 @@ export class QuestService {
     if (rewardStatus !== RewardStatus.CanClaimReward)
       throw new ForbiddenException();
 
+    const promises = [];
     if (quest.reward?.xp) {
       // increase user xp
-      return this.questRewardService.increaseUserXp(
+      promises.push(this.questRewardService.increaseUserXp(
         userId,
         quest,
         quest.reward?.xp,
         token
-      );
+      ));
     }
 
     if (quest.reward?.nft) {
       // mint nft
-      return this.questRewardService.mintNft(userId, quest, token);
+      promises.push(this.questRewardService.mintNft(userId, quest, token));
     }
+
+    const result = await Promise.all(promises);
+    return result;
   }
 
   // async getAllCampaignQuest(userId?: string) {

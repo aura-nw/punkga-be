@@ -17,7 +17,7 @@ export class CampaignService {
     private checkRewardService: CheckRewardService,
     private userGraphql: UserGraphql,
     private campaignRewardService: CampaignRewardService
-  ) {}
+  ) { }
 
   async getAll(userId: string) {
     return this.campaignGraphql.getAllPublishedCampaign(userId);
@@ -98,22 +98,25 @@ export class CampaignService {
       throw new ForbiddenException();
 
     // reward
+    const promises = [];
     if (top1UserCampaign.user_campaign_campaign.reward?.xp) {
-      // return this.questRewardService.increaseUserXp(
-      //   userId,
-      //   quest,
-      //   quest.reward?.xp,
-      //   token
-      // );
+      promises.push(this.campaignRewardService.increaseUserXp(
+        userId,
+        top1UserCampaign,
+        token
+      ));
     }
 
     if (top1UserCampaign.user_campaign_campaign.reward?.nft) {
       // mint nft
-      return this.campaignRewardService.mintNft(
+      promises.push(this.campaignRewardService.mintNft(
         userId,
         top1UserCampaign,
         token
-      );
+      ));
     }
+
+    const result = await Promise.all(promises);
+    return result;
   }
 }
