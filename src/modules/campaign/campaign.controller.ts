@@ -43,7 +43,7 @@ export class CampaignController {
     return this.campaignSvc.getAuthorizedCampaignDetail(param.campaign_id);
   }
 
-  @Get(':campaign_id/enroll')
+  @Post(':campaign_id/enroll')
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.User)
