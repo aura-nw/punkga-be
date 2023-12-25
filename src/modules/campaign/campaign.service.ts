@@ -24,7 +24,7 @@ export class CampaignService {
   async create(data: CreateCampaignDto) {
     const { token } = ContextProvider.getAuthUser();
 
-    const slug = generateSlug(data.name);
+    const slug = generateSlug(data.name, new Date().valueOf());
     return this.campaignGraphql.createCampaign(
       slug,
       data.name,
