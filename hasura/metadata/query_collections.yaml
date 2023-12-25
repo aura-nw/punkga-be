@@ -942,53 +942,6 @@
               affected_rows
             }
           }
-      - name: Admin - Query all campaign
-        query: |
-          query campaign {
-            campaign(order_by: {created_at:desc}) {
-              created_at
-              updated_at
-              id
-              name
-              status
-              start_date
-              end_date
-              reward
-              description
-              campaign_quests_aggregate(where: {status:{_eq:"Published"}}) {
-                aggregate {
-                  count
-                }
-              }
-            }
-          }
-      - name: Admin - Query campaign detail
-        query: |
-          query campaign_by_pk ($id: Int!) {
-            campaign_by_pk(id: $id) {
-              created_at
-              updated_at
-              id
-              name
-              status
-              start_date
-              end_date
-              reward
-              description
-              campaign_quests(order_by: {created_at:desc}) {
-                created_at
-                updated_at
-                id
-                name
-                description
-                type
-                repeat
-                condition
-                reward
-                status
-              }
-            }
-          }
       - name: Admin - Create Campaign
         query: |
           mutation insert_campaign_one ($name: String = "", $status: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "", $reward: jsonb!, $description: String!) {
@@ -1093,5 +1046,54 @@
               status
               type
               created_at
+            }
+          }
+      - name: Admin - Query all campaign
+        query: |
+          query campaign {
+            campaign(order_by: {created_at:desc}) {
+              created_at
+              updated_at
+              id
+              slug
+              name
+              status
+              start_date
+              end_date
+              reward
+              description
+              campaign_quests_aggregate(where: {status:{_eq:"Published"}}) {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+      - name: Admin - Query campaign detail
+        query: |
+          query campaign_by_pk ($id: Int!) {
+            campaign_by_pk(id: $id) {
+              created_at
+              updated_at
+              id
+              slug
+              name
+              status
+              start_date
+              end_date
+              reward
+              description
+              campaign_quests(order_by: {created_at:desc}) {
+                created_at
+                updated_at
+                id
+                name
+                description
+                type
+                repeat
+                condition
+                reward
+                status
+              }
             }
           }
