@@ -11,7 +11,7 @@ export class SysKeyService implements OnModuleInit {
   constructor(
     private keysGraphql: KeysGraphql,
     private kmsService: KMSBuilderService
-  ) {}
+  ) { }
 
   async onModuleInit() {
     // get from db

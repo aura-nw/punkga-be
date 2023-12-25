@@ -20,28 +20,30 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
-        - id
-        - reward
-        - description
-        - name
-        - status
         - created_at
+        - description
         - end_date
+        - id
+        - name
+        - reward
+        - slug
         - start_date
+        - status
         - updated_at
       filter: {}
       allow_aggregations: true
   - role: user
     permission:
       columns:
-        - id
-        - reward
-        - description
-        - name
-        - status
         - created_at
+        - description
         - end_date
+        - id
+        - name
+        - reward
+        - slug
         - start_date
+        - status
         - updated_at
       filter: {}
       allow_aggregations: true

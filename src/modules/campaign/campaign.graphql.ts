@@ -9,7 +9,37 @@ export class CampaignGraphql {
   constructor(
     private configService: ConfigService,
     private graphqlSvc: GraphqlService
-  ) {}
+  ) { }
+
+  async createCampaign(slug: string, name: string, status: string, startDate: string, endDate: string, reward: any, description: string, token: string) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `mutation insert_campaign_one($name: String = "", $status: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "", $reward: jsonb!, $description: String!, $slug: String = "") {
+        insert_campaign(objects: {name: $name, status: $status, start_date: $start_date, end_date: $end_date, reward: $reward, description: $description, slug: $slug}) {
+          returning {
+            id
+            slug
+            name
+            status
+            start_date
+            end_date
+            description
+          }
+        }
+      }`,
+      'insert_campaign_one',
+      {
+        slug,
+        name: name,
+        status: status,
+        start_date: startDate,
+        end_date: endDate,
+        reward,
+        description
+      }
+    );
+  }
 
   async getUserCampaign(campaignId: number, userId: string) {
     return this.graphqlSvc.query(
@@ -18,6 +48,7 @@ export class CampaignGraphql {
       `query user_campaign($campaign_id: Int!, $user_id: bpchar!) {
         user_campaign(where: {campaign_id: {_eq: $campaign_id}, user_id: {_eq: $user_id}}) {
           id
+          slug
           user_id
           campaign_id
           created_at
@@ -31,13 +62,14 @@ export class CampaignGraphql {
     );
   }
 
-  async getCampaignPublicDetail(id: number) {
+  async getCampaignPublicDetail(slug: string) {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       '',
-      `query campaign_detail($id: Int!) {
-        campaign(where: {id: {_eq: $id}}) {
+      `query campaign_detail($slug: String!) {
+        campaign(where: {slug: {_eq: $slug}}) {
           id
+          slug
           name
           start_date
           end_date
@@ -52,7 +84,7 @@ export class CampaignGraphql {
       }`,
       'campaign_detail',
       {
-        id,
+        slug,
       }
     );
   }
@@ -122,6 +154,7 @@ export class CampaignGraphql {
         campaign(where: {status: {_eq: "Published"}}, order_by: {created_at: desc}) {
           id
           name
+          slug
           description
           start_date
           end_date

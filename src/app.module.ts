@@ -50,4 +50,4 @@ import { CampaignModule } from './modules/campaign/campaign.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

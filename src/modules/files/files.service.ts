@@ -18,7 +18,7 @@ export class FilesService implements OnModuleInit {
   private readonly logger = new Logger(FilesService.name);
   private ipfsClient: IPFSHTTPClient;
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService) { }
 
   onModuleInit() {
     const ipfsUrl = this.configService.get<string>('network.ipfsUrl');

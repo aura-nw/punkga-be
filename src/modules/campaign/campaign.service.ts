@@ -6,6 +6,8 @@ import { CheckConditionService } from '../quest/check-condition.service';
 import { UserGraphql } from '../user/user.graphql';
 import { CheckRewardService } from '../quest/check-reward.service';
 import { CampaignRewardService } from './reward.service';
+import { CreateCampaignDto } from './dto/create-campaign.dto';
+import { generateSlug } from '../manga/util';
 
 @Injectable()
 export class CampaignService {
@@ -19,24 +21,43 @@ export class CampaignService {
     private campaignRewardService: CampaignRewardService
   ) { }
 
+  async create(data: CreateCampaignDto) {
+    const { token } = ContextProvider.getAuthUser();
+
+    const slug = generateSlug(data.name);
+    return this.campaignGraphql.createCampaign(
+      slug,
+      data.name,
+      data.status,
+      data.start_date,
+      data.end_date,
+      data.reward,
+      data.description,
+      token
+    )
+  }
+
   async getAll(userId: string) {
     return this.campaignGraphql.getAllPublishedCampaign(userId);
   }
 
-  async getPublicCampaignDetail(id: number) {
-    return this.campaignGraphql.getCampaignPublicDetail(id);
+  async getPublicCampaignDetail(slug: string) {
+    return this.campaignGraphql.getCampaignPublicDetail(slug);
   }
 
-  async getAuthorizedCampaignDetail(id: number) {
+  async getAuthorizedCampaignDetail(slug: string) {
     const { userId } = ContextProvider.getAuthUser();
 
+    const publicCampaignDetail = await this.getPublicCampaignDetail(slug);
+    const campaignId = publicCampaignDetail.data.campaign[0].id;
+
     // check enroll
-    const userCampaign = await this.campaignGraphql.getUserCampaign(id, userId);
+    const userCampaign = await this.campaignGraphql.getUserCampaign(campaignId, userId);
     if (errorOrEmpty(userCampaign, 'user_campaign'))
-      return this.getPublicCampaignDetail(id);
+      return publicCampaignDetail;
 
     // get auth-ed campaign info
-    const result = await this.campaignGraphql.getCampaignAuthDetail(id, userId);
+    const result = await this.campaignGraphql.getCampaignAuthDetail(campaignId, userId);
 
     if (errorOrEmpty(result, 'campaign')) return result;
     const campaign = result.data.campaign[0];

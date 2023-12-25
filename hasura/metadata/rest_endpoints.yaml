@@ -236,15 +236,6 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Public - Get all campaign
-  methods:
-    - GET
-  name: Public - Get all campaign
-  url: public/campaign
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Public - Get campaign leaderboard
   methods:
     - GET

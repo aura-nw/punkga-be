@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -18,29 +19,39 @@ import { CampaignService } from './campaign.service';
 import { EnrollCampaignDto } from './dto/enroll-campaign.dto';
 import { GetAllCampaignQuery } from './dto/get-all-campaign.dto';
 import { GetCampaignDetailDto } from './dto/get-campaign-detail.dto';
+import { CreateCampaignDto } from './dto/create-campaign.dto';
 
 @Controller('campaign')
 @ApiTags('campaign')
 export class CampaignController {
-  constructor(private readonly campaignSvc: CampaignService) {}
+  constructor(private readonly campaignSvc: CampaignService) { }
+
+  @Post()
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @UseInterceptors(AuthUserInterceptor)
+  create(@Body() data: CreateCampaignDto) {
+    return this.campaignSvc.create(data);
+  }
 
   @Get()
   getAll(@Query() query: GetAllCampaignQuery) {
     return this.campaignSvc.getAll(query.user_id);
   }
 
-  @Get(':campaign_id')
+  @Get(':campaign_slug')
   getPublicCampaignDetail(@Param() param: GetCampaignDetailDto) {
-    return this.campaignSvc.getPublicCampaignDetail(param.campaign_id);
+    return this.campaignSvc.getPublicCampaignDetail(param.campaign_slug);
   }
 
-  @Get(':campaign_id/authorized')
+  @Get(':campaign_slug/authorized')
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.User)
   @UseInterceptors(AuthUserInterceptor)
   getAuthorizedCampaignDetail(@Param() param: GetCampaignDetailDto) {
-    return this.campaignSvc.getAuthorizedCampaignDetail(param.campaign_id);
+    return this.campaignSvc.getAuthorizedCampaignDetail(param.campaign_slug);
   }
 
   @Post(':campaign_id/enroll')
