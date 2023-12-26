@@ -48,7 +48,6 @@ export class CampaignGraphql {
       `query user_campaign($campaign_id: Int!, $user_id: bpchar!) {
         user_campaign(where: {campaign_id: {_eq: $campaign_id}, user_id: {_eq: $user_id}}) {
           id
-          slug
           user_id
           campaign_id
           created_at
