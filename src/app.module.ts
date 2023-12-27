@@ -24,7 +24,7 @@ import { UserModule } from './modules/user/user.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, 'client'),
+      rootPath: join(__dirname, '..', 'client'),
     }),
     JwtModule,
     ScheduleModule.forRoot(),
