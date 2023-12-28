@@ -28,7 +28,7 @@
     "@cosmjs/amino": "^0.31.1",
     "@cosmjs/cosmwasm-stargate": "^0.31.1",
     "@cosmjs/stargate": "0.31.1",
-    "@flyindance123/aura-kms": "0.1.2",
+    "@aura-nw/aura-kms": "0.1.2",
     "@google-analytics/data": "^4.0.0",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/bull": "^10.0.1",

@@ -37,6 +37,29 @@
     ora "5.4.1"
     rxjs "7.8.1"
 
+"@aura-nw/aura-kms@0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@aura-nw/aura-kms/-/aura-kms-0.1.2.tgz#c70ac2cc14cf606da574c6ae4f33992d63db4a6c"
+  integrity sha512-LTq7ItyCOPtVOJNeePwBII3zxbU0dDGdKyj0qOa4mUdA6MtaYEz8kTbMmGDIABvwNJyJZNw1wH06BBvq4wmALw==
+  dependencies:
+    "@cosmjs/amino" "^0.31.1"
+    "@cosmjs/cosmwasm-stargate" "^0.31.1"
+    "@cosmjs/crypto" "^0.31.1"
+    "@cosmjs/encoding" "^0.31.1"
+    "@cosmjs/json-rpc" "^0.31.1"
+    "@cosmjs/math" "^0.31.1"
+    "@cosmjs/proto-signing" "^0.31.1"
+    "@cosmjs/stargate" "^0.31.1"
+    "@cosmjs/tendermint-rpc" "^0.31.1"
+    "@cosmjs/utils" "^0.31.1"
+    "@types/ledgerhq__hw-transport" "^4.21.4"
+    asn1.js "^5.4.1"
+    asn1js "^3.0.5"
+    aws-sdk "^2.1410.0"
+    bignumber.js "^9.1.1"
+    cosmjs-types "^0.8.0"
+    strip-hex-prefix "^1.0.0"
+
 "@authorizerdev/authorizer-js@^1.2.3":
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/@authorizerdev/authorizer-js/-/authorizer-js-1.2.4.tgz#8f53bb681e1ce76f5d49c6ea768dc767a12d9bb6"
@@ -1133,29 +1156,6 @@
   version "8.44.0"
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.44.0.tgz#961a5903c74139390478bdc808bcde3fc45ab7af"
   integrity sha512-Ag+9YM4ocKQx9AarydN0KY2j0ErMHNIocPDrVo8zAE44xLTjEtz81OdR68/cydGtk6m6jDb5Za3r2useMzYmSw==
-
-"@flyindance123/aura-kms@0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@flyindance123/aura-kms/-/aura-kms-0.1.2.tgz#311db2783a13dfd9173f664e389f2b3232f05b27"
-  integrity sha512-bf+sU92c8Ybqr/EfMymtH1egMEqzjbjL7MK92YClEXo3L5wwGrCeyWFs4gAGxZm9kRz2gbzb8lf5KvWfdyQUhA==
-  dependencies:
-    "@cosmjs/amino" "^0.31.1"
-    "@cosmjs/cosmwasm-stargate" "^0.31.1"
-    "@cosmjs/crypto" "^0.31.1"
-    "@cosmjs/encoding" "^0.31.1"
-    "@cosmjs/json-rpc" "^0.31.1"
-    "@cosmjs/math" "^0.31.1"
-    "@cosmjs/proto-signing" "^0.31.1"
-    "@cosmjs/stargate" "^0.31.1"
-    "@cosmjs/tendermint-rpc" "^0.31.1"
-    "@cosmjs/utils" "^0.31.1"
-    "@types/ledgerhq__hw-transport" "^4.21.4"
-    asn1.js "^5.4.1"
-    asn1js "^3.0.5"
-    aws-sdk "^2.1410.0"
-    bignumber.js "^9.1.1"
-    cosmjs-types "^0.8.0"
-    strip-hex-prefix "^1.0.0"
 
 "@google-analytics/data@^4.0.0":
   version "4.0.0"
