@@ -27,7 +27,7 @@ import { ReadChapterRequestDto } from './dto/read-chapter-request.dto';
 @Controller('user')
 @ApiTags('user')
 export class UserController {
-  constructor(private readonly userSvc: UserService) {}
+  constructor(private readonly userSvc: UserService) { }
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
