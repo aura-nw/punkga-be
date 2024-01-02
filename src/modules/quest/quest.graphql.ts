@@ -11,7 +11,7 @@ export class QuestGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) {}
+  ) { }
 
   async getUserQuest(quest: any, userId: string) {
     let queryUserQuestCondition;
@@ -162,6 +162,8 @@ export class QuestGraphql {
       'user_read_chapter',
       variables
     );
+
+    if (errorOrEmpty(result, 'user_read_chapter')) return undefined;
 
     return result.data.user_read_chapter[0];
   }
