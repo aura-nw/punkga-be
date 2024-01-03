@@ -10,7 +10,7 @@ export class CheckRequirementService {
     private questGraphql: QuestGraphql,
     private socialActivitiesGraphql: SocialActivitiesGraphql,
     private subscribersGraphql: SubscribersGraphql
-  ) {}
+  ) { }
 
   canClaimReward(quest: any, userId: string) {
     const { requirement } = quest;
@@ -115,7 +115,7 @@ export class CheckRequirementService {
     if (
       userActivity &&
       userActivity.answer ===
-        quest.requirement?.quiz['multiple-choice']?.correct_answer
+      quest.requirement?.quiz['multiple_choice']?.correct_answer
     ) {
       return true;
     }
