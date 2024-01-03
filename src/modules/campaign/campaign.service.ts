@@ -66,20 +66,27 @@ export class CampaignService {
       id: userId,
     });
 
-    const promises = [];
+    const checkConditionPromises = [];
+    const checkRewardPromises = [];
 
     campaign.campaign_quests.forEach((quest, index) => {
       // check condition
-      campaign.campaign_quests[index].unlock =
-        this.checkConditionService.verify(quest.condition, user);
+
+      checkConditionPromises.push(
+        this.checkConditionService.verify(quest.condition, user));
 
       // check reward status
-      promises.push(
+      checkRewardPromises.push(
         this.checkRewardService.getClaimRewardStatus(quest, userId)
       );
     });
 
-    const checkRequirementResult = await Promise.all(promises);
+    const checkConditionResult = await Promise.all(checkConditionPromises);
+    checkConditionResult.forEach((result, index) => {
+      campaign.campaign_quests[index].unlock = result;
+    });
+
+    const checkRequirementResult = await Promise.all(checkRewardPromises);
     checkRequirementResult.forEach((result, index) => {
       campaign.campaign_quests[index].reward_status = result;
     });
