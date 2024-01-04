@@ -115,7 +115,7 @@ export class CheckRequirementService {
     if (
       userActivity &&
       userActivity.answer ===
-      quest.requirement?.quiz['multiple_choice']?.correct_answer
+      quest.requirement?.quiz['multiple_choice'][0]?.correct_answer
     ) {
       return true;
     }
