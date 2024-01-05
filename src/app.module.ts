@@ -8,7 +8,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import configuration from './config/configuration';
-import { AuthModule } from './modules/auth/auth.module';
 import { CampaignModule } from './modules/campaign/campaign.module';
 import { ChapterModule } from './modules/chapter/chapter.module';
 import { CreatorModule } from './modules/creator/creator.module';
@@ -44,7 +43,6 @@ import { UserModule } from './modules/user/user.module';
     SysKeyModule,
     UserWalletModule,
     CampaignModule,
-    AuthModule
   ],
   controllers: [],
   providers: [

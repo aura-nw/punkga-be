@@ -116,12 +116,13 @@ export class QuestService {
       ));
     }
 
-    if (quest.reward?.nft) {
+    if (quest.reward?.nft?.ipfs !== "") {
       // mint nft
       promises.push(this.questRewardService.mintNft(userId, quest, token));
     }
 
     const result = await Promise.all(promises);
+    this.logger.debug(result)
     return result;
   }
 
