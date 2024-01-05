@@ -17,7 +17,7 @@ export class QuestRewardService {
     private levelingService: LevelingService,
     private userGraphql: UserGraphql,
     private masterWalletSerivce: MasterWalletService
-  ) {}
+  ) { }
 
   async mintNft(userId: string, quest: any, userToken: string) {
     const tokenUri = quest.reward.nft.ipfs;
@@ -90,9 +90,18 @@ export class QuestRewardService {
       },
       userToken
     );
+
+    // increase user campaign xp
+    const increaseXpResult = await this.questGraphql.increaseUserCampaignXp({
+      campaign_id: quest.campaign_id,
+      user_id: userId,
+      reward_xp: xp
+    })
+
     this.logger.debug('Increase user xp result: ');
     this.logger.debug(JSON.stringify(insertUserRewardResult));
     this.logger.debug(JSON.stringify(result));
+    this.logger.debug(JSON.stringify(increaseXpResult));
     return result;
   }
 

@@ -15,6 +15,8 @@ export class CheckRequirementService {
   canClaimReward(quest: any, userId: string) {
     const { requirement } = quest;
 
+    if (quest.type === 'Empty') return true;
+
     const requirementType = Object.keys(requirement);
     if (requirementType.includes('read')) {
       return this.checkRead(quest, userId);
