@@ -116,6 +116,7 @@ export class CampaignGraphql {
             type
             repeat
             quest_reward_claimed
+            created_at
             repeat_quests {
               id
               repeat_quest_reward_claimed
