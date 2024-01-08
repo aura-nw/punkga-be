@@ -122,8 +122,8 @@ export class CampaignService {
     if (userId !== top1UserCampaign.user_id) throw new ForbiddenException();
 
     // check claim status
-    // if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
-    //   throw new ForbiddenException();
+    if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
+      throw new ForbiddenException();
 
     // reward
     const result = [];
