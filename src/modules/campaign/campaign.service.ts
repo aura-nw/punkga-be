@@ -122,13 +122,13 @@ export class CampaignService {
     if (userId !== top1UserCampaign.user_id) throw new ForbiddenException();
 
     // check claim status
-    if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
-      throw new ForbiddenException();
+    // if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
+    //   throw new ForbiddenException();
 
     // reward
-    const promises = [];
+    const result = [];
     if (top1UserCampaign.user_campaign_campaign.reward?.xp) {
-      promises.push(this.campaignRewardService.increaseUserXp(
+      result.push(await this.campaignRewardService.increaseUserXp(
         userId,
         top1UserCampaign,
         token
@@ -137,14 +137,13 @@ export class CampaignService {
 
     if (top1UserCampaign.user_campaign_campaign.reward?.nft) {
       // mint nft
-      promises.push(this.campaignRewardService.mintNft(
+      result.push(await this.campaignRewardService.mintNft(
         userId,
         top1UserCampaign,
         token
       ));
     }
 
-    const result = await Promise.all(promises);
     return result;
   }
 }
