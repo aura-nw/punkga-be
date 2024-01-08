@@ -35,10 +35,14 @@ export class UserGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query quests {
-        quests(where: {quests_campaign: {status: {_eq: "Published"}}, status: {_eq: "Published"}}, order_by: {quests_campaign: {created_at: desc}, created_at: desc}) {
+      `query quests($now: timestamptz!) {
+        quests(where: {quests_campaign: {status: {_eq: "Published"}, start_date: {_lte: $now}, end_date: {_gte: $now}}, status: {_eq: "Published"}}, order_by: {quests_campaign: {created_at: desc}, created_at: desc}) {
           id
           name
+          quests_campaign {
+            start_date
+            end_date
+          }
           description
           condition
           requirement
@@ -51,7 +55,9 @@ export class UserGraphql {
       }
       `,
       'quests',
-      {}
+      {
+        now: new Date()
+      }
     );
 
     if (errorOrEmpty(result, 'quests')) {
