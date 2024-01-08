@@ -54,10 +54,14 @@ export class UserService {
 
 
     // return quests[0];
+    const result = await Promise.all(quests.map((quest) => this.checkConditionService.verify(quest.condition, user)))
+    const availableQuests = [];
+    result.forEach((valid, index) => {
+      if (valid) availableQuests.push(quests[index])
+    })
 
-    return quests.filter((quest) =>
-      this.checkConditionService.verify(quest.condition, user)
-    );
+
+    return availableQuests;
   }
 
   async updateProfile(
