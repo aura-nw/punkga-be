@@ -57,7 +57,11 @@ export class UserService {
     const result = await Promise.all(quests.map((quest) => this.checkConditionService.verify(quest.condition, user)))
     const availableQuests = [];
     result.forEach((valid, index) => {
-      if (valid) availableQuests.push(quests[index])
+      // frontend need "unlock" field
+      const quest = quests[index];
+      quest.unlock = true;
+
+      if (valid) availableQuests.push(quest)
     })
 
 

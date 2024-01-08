@@ -39,6 +39,7 @@ export class UserGraphql {
         quests(where: {quests_campaign: {status: {_eq: "Published"}, start_date: {_lte: $now}, end_date: {_gte: $now}}, status: {_eq: "Published"}}, order_by: {quests_campaign: {created_at: desc}, created_at: desc}) {
           id
           name
+          repeat
           quests_campaign {
             start_date
             end_date
