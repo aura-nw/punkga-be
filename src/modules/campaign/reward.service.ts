@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UserGraphql } from '../user/user.graphql';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { CampaignGraphql } from './campaign.graphql';
 import { LevelingService } from '../leveling/leveling.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
+import { QuestGraphql } from '../quest/quest.graphql';
 
 @Injectable()
 export class CampaignRewardService {
@@ -11,7 +11,7 @@ export class CampaignRewardService {
 
   constructor(
     private campaignGraphql: CampaignGraphql,
-    private userGraphql: UserGraphql,
+    private questGraphql: QuestGraphql,
     private levelingService: LevelingService,
     private userLevelGraphql: UserLevelGraphql,
     private masterWalletSerivce: MasterWalletService
@@ -20,7 +20,7 @@ export class CampaignRewardService {
   async mintNft(userId: string, top1UserCampaign: any, userToken: string) {
     const tokenUri = top1UserCampaign.user_campaign_campaign.reward.nft.ipfs;
 
-    const user = await this.userGraphql.queryUserWalletData(
+    const user = await this.questGraphql.queryUserWalletData(
       {
         id: userId,
       },
@@ -57,7 +57,7 @@ export class CampaignRewardService {
   ) {
     const xp = top1UserCampaign.user_campaign_campaign.reward.xp;
 
-    const user = await this.userGraphql.queryUserWalletData(
+    const user = await this.questGraphql.queryUserWalletData(
       {
         id: userId,
       },

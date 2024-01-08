@@ -6,11 +6,12 @@ import { GraphqlModule } from '../graphql/graphql.module';
 import { FilesModule } from '../files/files.module';
 import { UserGraphql } from './user.graphql';
 import { MangaModule } from '../manga/manga.module';
+import { QuestModule } from '../quest/quest.module';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, FilesModule, MangaModule],
+  imports: [JwtModule, GraphqlModule, FilesModule, MangaModule, QuestModule],
   providers: [UserService, UserGraphql],
   controllers: [UserController],
   exports: [UserGraphql],
 })
-export class UserModule {}
+export class UserModule { }

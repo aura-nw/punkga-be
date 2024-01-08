@@ -23,7 +23,6 @@ import { QuestRewardService } from './reward.service';
     FilesModule,
     JwtModule,
     GraphqlModule,
-    UserModule,
     RepeatQuestModule,
     SocialActivitiesModule,
     UserLevelModule,
@@ -43,4 +42,4 @@ import { QuestRewardService } from './reward.service';
   controllers: [QuestController],
   exports: [QuestGraphql, CheckConditionService, CheckRewardService],
 })
-export class QuestModule {}
+export class QuestModule { }

@@ -7,10 +7,8 @@ import {
 
 import { ContextProvider } from '../../providers/contex.provider';
 import { FilesService } from '../files/files.service';
-import { UserGraphql } from '../user/user.graphql';
 import { QuestGraphql } from './quest.graphql';
 import { CheckRewardService } from './check-reward.service';
-import { CheckConditionService } from './check-condition.service';
 import { QuestRewardService } from './reward.service';
 import { RewardStatus } from '../../common/enum';
 
@@ -21,9 +19,7 @@ export class QuestService {
   constructor(
     private filesService: FilesService,
     private questGraphql: QuestGraphql,
-    private userGraphql: UserGraphql,
     private checkRewardService: CheckRewardService,
-    private checkConditionService: CheckConditionService,
     private questRewardService: QuestRewardService
   ) { }
 

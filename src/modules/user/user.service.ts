@@ -9,6 +9,7 @@ import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { UserGraphql } from './user.graphql';
 import { MangaService } from '../manga/manga.service';
+import { CheckConditionService } from '../quest/check-condition.service';
 
 @Injectable()
 export class UserService {
@@ -17,8 +18,9 @@ export class UserService {
     private configService: ConfigService,
     private filesService: FilesService,
     private mangaService: MangaService,
+    private checkConditionService: CheckConditionService,
     private userGraphql: UserGraphql
-  ) {}
+  ) { }
 
   async readChapter(chapterId: number) {
     const chapter = await this.userGraphql.getChapterDetail({
@@ -40,22 +42,22 @@ export class UserService {
     const { userId } = ContextProvider.getAuthUser();
     const quests: any[] = await this.userGraphql.getAllPublishedQuest();
 
-    let currentLevel = 0;
-    if (userId) {
-      const user = await this.userGraphql.queryUserLevel({
-        id: userId,
-      });
+    // let currentLevel = 0;
 
-      if (user?.levels[0]) {
-        currentLevel = user.levels[0].level;
-      }
-    }
+    const user = await this.userGraphql.queryUserLevel({
+      id: userId,
+    });
 
-    return quests[0];
+    // if (user?.levels[0]) {
+    //   currentLevel = user.levels[0].level;
+    // }
 
-    // return quests.filter((quest) =>
-    //   verifyQuestCondition(quest.condition, currentLevel)
-    // );
+
+    // return quests[0];
+
+    return quests.filter((quest) =>
+      this.checkConditionService.verify(quest.condition, user)
+    );
   }
 
   async updateProfile(

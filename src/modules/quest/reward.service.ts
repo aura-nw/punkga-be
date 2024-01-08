@@ -3,7 +3,6 @@ import { QuestGraphql } from './quest.graphql';
 import { UserRewardGraphql } from '../user-reward/user-reward.graphql';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
 import { LevelingService } from '../leveling/leveling.service';
-import { UserGraphql } from '../user/user.graphql';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 
 @Injectable()
@@ -15,14 +14,13 @@ export class QuestRewardService {
     private userRewardGraphql: UserRewardGraphql,
     private userLevelGraphql: UserLevelGraphql,
     private levelingService: LevelingService,
-    private userGraphql: UserGraphql,
     private masterWalletSerivce: MasterWalletService
   ) { }
 
   async mintNft(userId: string, quest: any, userToken: string) {
     const tokenUri = quest.reward.nft.ipfs;
 
-    const user = await this.userGraphql.queryUserWalletData(
+    const user = await this.questGraphql.queryUserWalletData(
       {
         id: userId,
       },
@@ -56,7 +54,7 @@ export class QuestRewardService {
     xp: number,
     userToken: string
   ) {
-    const user = await this.userGraphql.queryUserWalletData(
+    const user = await this.questGraphql.queryUserWalletData(
       {
         id: userId,
       },

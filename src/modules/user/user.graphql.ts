@@ -10,7 +10,7 @@ export class UserGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) {}
+  ) { }
 
   async getChapterDetail(variables: any) {
     const result = await this.graphqlSvc.query(
@@ -62,33 +62,7 @@ export class UserGraphql {
     return result.data.quests;
   }
 
-  async queryUserWalletData(variables: any, token: string) {
-    const result = await this.graphqlSvc.query(
-      this.configSvc.get<string>('graphql.endpoint'),
-      token,
-      `query authorizer_users($id: bpchar = "") {
-        authorizer_users(where: {id: {_eq: $id}}) {
-          id
-          levels {
-            level
-            xp
-          }
-          authorizer_users_user_wallet {
-            address
-            data
-            user_id
-          }
-        }
-      }
-      `,
-      'authorizer_users',
-      variables
-    );
 
-    if (errorOrEmpty(result, 'authorizer_users')) throw new NotFoundException();
-
-    return result.data.authorizer_users[0];
-  }
 
   async queryUserLevel(variables) {
     const result = await this.graphqlSvc.query(
