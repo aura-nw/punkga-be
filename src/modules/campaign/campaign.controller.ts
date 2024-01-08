@@ -69,6 +69,6 @@ export class CampaignController {
   @Roles(Role.User)
   @UseInterceptors(AuthUserInterceptor)
   claim(@Param() param: EnrollCampaignDto) {
-    return this.campaignSvc.enroll(param.campaign_id);
+    return this.campaignSvc.claimReward(param.campaign_id);
   }
 }
