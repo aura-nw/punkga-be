@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CampaignGraphql } from './campaign.graphql';
 import { ContextProvider } from '../../providers/contex.provider';
 import { errorOrEmpty } from '../graphql/utils';
@@ -113,37 +113,41 @@ export class CampaignService {
   }
 
   async claimReward(campaignId: number) {
-    const { userId, token } = ContextProvider.getAuthUser();
-    // check top 1 user of campaign
-    const top1UserCampaign = await this.campaignGraphql.getTop1UserCampaign(
-      campaignId,
-      token
-    );
-    if (userId !== top1UserCampaign.user_id) throw new ForbiddenException();
-
-    // check claim status
-    // if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
-    //   throw new ForbiddenException();
-
-    // reward
-    const result = [];
-    if (top1UserCampaign.user_campaign_campaign.reward?.xp) {
-      result.push(await this.campaignRewardService.increaseUserXp(
-        userId,
-        top1UserCampaign,
+    try {
+      const { userId, token } = ContextProvider.getAuthUser();
+      // check top 1 user of campaign
+      const top1UserCampaign = await this.campaignGraphql.getTop1UserCampaign(
+        campaignId,
         token
-      ));
-    }
+      );
+      if (userId !== top1UserCampaign.user_id) throw new ForbiddenException();
 
-    if (top1UserCampaign.user_campaign_campaign.reward?.nft) {
-      // mint nft
-      result.push(await this.campaignRewardService.mintNft(
-        userId,
-        top1UserCampaign,
-        token
-      ));
-    }
+      // check claim status
+      if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
+        throw new ForbiddenException();
 
-    return result;
+      // reward
+      const result = [];
+      if (top1UserCampaign.user_campaign_campaign.reward?.xp) {
+        result.push(await this.campaignRewardService.increaseUserXp(
+          userId,
+          top1UserCampaign,
+          token
+        ));
+      }
+
+      if (top1UserCampaign.user_campaign_campaign.reward?.nft) {
+        // mint nft
+        result.push(await this.campaignRewardService.mintNft(
+          userId,
+          top1UserCampaign,
+          token
+        ));
+      }
+
+      return result;
+    } catch (error) {
+      return new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 }
