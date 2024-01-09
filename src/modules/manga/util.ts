@@ -4,15 +4,15 @@ export function generateSlug(name: string, id?: number) {
     .replace(/[\u0300-\u036f]/g, '') // Remove "Combining Diacritical Marks" https://www.ssec.wisc.edu/~tomw/java/unicode.html#x0300
     .toLowerCase()
     .replace(/đ/g, 'd') // js normalize can't decompose đ character so have to replace it manually
-    .replaceAll(/[^a-z0-9]+/g, '_');
-  // .slice(0, MAX_PREFIX_LENGTH);
+    .replaceAll(/[^a-z0-9]+/g, '-');
+  // .slice(0, MAX-PREFIX-LENGTH);
 
-  if (prefix.endsWith('_')) {
+  if (prefix.endsWith('-')) {
     prefix = prefix.slice(0, -1);
   }
-  if (prefix.startsWith('_')) {
+  if (prefix.startsWith('-')) {
     prefix = prefix.slice(1);
   }
 
-  return id ? `${prefix}_${id}` : prefix;
+  return id ? `${prefix}-${id}` : prefix;
 }
