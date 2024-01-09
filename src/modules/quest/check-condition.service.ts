@@ -4,7 +4,7 @@ import { QuestGraphql } from './quest.graphql';
 
 @Injectable()
 export class CheckConditionService {
-  constructor(private questGraphql: QuestGraphql) {}
+  constructor(private questGraphql: QuestGraphql) { }
 
   async verify(condition: any, user: any) {
     // optional condition
@@ -12,7 +12,7 @@ export class CheckConditionService {
 
     const unlock: boolean[] = [];
 
-    if (condition.leveling) {
+    if (condition.level) {
       const currentLevel = user?.levels[0] ? user.levels[0].level : 0;
       // check user level
       unlock.push(currentLevel >= condition.level);
