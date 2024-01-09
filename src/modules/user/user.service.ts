@@ -10,6 +10,7 @@ import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { UserGraphql } from './user.graphql';
 import { MangaService } from '../manga/manga.service';
 import { CheckConditionService } from '../quest/check-condition.service';
+import { CheckRewardService } from '../quest/check-reward.service';
 
 @Injectable()
 export class UserService {
@@ -19,6 +20,7 @@ export class UserService {
     private filesService: FilesService,
     private mangaService: MangaService,
     private checkConditionService: CheckConditionService,
+    private checkRewardService: CheckRewardService,
     private userGraphql: UserGraphql
   ) { }
 
@@ -42,30 +44,35 @@ export class UserService {
     const { userId } = ContextProvider.getAuthUser();
     const quests: any[] = await this.userGraphql.getAllPublishedQuest();
 
-    // let currentLevel = 0;
-
     const user = await this.userGraphql.queryUserLevel({
       id: userId,
     });
 
-    // if (user?.levels[0]) {
-    //   currentLevel = user.levels[0].level;
-    // }
+    // check condition
+    const checkConditionPromises = [];
+    quests.forEach((quest) => {
+      checkConditionPromises.push(this.checkConditionService.verify(quest.condition, user));
+    });
 
+    const checkConditionResult = await Promise.all(checkConditionPromises);
 
-    // return quests[0];
-    const result = await Promise.all(quests.map((quest) => this.checkConditionService.verify(quest.condition, user)))
     const availableQuests = [];
-    result.forEach((valid, index) => {
-      // frontend need "unlock" field
+    checkConditionResult.forEach((valid, index) => {
+
       const quest = quests[index];
+      // frontend need unlock field
       quest.unlock = true;
 
       if (valid) availableQuests.push(quest)
-    })
+    });
 
+    const checkRequirementResult = await Promise.all(availableQuests.map((quest) => this.checkRewardService.getClaimRewardStatus(quest, userId)));
+    const finalResult = availableQuests.map((quest, index) => {
+      quest.reward_status = checkRequirementResult[index];
+      return quest;
+    });
 
-    return availableQuests;
+    return finalResult;
   }
 
   async updateProfile(

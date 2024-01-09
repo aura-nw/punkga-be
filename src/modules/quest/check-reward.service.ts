@@ -9,7 +9,7 @@ export class CheckRewardService {
   constructor(
     private checkRequirementService: CheckRequirementService,
     private questGraphql: QuestGraphql
-  ) {}
+  ) { }
 
   async getClaimRewardStatus(quest: any, userId: string) {
     const userQuest = await this.questGraphql.getUserQuest(quest, userId);
@@ -38,6 +38,7 @@ export class CheckRewardService {
         return quest.reward?.slots <= quest.quest_reward_claimed;
       } else {
         return (
+          quest.repeat_quests &&
           quest.reward?.slots <=
           quest.repeat_quests[0]?.repeat_quest_reward_claimed
         );
