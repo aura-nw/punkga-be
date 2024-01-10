@@ -74,6 +74,10 @@ export class CampaignGraphql {
           end_date
           description
           reward
+          user_campaign_rewards {
+            tx_hash
+            created_at
+          }
           participants: campaign_user_aggregate {
             aggregate {
               count
@@ -100,6 +104,10 @@ export class CampaignGraphql {
           end_date
           description
           reward
+          user_campaign_rewards {
+            tx_hash
+            created_at
+          }
           participants: campaign_user_aggregate {
             aggregate {
               count
