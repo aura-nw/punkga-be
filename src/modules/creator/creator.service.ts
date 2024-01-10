@@ -15,7 +15,7 @@ export class CreatorService {
   constructor(
     private filesService: FilesService,
     private creatorGraphql: CreatorGraphql
-  ) {}
+  ) { }
 
   async get(slug: string) {
     const { id, slug: mangaSlug } = detectSlugOrId(slug);
@@ -84,43 +84,49 @@ export class CreatorService {
     data: UpdateCreatorRequestDto,
     files: Array<Express.Multer.File>
   ) {
-    const { token } = ContextProvider.getAuthUser();
-    const { name, socials, pen_name, bio, gender, dob } = data;
+    try {
+      const { token } = ContextProvider.getAuthUser();
+      const { name, socials, pen_name, bio, gender, dob } = data;
 
-    const result = await this.creatorGraphql.queryCreatorById(token, {
-      id: creatorId,
-    });
+      const result = await this.creatorGraphql.queryCreatorById(token, {
+        id: creatorId,
+      });
 
-    if (result.errors && result.errors.length > 0) {
-      return result;
+      if (result.errors && result.errors.length > 0) {
+        return result;
+      }
+
+      if (result.data.creators_by_pk === null) {
+        return result.data;
+      }
+
+      let { avatar_url: avatarUrl } = result.data.creators_by_pk;
+
+      // upload files
+      const avatarFile = files.filter((f) => f.fieldname === 'avatar')[0];
+      if (avatarFile)
+        avatarUrl = await this.filesService.uploadImageToS3(
+          `creator-${creatorId}`,
+          avatarFile
+        );
+
+      // update creator in DB
+      const updateResult = await this.creatorGraphql.updateCreator(token, {
+        id: creatorId,
+        name,
+        bio: bio.toString(),
+        socials: JSON.parse(socials),
+        pen_name,
+        gender,
+        dob,
+        avatar_url: avatarUrl,
+      });
+
+      return updateResult;
+    } catch (errors) {
+      return {
+        errors,
+      };
     }
-
-    if (result.data.creators_by_pk === null) {
-      return result.data;
-    }
-
-    let { avatar_url: avatarUrl } = result.data.creators_by_pk;
-
-    // upload files
-    const avatarFile = files.filter((f) => f.fieldname === 'avatar')[0];
-    if (avatarFile)
-      avatarUrl = await this.filesService.uploadImageToS3(
-        `creator-${creatorId}`,
-        avatarFile
-      );
-
-    // update creator in DB
-    const updateResult = await this.creatorGraphql.updateCreator(token, {
-      id: creatorId,
-      name,
-      bio: bio.toString(),
-      socials: JSON.parse(socials),
-      pen_name,
-      gender,
-      dob,
-      avatar_url: avatarUrl,
-    });
-
-    return updateResult;
   }
 }

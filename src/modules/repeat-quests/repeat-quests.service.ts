@@ -9,32 +9,38 @@ export class RepeatQuestService {
   constructor(
     private configService: ConfigService,
     private repeatQuestsGraphql: RepeatQuestsGraphql
-  ) {}
+  ) { }
 
   async create(headers, questId: number) {
-    const webHookSecret = this.configService.get<string>('webhook.secret');
-    if (!webHookSecret || headers['webhook-secret'] !== webHookSecret)
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    try {
+      const webHookSecret = this.configService.get<string>('webhook.secret');
+      if (!webHookSecret || headers['webhook-secret'] !== webHookSecret)
+        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 
-    // check type
-    const quest = await this.repeatQuestsGraphql.getRepeatableQuestById({
-      id: questId,
-    });
-
-    if (
-      quest &&
-      quest.repeat === 'Daily' &&
-      isActiveQuest(quest.condition) &&
-      this.notExistRepeatQuestToday(quest.repeat_quests)
-    ) {
-      const result = await this.repeatQuestsGraphql.insertRepeatQuests({
-        objects: [
-          {
-            quest_id: questId,
-          },
-        ],
+      // check type
+      const quest = await this.repeatQuestsGraphql.getRepeatableQuestById({
+        id: questId,
       });
-      return result;
+
+      if (
+        quest &&
+        quest.repeat === 'Daily' &&
+        isActiveQuest(quest.condition) &&
+        this.notExistRepeatQuestToday(quest.repeat_quests)
+      ) {
+        const result = await this.repeatQuestsGraphql.insertRepeatQuests({
+          objects: [
+            {
+              quest_id: questId,
+            },
+          ],
+        });
+        return result;
+      }
+    } catch (errors) {
+      return {
+        errors,
+      };
     }
   }
 

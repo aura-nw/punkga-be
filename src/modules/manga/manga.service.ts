@@ -24,100 +24,117 @@ export class MangaService {
   constructor(
     private configSvc: ConfigService,
     private filesService: FilesService,
-    private graphqlSvc: GraphqlService,
     private mangaGraphql: MangaGraphql
-  ) {}
+  ) { }
 
   async get(slug: string, user_id = '') {
-    const { id, slug: mangaSlug } = detectSlugOrId(slug);
+    try {
+      const { id, slug: mangaSlug } = detectSlugOrId(slug);
 
-    const result = await this.mangaGraphql.queryMangaByIdOrSlug({
-      id,
-      slug: mangaSlug,
-      user_id,
-    });
+      const result = await this.mangaGraphql.queryMangaByIdOrSlug({
+        id,
+        slug: mangaSlug,
+        user_id,
+      });
 
-    return result;
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
   }
 
   async getChapterByManga(param: GetChapterByMangaParamDto, user_id: string) {
-    const { slug, chapter_number } = param;
-    const { id: mangaId, slug: mangaSlug } = detectSlugOrId(slug);
+    try {
+      const { slug, chapter_number } = param;
+      const { id: mangaId, slug: mangaSlug } = detectSlugOrId(slug);
 
-    const result = await this.mangaGraphql.getChapterReadingDetail({
-      manga_slug: mangaSlug,
-      manga_id: mangaId,
-      chapter_number,
-      user_id,
-    });
+      const result = await this.mangaGraphql.getChapterReadingDetail({
+        manga_slug: mangaSlug,
+        manga_id: mangaId,
+        chapter_number,
+        user_id,
+      });
 
-    return result;
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
   }
 
   async create(data: CreateMangaRequestDto, files: Array<Express.Multer.File>) {
-    const { token } = ContextProvider.getAuthUser();
-    const { status, contract_addresses, release_date } = data;
-    const manga_tags = plainToInstance(
-      MangaTag,
-      JSON.parse(data.manga_tags) as any[]
-    );
-    const manga_creators = plainToInstance(
-      MangaCreator,
-      JSON.parse(data.manga_creators) as any[]
-    );
-    const manga_languages = plainToInstance(
-      MangaLanguage,
-      JSON.parse(data.manga_languages) as any[]
-    );
+    try {
+      const { token } = ContextProvider.getAuthUser();
+      const { status, contract_addresses, release_date } = data;
+      const manga_tags = plainToInstance(
+        MangaTag,
+        JSON.parse(data.manga_tags) as any[]
+      );
+      const manga_creators = plainToInstance(
+        MangaCreator,
+        JSON.parse(data.manga_creators) as any[]
+      );
+      const manga_languages = plainToInstance(
+        MangaLanguage,
+        JSON.parse(data.manga_languages) as any[]
+      );
 
-    // insert manga to DB
-    const result = await this.mangaGraphql.createNewManga(token, {
-      status,
-      manga_tags,
-      manga_creators,
-      manga_languages,
-      release_date,
-      contract_addresses: JSON.parse(contract_addresses),
-    });
+      // insert manga to DB
+      const result = await this.mangaGraphql.createNewManga(token, {
+        status,
+        manga_tags,
+        manga_creators,
+        manga_languages,
+        release_date,
+        contract_addresses: JSON.parse(contract_addresses),
+      });
 
-    if (result.errors && result.errors.length > 0) {
-      return result;
+      if (result.errors && result.errors.length > 0) {
+        return result;
+      }
+
+      // upload files
+      const mangaId = result.data.insert_manga_one.id;
+      let posterUrl = '';
+      let bannerUrl = '';
+      const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
+      if (bannerFile)
+        bannerUrl = await this.filesService.uploadImageToS3(
+          `manga-${mangaId}`,
+          bannerFile
+        );
+
+      const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
+      if (bannerFile)
+        posterUrl = await this.filesService.uploadImageToS3(
+          `manga-${mangaId}`,
+          posterFile
+        );
+
+      const slug = generateSlug(
+        manga_languages.filter(
+          (language) => language.is_main_language === true
+        )[0].title,
+        mangaId
+      );
+
+      // update manga in DB
+      const updateResponse = await this.mangaGraphql.updateMangaByPK(token, {
+        id: mangaId,
+        banner: bannerUrl,
+        poster: posterUrl,
+        slug,
+      });
+
+      return updateResponse;
+    } catch (errors) {
+      return {
+        errors,
+      };
     }
-
-    // upload files
-    const mangaId = result.data.insert_manga_one.id;
-    let posterUrl = '';
-    let bannerUrl = '';
-    const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
-    if (bannerFile)
-      bannerUrl = await this.filesService.uploadImageToS3(
-        `manga-${mangaId}`,
-        bannerFile
-      );
-
-    const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
-    if (bannerFile)
-      posterUrl = await this.filesService.uploadImageToS3(
-        `manga-${mangaId}`,
-        posterFile
-      );
-
-    const slug = generateSlug(
-      manga_languages.filter(
-        (language) => language.is_main_language === true
-      )[0].title,
-      mangaId
-    );
-
-    // update manga in DB
-    const updateResponse = await this.mangaGraphql.updateMangaByPK(token, {
-      id: mangaId,
-      banner: bannerUrl,
-      poster: posterUrl,
-      slug,
-    });
-
-    return updateResponse;
   }
 
   async update(
@@ -125,62 +142,68 @@ export class MangaService {
     data: UpdateMangaRequestDto,
     files: Array<Express.Multer.File>
   ) {
-    const { token } = ContextProvider.getAuthUser();
-    const {
-      status,
-      release_date,
-      manga_tags,
-      manga_creators,
-      manga_languages,
-      contract_addresses,
-    } = data;
+    try {
+      const { token } = ContextProvider.getAuthUser();
+      const {
+        status,
+        release_date,
+        manga_tags,
+        manga_creators,
+        manga_languages,
+        contract_addresses,
+      } = data;
 
-    const result = await this.mangaGraphql.queryMangaById(token, {
-      id: mangaId,
-    });
+      const result = await this.mangaGraphql.queryMangaById(token, {
+        id: mangaId,
+      });
 
-    if (result.errors && result.errors.length > 0) {
-      return result;
+      if (result.errors && result.errors.length > 0) {
+        return result;
+      }
+
+      if (result.data.manga_by_pk === null) {
+        return result.data;
+      }
+
+      let { poster: posterUrl, banner: bannerUrl } = result.data.manga_by_pk;
+
+      // upload files
+      const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
+      if (bannerFile)
+        bannerUrl = await this.filesService.uploadImageToS3(
+          `manga-${mangaId}`,
+          bannerFile
+        );
+
+      const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
+      if (posterFile)
+        posterUrl = await this.filesService.uploadImageToS3(
+          `manga-${mangaId}`,
+          posterFile
+        );
+
+      // update manga in DB
+      const updateResponse = await this.mangaGraphql.updateManga(token, {
+        manga_id: mangaId,
+        banner: bannerUrl,
+        poster: posterUrl,
+        status,
+        release_date,
+        contract_addresses: JSON.parse(contract_addresses),
+        manga_tags: plainToInstance(MangaTag, JSON.parse(manga_tags)),
+        manga_creators: plainToInstance(MangaCreator, JSON.parse(manga_creators)),
+        manga_languages: plainToInstance(
+          MangaLanguage,
+          JSON.parse(manga_languages)
+        ),
+      });
+
+      return updateResponse;
+    } catch (errors) {
+      return {
+        errors,
+      };
     }
-
-    if (result.data.manga_by_pk === null) {
-      return result.data;
-    }
-
-    let { poster: posterUrl, banner: bannerUrl } = result.data.manga_by_pk;
-
-    // upload files
-    const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
-    if (bannerFile)
-      bannerUrl = await this.filesService.uploadImageToS3(
-        `manga-${mangaId}`,
-        bannerFile
-      );
-
-    const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
-    if (posterFile)
-      posterUrl = await this.filesService.uploadImageToS3(
-        `manga-${mangaId}`,
-        posterFile
-      );
-
-    // update manga in DB
-    const updateResponse = await this.mangaGraphql.updateManga(token, {
-      manga_id: mangaId,
-      banner: bannerUrl,
-      poster: posterUrl,
-      status,
-      release_date,
-      contract_addresses: JSON.parse(contract_addresses),
-      manga_tags: plainToInstance(MangaTag, JSON.parse(manga_tags)),
-      manga_creators: plainToInstance(MangaCreator, JSON.parse(manga_creators)),
-      manga_languages: plainToInstance(
-        MangaLanguage,
-        JSON.parse(manga_languages)
-      ),
-    });
-
-    return updateResponse;
   }
 
   async getAccess(mangaId: number) {

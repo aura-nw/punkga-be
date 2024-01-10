@@ -25,85 +25,103 @@ export class UserService {
   ) { }
 
   async readChapter(chapterId: number) {
-    const chapter = await this.userGraphql.getChapterDetail({
-      id: chapterId,
-    });
+    try {
+      const chapter = await this.userGraphql.getChapterDetail({
+        id: chapterId,
+      });
 
-    if (chapter.chapter_type === 'NFTs only') {
-      const { nft } = await this.mangaService.getAccess(chapter.manga_id);
-      if (!nft) throw new ForbiddenException();
+      if (chapter.chapter_type === 'NFTs only') {
+        const { nft } = await this.mangaService.getAccess(chapter.manga_id);
+        if (!nft) throw new ForbiddenException();
+      }
+
+      const { token } = ContextProvider.getAuthUser();
+      return this.userGraphql.userReadChapter(token, {
+        chapter_id: chapterId,
+      });
+    } catch (errors) {
+      return {
+        errors,
+      };
     }
-
-    const { token } = ContextProvider.getAuthUser();
-    return this.userGraphql.userReadChapter(token, {
-      chapter_id: chapterId,
-    });
   }
 
   async getUserAvailableQuest() {
-    const { userId } = ContextProvider.getAuthUser();
-    const quests: any[] = await this.userGraphql.getAllPublishedQuest();
+    try {
+      const { userId } = ContextProvider.getAuthUser();
+      const quests: any[] = await this.userGraphql.getAllPublishedQuest();
 
-    const user = await this.userGraphql.queryUserLevel({
-      id: userId,
-    });
+      const user = await this.userGraphql.queryUserLevel({
+        id: userId,
+      });
 
-    // check condition
-    const checkConditionPromises = [];
-    quests.forEach((quest) => {
-      checkConditionPromises.push(this.checkConditionService.verify(quest.condition, user));
-    });
+      // check condition
+      const checkConditionPromises = [];
+      quests.forEach((quest) => {
+        checkConditionPromises.push(this.checkConditionService.verify(quest.condition, user));
+      });
 
-    const checkConditionResult = await Promise.all(checkConditionPromises);
+      const checkConditionResult = await Promise.all(checkConditionPromises);
 
-    const availableQuests = [];
-    checkConditionResult.forEach((valid, index) => {
+      const availableQuests = [];
+      checkConditionResult.forEach((valid, index) => {
 
-      const quest = quests[index];
-      // frontend need unlock field
-      quest.unlock = true;
+        const quest = quests[index];
+        // frontend need unlock field
+        quest.unlock = true;
 
-      if (valid) availableQuests.push(quest)
-    });
+        if (valid) availableQuests.push(quest)
+      });
 
-    const checkRequirementResult = await Promise.all(availableQuests.map((quest) => this.checkRewardService.getClaimRewardStatus(quest, userId)));
-    const finalResult = availableQuests.map((quest, index) => {
-      quest.reward_status = checkRequirementResult[index];
-      return quest;
-    });
+      const checkRequirementResult = await Promise.all(availableQuests.map((quest) => this.checkRewardService.getClaimRewardStatus(quest, userId)));
+      const finalResult = availableQuests.map((quest, index) => {
+        quest.reward_status = checkRequirementResult[index];
+        return quest;
+      });
 
-    return finalResult;
+      return finalResult;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
   }
 
   async updateProfile(
     data: UpdateProfileRequestDto,
     files: Array<Express.Multer.File>
   ) {
-    const { birthdate, gender, bio } = data;
-    const { token, userId } = ContextProvider.getAuthUser();
+    try {
+      const { birthdate, gender, bio } = data;
+      const { token, userId } = ContextProvider.getAuthUser();
 
-    const variables: IUpdateProfile = {
-      id: userId,
-      _set: {
-        bio,
-        gender,
-        birthdate,
-      },
-    };
+      const variables: IUpdateProfile = {
+        id: userId,
+        _set: {
+          bio,
+          gender,
+          birthdate,
+        },
+      };
 
-    const pictureFile = files.filter((f) => f.fieldname === 'picture')[0];
-    if (pictureFile) {
-      const pictureUrl = await this.filesService.uploadImageToS3(
-        `user-${userId}`,
-        pictureFile
-      );
+      const pictureFile = files.filter((f) => f.fieldname === 'picture')[0];
+      if (pictureFile) {
+        const pictureUrl = await this.filesService.uploadImageToS3(
+          `user-${userId}`,
+          pictureFile
+        );
 
-      variables._set.picture = pictureUrl;
+        variables._set.picture = pictureUrl;
+      }
+
+      const result = await this.userGraphql.updateUserProfile(token, variables);
+
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
     }
-
-    const result = await this.userGraphql.updateUserProfile(token, variables);
-
-    return result;
   }
 
   async delete(data: DeleteUserRequest) {

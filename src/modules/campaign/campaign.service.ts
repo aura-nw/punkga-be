@@ -46,70 +46,82 @@ export class CampaignService {
   }
 
   async getAuthorizedCampaignDetail(slug: string) {
-    const { userId } = ContextProvider.getAuthUser();
+    try {
+      const { userId } = ContextProvider.getAuthUser();
 
-    const publicCampaignDetail = await this.getPublicCampaignDetail(slug);
-    const campaignId = publicCampaignDetail.data.campaign[0].id;
+      const publicCampaignDetail = await this.getPublicCampaignDetail(slug);
+      const campaignId = publicCampaignDetail.data.campaign[0].id;
 
-    // check enroll
-    const userCampaign = await this.campaignGraphql.getUserCampaign(campaignId, userId);
-    if (errorOrEmpty(userCampaign, 'user_campaign'))
-      return publicCampaignDetail;
+      // check enroll
+      const userCampaign = await this.campaignGraphql.getUserCampaign(campaignId, userId);
+      if (errorOrEmpty(userCampaign, 'user_campaign'))
+        return publicCampaignDetail;
 
-    // get auth-ed campaign info
-    const result = await this.campaignGraphql.getCampaignAuthDetail(campaignId, userId);
+      // get auth-ed campaign info
+      const result = await this.campaignGraphql.getCampaignAuthDetail(campaignId, userId);
 
-    if (errorOrEmpty(result, 'campaign')) return result;
-    const campaign = result.data.campaign[0];
+      if (errorOrEmpty(result, 'campaign')) return result;
+      const campaign = result.data.campaign[0];
 
-    const user = await this.userGraphql.queryUserLevel({
-      id: userId,
-    });
+      const user = await this.userGraphql.queryUserLevel({
+        id: userId,
+      });
 
-    const checkConditionPromises = [];
-    const checkRewardPromises = [];
+      const checkConditionPromises = [];
+      const checkRewardPromises = [];
 
-    campaign.campaign_quests.forEach((quest, index) => {
-      // check condition
+      campaign.campaign_quests.forEach((quest, index) => {
+        // check condition
 
-      checkConditionPromises.push(
-        this.checkConditionService.verify(quest.condition, user));
+        checkConditionPromises.push(
+          this.checkConditionService.verify(quest.condition, user));
 
-      // check reward status
-      checkRewardPromises.push(
-        this.checkRewardService.getClaimRewardStatus(quest, userId)
-      );
-    });
+        // check reward status
+        checkRewardPromises.push(
+          this.checkRewardService.getClaimRewardStatus(quest, userId)
+        );
+      });
 
-    const checkConditionResult = await Promise.all(checkConditionPromises);
-    checkConditionResult.forEach((result, index) => {
-      campaign.campaign_quests[index].unlock = result;
-    });
+      const checkConditionResult = await Promise.all(checkConditionPromises);
+      checkConditionResult.forEach((result, index) => {
+        campaign.campaign_quests[index].unlock = result;
+      });
 
-    const checkRequirementResult = await Promise.all(checkRewardPromises);
-    checkRequirementResult.forEach((result, index) => {
-      campaign.campaign_quests[index].reward_status = result;
-    });
+      const checkRequirementResult = await Promise.all(checkRewardPromises);
+      checkRequirementResult.forEach((result, index) => {
+        campaign.campaign_quests[index].reward_status = result;
+      });
 
-    result.data.campaign[0] = campaign;
+      result.data.campaign[0] = campaign;
 
-    return result;
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
   }
 
   async enroll(campaignId: number) {
-    const { userId, token } = ContextProvider.getAuthUser();
+    try {
+      const { userId, token } = ContextProvider.getAuthUser();
 
-    const [campaign] = await this.campaignGraphql.getPublishedOngoingCampaign(
-      campaignId
-    );
+      const [campaign] = await this.campaignGraphql.getPublishedOngoingCampaign(
+        campaignId
+      );
 
-    const result = await this.campaignGraphql.enrollCampaign(
-      userId,
-      campaign.id,
-      token
-    );
+      const result = await this.campaignGraphql.enrollCampaign(
+        userId,
+        campaign.id,
+        token
+      );
 
-    return result;
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
   }
 
   async claimReward(campaignId: number) {
@@ -146,8 +158,10 @@ export class CampaignService {
       }
 
       return result;
-    } catch (error) {
-      return new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR)
+    } catch (errors) {
+      return {
+        errors,
+      };
     }
   }
 }
