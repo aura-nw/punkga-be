@@ -16,6 +16,13 @@ array_relationships:
         table:
           name: user_campaign
           schema: public
+  - name: user_campaign_rewards
+    using:
+      foreign_key_constraint_on:
+        column: campaign_id
+        table:
+          name: user_campaign_reward
+          schema: public
 select_permissions:
   - role: anonymous
     permission:
