@@ -1,7 +1,7 @@
-import { CacheModule } from '@nestjs/cache-manager';
+import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_PIPE } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -28,6 +28,7 @@ import { UserModule } from './modules/user/user.module';
     JwtModule,
     ScheduleModule.forRoot(),
     CacheModule.register({
+      isGlobal: true,
       ttl: 5,
       max: 20
     }),
@@ -55,6 +56,10 @@ import { UserModule } from './modules/user/user.module';
         transform: true,
         transformOptions: { enableImplicitConversion: true },
       }),
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
     },
   ],
 })
