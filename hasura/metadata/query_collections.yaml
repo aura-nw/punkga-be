@@ -795,20 +795,6 @@
               updated_at
             }
           }
-      - name: Admin - Get All Users
-        query: |
-          query GetAllUsers {
-            authorizer_users {
-              id
-              nickname
-              email
-              created_at
-              updated_at
-              authorizer_users_user_wallet {
-                address
-              }
-            }
-          }
       - name: Admin - Query List Manga
         query: |
           query QueryListManga {
@@ -1098,6 +1084,20 @@
                   xp
                   level
                 }
+              }
+            }
+          }
+      - name: Admin - Get All Users
+        query: |
+          query GetAllUsers {
+            authorizer_users(order_by: {created_at:desc}) {
+              id
+              nickname
+              email
+              created_at
+              updated_at
+              authorizer_users_user_wallet {
+                address
               }
             }
           }
