@@ -27,7 +27,10 @@ import { UserModule } from './modules/user/user.module';
     }),
     JwtModule,
     ScheduleModule.forRoot(),
-    CacheModule.register(),
+    CacheModule.register({
+      ttl: 5,
+      max: 20
+    }),
     ChapterModule,
     MangaModule,
     CreatorModule,

@@ -32,18 +32,21 @@ import {
   GetChapterByMangaParamDto,
   GetChapterByMangaQueryDto,
 } from './dto/get-chapter-by-manga-request.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('manga')
 @ApiTags('manga')
 export class MangaController {
-  constructor(private readonly mangaSvc: MangaService) {}
+  constructor(private readonly mangaSvc: MangaService) { }
 
   @Get(':slug')
+  @UseInterceptors(CacheInterceptor)
   get(@Param() param: GetMangaParamDto, @Query() query: GetMangaQueryDto) {
     return this.mangaSvc.get(param.slug, query.user_id);
   }
 
   @Get(':slug/chapter/:chapter_number')
+  @UseInterceptors(CacheInterceptor)
   getChapterByManga(
     @Param() param: GetChapterByMangaParamDto,
     @Query() query: GetChapterByMangaQueryDto

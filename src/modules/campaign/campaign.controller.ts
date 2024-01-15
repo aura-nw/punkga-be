@@ -20,6 +20,7 @@ import { EnrollCampaignDto } from './dto/enroll-campaign.dto';
 import { GetAllCampaignQuery } from './dto/get-all-campaign.dto';
 import { GetCampaignDetailDto } from './dto/get-campaign-detail.dto';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('campaign')
 @ApiTags('campaign')
@@ -36,11 +37,13 @@ export class CampaignController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   getAll(@Query() query: GetAllCampaignQuery) {
     return this.campaignSvc.getAll(query.user_id);
   }
 
   @Get(':campaign_slug')
+  @UseInterceptors(CacheInterceptor)
   getPublicCampaignDetail(@Param() param: GetCampaignDetailDto) {
     return this.campaignSvc.getPublicCampaignDetail(param.campaign_slug);
   }

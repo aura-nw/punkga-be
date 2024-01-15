@@ -25,13 +25,15 @@ import {
   UpdateCreatorParamDto,
   UpdateCreatorRequestDto,
 } from './dto/update-creator-request.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('creator')
 @ApiTags('creator')
 export class CreatorController {
-  constructor(private readonly creatorSvc: CreatorService) {}
+  constructor(private readonly creatorSvc: CreatorService) { }
 
   @Get(':slug')
+  @UseInterceptors(CacheInterceptor)
   get(@Param() param: GetCreatorParamDto) {
     return this.creatorSvc.get(param.slug);
   }

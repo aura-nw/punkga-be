@@ -30,7 +30,7 @@ import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
 @Controller('chapter')
 @ApiTags('chapter')
 export class ChapterController {
-  constructor(private readonly chapterSvc: ChapterService) {}
+  constructor(private readonly chapterSvc: ChapterService) { }
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()

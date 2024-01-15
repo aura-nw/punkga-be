@@ -29,11 +29,12 @@ import {
   AnswerQuestParamDto,
   AnswerQuestRequestDto,
 } from './dto/answer-quest.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('quest')
 @ApiTags('quest')
 export class QuestController {
-  constructor(private readonly questSvc: QuestService) {}
+  constructor(private readonly questSvc: QuestService) { }
 
   // @Get()
   // getAllCampaignQuest(@Query() query: GetAllCampaignQuestRequestDto) {
@@ -41,6 +42,7 @@ export class QuestController {
   // }
 
   @Get(':quest_id')
+  @UseInterceptors(CacheInterceptor)
   getCampaignQuestDetail(
     @Param() param: GetCampaignQuestParamDto,
     @Query() query: GetCampaignQuestRequestDto
