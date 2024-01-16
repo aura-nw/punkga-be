@@ -85,7 +85,7 @@ event_triggers:
           - status
     retry_conf:
       interval_sec: 10
-      num_retries: 0
+      num_retries: 10
       timeout_sec: 60
     webhook: '{{WEBHOOK_URL}}/repeat-quest'
     headers:
