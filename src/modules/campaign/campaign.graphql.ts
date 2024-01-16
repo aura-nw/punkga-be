@@ -128,6 +128,7 @@ export class CampaignGraphql {
             repeat_quests {
               id
               repeat_quest_reward_claimed
+              created_at
               repeat_quests_quest_activities(where: {user_id: {_eq: $user_id}}, limit: 1, order_by: {created_at: desc}) {
                 id
                 activity
