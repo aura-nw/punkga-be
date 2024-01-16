@@ -113,7 +113,7 @@ export class CampaignGraphql {
               count
             }
           }
-          campaign_quests {
+          campaign_quests(where: {status: {_eq: "Published"}}) {
             id
             name
             description

@@ -70,7 +70,7 @@ export class CampaignService {
       const checkConditionPromises = [];
       const checkRewardPromises = [];
 
-      campaign.campaign_quests.forEach((quest, index) => {
+      campaign.campaign_quests.forEach((quest) => {
         // check condition
 
         checkConditionPromises.push(
