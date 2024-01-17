@@ -44,6 +44,7 @@ export class UserGraphql {
             start_date
             end_date
           }
+          quest_reward_claimed
           description
           condition
           requirement
