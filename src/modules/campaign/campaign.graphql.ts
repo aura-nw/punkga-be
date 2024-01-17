@@ -65,8 +65,8 @@ export class CampaignGraphql {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       '',
-      `query campaign_detail($slug: String!) {
-        campaign(where: {slug: {_eq: $slug}}) {
+      `query campaign_public_detail($slug: String!) {
+        campaign(where: {slug: {_eq: $slug}, status: {_eq: "Published"}}) {
           id
           slug
           name
@@ -74,6 +74,7 @@ export class CampaignGraphql {
           end_date
           description
           reward
+          status
           user_campaign_rewards {
             tx_hash
             created_at
@@ -84,8 +85,9 @@ export class CampaignGraphql {
             }
           }
         }
-      }`,
-      'campaign_detail',
+      }
+      `,
+      'campaign_public_detail',
       {
         slug,
       }
