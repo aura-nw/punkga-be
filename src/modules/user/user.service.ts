@@ -48,8 +48,7 @@ export class UserService {
 
   async getUserAvailableQuest() {
     try {
-      // const { userId } = ContextProvider.getAuthUser();
-      const userId = "12818ea8-ea9e-4201-b620-1b934a208f83"
+      const { userId } = ContextProvider.getAuthUser();
       const quests: any[] = await this.userGraphql.getAllPublishedQuest(userId);
 
       const user = await this.userGraphql.queryUserLevel({
