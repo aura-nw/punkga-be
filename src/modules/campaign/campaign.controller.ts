@@ -21,6 +21,7 @@ import { GetAllCampaignQuery } from './dto/get-all-campaign.dto';
 import { GetCampaignDetailDto } from './dto/get-campaign-detail.dto';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { GetUserCampaignRankDto } from './dto/get-user-campaign-rank.dto';
 
 @Controller('campaign')
 @ApiTags('campaign')
@@ -73,5 +74,14 @@ export class CampaignController {
   @UseInterceptors(AuthUserInterceptor)
   claim(@Param() param: EnrollCampaignDto) {
     return this.campaignSvc.claimReward(param.campaign_id);
+  }
+
+  @Get(':campaign_id/user-rank')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @UseInterceptors(AuthUserInterceptor)
+  getUserCampaignRank(@Param() param: GetUserCampaignRankDto) {
+    return this.campaignSvc.getUserRank(param.campaign_id);
   }
 }

@@ -164,4 +164,9 @@ export class CampaignService {
       };
     }
   }
+
+  async getUserRank(campaignId: number) {
+    const { userId } = ContextProvider.getAuthUser();
+    return this.campaignGraphql.getUserCampaignRank(campaignId, userId);
+  }
 }

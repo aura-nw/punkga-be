@@ -287,4 +287,38 @@ export class CampaignGraphql {
       }
     );
   }
+
+  async getUserCampaignRank(campaignId: number, userId: string) {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query query_user_campaign_rank($campaign_id: Int, $user_id: bpchar!) {
+        user_campaign(where: {campaign_id: {_eq: $campaign_id}, user_id: {_eq: $user_id}}) {
+          user_campaign_rank
+          total_reward_xp
+          campaign_id
+          updated_at
+          user_campaign_authorizer_user {
+            levels {
+              level
+              xp
+            }
+            id
+          }
+        }
+      }`,
+      'query_user_campaign_rank',
+      {
+        campaign_id: campaignId,
+        user_id: userId,
+      },
+      headers
+    );
+  }
 }
