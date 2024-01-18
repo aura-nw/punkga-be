@@ -114,10 +114,10 @@ export class QuestService {
       if (rewardStatus !== RewardStatus.CanClaimReward)
         throw new ForbiddenException();
 
-      const result = [];
+      const txs = [];
       if (quest.reward?.xp) {
         // increase user xp
-        result.push(await this.questRewardService.increaseUserXp(
+        txs.push(await this.questRewardService.increaseUserXp(
           userId,
           quest,
           quest.reward?.xp,
@@ -127,11 +127,18 @@ export class QuestService {
 
       if (quest.reward?.nft && quest.reward?.nft.ipfs !== "") {
         // mint nft
-        result.push(await this.questRewardService.mintNft(userId, quest, token));
+        txs.push(await this.questRewardService.mintNft(userId, quest, token));
       }
 
-      this.logger.debug(result)
-      return result;
+      // save logs
+      const insertUserRewardResult = await this.questRewardService.saveRewardHistory(
+        quest,
+        userId,
+        txs
+      );
+
+      this.logger.debug(insertUserRewardResult)
+      return insertUserRewardResult;
     } catch (errors) {
       return {
         errors,

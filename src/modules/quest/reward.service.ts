@@ -37,15 +37,15 @@ export class QuestRewardService {
       }
     );
 
-    const insertUserRewardResult = await this.saveRewardHistory(
-      quest,
-      userId,
-      tx.transactionHash
-    );
+    // const insertUserRewardResult = await this.saveRewardHistory(
+    //   quest,
+    //   userId,
+    //   tx.transactionHash
+    // );
 
     this.logger.debug('Mint nft result: ');
-    this.logger.debug(JSON.stringify(insertUserRewardResult));
-    return insertUserRewardResult;
+    this.logger.debug(JSON.stringify(tx));
+    return tx.transactionHash;
   }
 
   async increaseUserXp(
@@ -74,11 +74,11 @@ export class QuestRewardService {
     );
 
     // save db
-    const insertUserRewardResult = await this.saveRewardHistory(
-      quest,
-      userId,
-      tx.transactionHash
-    );
+    // const insertUserRewardResult = await this.saveRewardHistory(
+    //   quest,
+    //   userId,
+    //   tx.transactionHash
+    // );
 
     const result = await this.userLevelGraphql.insertUserLevel(
       {
@@ -97,13 +97,13 @@ export class QuestRewardService {
     })
 
     this.logger.debug('Increase user xp result: ');
-    this.logger.debug(JSON.stringify(insertUserRewardResult));
+    this.logger.debug(JSON.stringify(tx));
     this.logger.debug(JSON.stringify(result));
     this.logger.debug(JSON.stringify(increaseXpResult));
-    return result;
+    return tx.transactionHash;
   }
 
-  async saveRewardHistory(quest: any, userId: string, txHash: string) {
+  async saveRewardHistory(quest: any, userId: string, txsHash: string[]) {
     let quest_id, repeat_quest_id;
     if (quest.repeat === 'Once') {
       quest_id = quest.id;
@@ -126,9 +126,9 @@ export class QuestRewardService {
           status: 'Claimed',
           user_id: userId,
           user_quest_rewards: {
-            data: {
-              tx_hash: txHash,
-            },
+            data: txsHash.map(tx_hash => ({
+              tx_hash
+            })),
             on_conflict: {
               constraint: 'user_quest_reward_pkey',
               update_columns: 'updated_at',
