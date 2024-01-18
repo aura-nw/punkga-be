@@ -31,43 +31,50 @@ export class UserGraphql {
     return result.data.chapters[0];
   }
 
-  async getAllPublishedQuest() {
+  async getAllPublishedQuest(userId: string) {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query quests($now: timestamptz!) {
-        quests(where: {quests_campaign: {status: {_eq: "Published"}, start_date: {_lte: $now}, end_date: {_gte: $now}}, status: {_eq: "Published"}}, order_by: {quests_campaign: {created_at: desc}, created_at: desc}) {
-          id
-          name
-          repeat
-          quests_campaign {
+      `query queryAvailableQuests($user_id: bpchar!, $now: timestamptz!) {
+        user_campaign(where: {user_id: {_eq: $user_id}, user_campaign_campaign: {status: {_eq: "Published"}, start_date: {_lte: $now}, end_date: {_gte: $now}}}, order_by: {created_at: desc}) {
+          user_campaign_campaign {
             start_date
             end_date
+            campaign_quests(where: {status: {_eq: "Published"}}, order_by: {created_at: desc}) {
+              id
+              name
+              repeat
+              quest_reward_claimed
+              description
+              condition
+              requirement
+              reward
+              status
+              type
+              created_at
+              updated_at
+            }
           }
-          quest_reward_claimed
-          description
-          condition
-          requirement
-          reward
-          status
-          type
-          created_at
-          updated_at
         }
-      }
-      `,
-      'quests',
+      }`,
+      'queryAvailableQuests',
       {
-        now: new Date()
+        now: new Date(),
+        user_id: userId
       }
     );
 
-    if (errorOrEmpty(result, 'quests')) {
+    if (errorOrEmpty(result, 'user_campaign')) {
       this.logger.error(JSON.stringify(result));
       return [];
     }
 
-    return result.data.quests;
+    const quests = [];
+    result.data.user_campaign.forEach((userCampaign) => {
+      quests.push(...userCampaign.user_campaign_campaign.campaign_quests)
+    })
+
+    return quests;
   }
 
 
