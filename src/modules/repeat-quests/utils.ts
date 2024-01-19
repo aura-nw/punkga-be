@@ -10,6 +10,10 @@ export function isActiveQuest(condition: any) {
     return true;
   }
 
+  if (condition.quest_id) {
+    return true;
+  }
+
   return false;
 }
 

@@ -113,7 +113,7 @@ export class QuestRewardService {
         quest_id: quest.id,
       });
 
-      if (!repeatQuest) throw new NotFoundException();
+      if (!repeatQuest) throw new NotFoundException("repeat quest not found");
       repeat_quest_id = repeatQuest.id;
       quest_id = quest.id;
     }
