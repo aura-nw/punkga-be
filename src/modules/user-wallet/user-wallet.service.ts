@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Injectable,
   Logger,
-  OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 

@@ -11,7 +11,7 @@ export class TasksService {
   constructor(
     private configService: ConfigService,
     private taskGraphql: TaskGraphql
-  ) {}
+  ) { }
 
   // every minute, on the 1st second
   @Cron('1 * * * * *')
@@ -37,8 +37,6 @@ export class TasksService {
       );
 
       this.logger.debug(`Publish chapter result: ${JSON.stringify(result)}`);
-    } else {
-      this.logger.debug(`Nothing to publish`);
     }
   }
 
