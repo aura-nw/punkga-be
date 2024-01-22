@@ -28,12 +28,17 @@ export class UserWalletService implements OnModuleInit {
   }
 
   async insertAllUserWallet() {
-    const users = await this.userWalletGraphql.queryEmptyUserWallet();
-    await this.insertUserWallet(users);
+
+    const users = await this.userWalletGraphql.queryAllUser();
+
+    do {
+      const batch = users.splice(0, 10);
+      await this.insertUserWallet(batch);
+    } while (users.length > 0);
+
   }
 
   async insertUserWallet(data: any) {
-    // const users = await this.userWalletGraphql.queryEmptyUserWallet();
     const wallets = await Promise.all(
       data.map(() => {
         return this.randomWallet();

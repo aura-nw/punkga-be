@@ -21,7 +21,7 @@ export class UserWalletGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `mutation insert_user_wallet($objects: [user_wallet_insert_input!] = {}) {
-        insert_user_wallet(objects: $objects) {
+        insert_user_wallet(objects: $objects, on_conflict: {constraint: user_wallet_user_id_key, update_columns: updated_at}) {
           affected_rows
         }
       }`,
@@ -31,6 +31,28 @@ export class UserWalletGraphql {
     );
     console.log(result);
     return result;
+  }
+
+  async queryAllUser(): Promise<any[]> {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query query_user_wallet($ids: [bpchar!] = "") {
+        authorizer_users {
+          id
+        }
+      }`,
+      'query_user_wallet',
+      {},
+      headers
+    );
+    return result.data.authorizer_users;
   }
 
   async queryEmptyUserWallet() {
@@ -62,7 +84,7 @@ export class UserWalletGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query query_user_wallet($ids: [bpchar!] = "") {
-        authorizer_users(where: {id: {_nin: $ids}}) {
+        authorizer_users(where: {id: {_nin: $ids}}, limit: 10) {
           id
         }
       }`,
