@@ -15,7 +15,7 @@ import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UserWalletGraphql } from './user-wallet.graphql';
 
 @Injectable()
-export class UserWalletService implements OnModuleInit {
+export class UserWalletService {
   private readonly logger = new Logger(UserWalletService.name);
   constructor(
     private configService: ConfigService,
@@ -23,12 +23,8 @@ export class UserWalletService implements OnModuleInit {
     private sysKeyService: SysKeyService
   ) { }
 
-  async onModuleInit() {
-    await this.insertAllUserWallet();
-  }
 
   async insertAllUserWallet() {
-
     const users = await this.userWalletGraphql.queryAllUser();
 
     do {
