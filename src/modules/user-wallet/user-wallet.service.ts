@@ -21,19 +21,15 @@ export class UserWalletService implements OnModuleInit {
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService
-  ) {}
+  ) { }
 
   async onModuleInit() {
     await this.insertAllUserWallet();
   }
 
   async insertAllUserWallet() {
-    const data = [];
-    do {
-      const users = await this.userWalletGraphql.queryEmptyUserWallet();
-      data.push(...users);
-      await this.insertUserWallet(data);
-    } while (data.length > 0);
+    const users = await this.userWalletGraphql.queryEmptyUserWallet();
+    await this.insertUserWallet(users);
   }
 
   async insertUserWallet(data: any) {

@@ -8,7 +8,7 @@ export class UserWalletGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) {}
+  ) { }
 
   async insertManyUserWallet(variables: any) {
     const headers = {
@@ -62,7 +62,7 @@ export class UserWalletGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query query_user_wallet($ids: [bpchar!] = "") {
-        authorizer_users(where: {id: {_nin: $ids}}, limit: 10) {
+        authorizer_users(where: {id: {_nin: $ids}}) {
           id
         }
       }`,
