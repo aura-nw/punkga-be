@@ -136,7 +136,7 @@ export class ChapterService {
         });
 
       // remove files
-      rimraf.sync(storageFolder);
+      // rimraf.sync(storageFolder);
 
       // insert to DB
       if (uploadChapterResult.length > 0) {
@@ -144,14 +144,16 @@ export class ChapterService {
           uploadChapterResult,
           (chapter) => chapter.language_id
         );
-        const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
-          languageId: m.language_id,
-          detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
-            order: r.order,
-            image_path: r.image_path,
-            name: r.name,
-          })),
-        }));
+        const chapterLanguages = chapter_images.chapter_languages
+          .filter((chapter_language) => Object.keys(groupLanguageChapter).includes(chapter_language.language_id.toString()))
+          .map((m) => ({
+            languageId: m.language_id,
+            detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
+              order: r.order,
+              image_path: r.image_path,
+              name: r.name,
+            })),
+          }));
 
         const updateResult =
           await this.chapterGraphql.insertUpdateChapterLanguages(
