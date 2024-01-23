@@ -31,7 +31,7 @@ export class ChapterService {
     private mangaService: MangaService,
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService
-  ) {}
+  ) { }
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
     try {
@@ -39,8 +39,7 @@ export class ChapterService {
       const { name, currentChunkIndex, totalChunks } = data;
 
       this.logger.debug(
-        `uploading file ${name}: ${
-          Number(currentChunkIndex) + 1
+        `uploading file ${name}: ${Number(currentChunkIndex) + 1
         }/${totalChunks}`
       );
 
@@ -270,7 +269,7 @@ export class ChapterService {
 
           return {
             languageId: language_id,
-            detail,
+            detail: detail.sort((a, b) => a.order - b.order),
           };
         }
       );
