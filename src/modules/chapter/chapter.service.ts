@@ -246,7 +246,7 @@ export class ChapterService {
       // rimraf.sync(storageFolder);
 
       const newChapterLanguages = input_chapter_images.chapter_languages.map(({ add_images, delete_images, language_id }) => {
-        const existingLanguageData = current_chapter_languages.filter((chapter_language) => chapter_language.language_id === language_id);
+        const [existingLanguageData] = current_chapter_languages.filter((chapter_language) => chapter_language.language_id === language_id);
 
         if (existingLanguageData) {
           // remove images
@@ -255,10 +255,12 @@ export class ChapterService {
           // add images without duplicate
           uploadChapterResult
             .filter((uploadResult) =>
+              // by languages
+              uploadResult.language_id === existingLanguageData.language_id
               // images already uploaded
-              add_images.includes(uploadResult.name)
+              && add_images.includes(uploadResult.name)
               // and unique
-              && existingLanguageData.detail.some((item) => item.name === uploadResult.name))
+              && !existingLanguageData.detail.some((item) => item.name === uploadResult.name))
             .forEach((uploadResult) => {
               // push new data to existing data
               existingLanguageData.detail.push({
@@ -292,6 +294,7 @@ export class ChapterService {
         }
       });
 
+      // console.log(JSON.stringify(newChapterLanguages))
       // build new chapter languages for existing languages
       // const newChapterLanguages = current_chapter_languages.map(
       //   ({ language_id, detail }) => {
