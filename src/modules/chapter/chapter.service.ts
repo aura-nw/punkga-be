@@ -250,7 +250,7 @@ export class ChapterService {
 
         if (existingLanguageData) {
           // remove images
-          _.remove(existingLanguageData, (image: any) => delete_images.includes(image.name));
+          _.remove(existingLanguageData.detail, (image: any) => delete_images.includes(image.name));
 
           // add images without duplicate
           uploadChapterResult
