@@ -136,7 +136,7 @@ export class ChapterService {
         });
 
       // remove files
-      // rimraf.sync(storageFolder);
+      rimraf.sync(storageFolder);
 
       // insert to DB
       if (uploadChapterResult.length > 0) {
@@ -243,7 +243,7 @@ export class ChapterService {
         });
 
       // remove files
-      // rimraf.sync(storageFolder);
+      rimraf.sync(storageFolder);
 
       const newChapterLanguages = input_chapter_images.chapter_languages.map(({ add_images, delete_images, language_id }) => {
         const [existingLanguageData] = current_chapter_languages.filter((chapter_language) => chapter_language.language_id === language_id);
