@@ -51,6 +51,11 @@ export class UserGraphql {
               reward
               status
               type
+              repeat_quests(limit: 1, order_by: {created_at: desc}) {
+                id
+                quest_id
+                created_at
+              }
               created_at
               updated_at
             }
