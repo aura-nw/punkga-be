@@ -90,6 +90,7 @@ export class UserGraphql {
       '',
       `query authorizer_users($id: bpchar!) {
         authorizer_users(where: {id: {_eq: $id}}) {
+          id
           levels {
             xp
             level

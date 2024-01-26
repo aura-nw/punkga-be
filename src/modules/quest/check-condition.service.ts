@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { isClaimed } from './utils';
 import { QuestGraphql } from './quest.graphql';
 
 @Injectable()
 export class CheckConditionService {
+
+  private logger = new Logger(CheckConditionService.name)
+
   constructor(private questGraphql: QuestGraphql) { }
 
   async verify(condition: any, user: any) {
@@ -23,12 +26,14 @@ export class CheckConditionService {
       const quest = await this.questGraphql.getQuestDetail({
         id: condition.quest_id,
       });
+      if (!quest) {
+        this.logger.error(`quest_id ${condition.quest_id} not found`);
+      } else {
+        const userQuest = await this.questGraphql.getUserQuest(quest, user.id);
+        const isCompleted = await isClaimed(userQuest);
+        unlock.push(isCompleted);
+      }
 
-      if (!quest) throw new NotFoundException('quest not found');
-
-      const userQuest = await this.questGraphql.getUserQuest(quest, user.id);
-      const isCompleted = await isClaimed(userQuest);
-      unlock.push(isCompleted);
     }
 
     return unlock.includes(false) || unlock.length === 0 ? false : true;
