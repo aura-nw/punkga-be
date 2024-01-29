@@ -127,7 +127,7 @@ export class CampaignGraphql {
             repeat
             quest_reward_claimed
             created_at
-            repeat_quests {
+            repeat_quests(order_by: {created_at: desc}, limit: 1) {
               id
               repeat_quest_reward_claimed
               created_at
@@ -148,7 +148,8 @@ export class CampaignGraphql {
             }
           }
         }
-      }`,
+      }
+      `,
       'campaign_detail',
       {
         id,
