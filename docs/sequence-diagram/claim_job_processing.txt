@@ -1,0 +1,14 @@
+title Claim reward job processing
+
+participant Processor
+participant Redis
+participant DB
+
+activate Processor
+Processor->Redis:Get job data
+Processor<--Redis:job data with processing request id
+Processor->Processor:process claim reward
+Processor->DB:update request  status
+Processor<--DB: reponse data
+
+deactivate Processor
