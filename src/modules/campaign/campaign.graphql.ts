@@ -172,6 +172,7 @@ export class CampaignGraphql {
           end_date
           status
           reward
+          created_at
           campaign_user(where: {user_id: {_eq: $user_id}}) {
             id
             created_at
