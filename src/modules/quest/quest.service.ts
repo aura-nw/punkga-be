@@ -1,5 +1,5 @@
 import {
-  ForbiddenException,
+  // ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -9,8 +9,10 @@ import { ContextProvider } from '../../providers/contex.provider';
 import { FilesService } from '../files/files.service';
 import { QuestGraphql } from './quest.graphql';
 import { CheckRewardService } from './check-reward.service';
-import { QuestRewardService } from './reward.service';
-import { RewardStatus } from '../../common/enum';
+// import { QuestRewardService } from './reward.service';
+// import { RewardStatus } from '../../common/enum';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class QuestService {
@@ -20,7 +22,9 @@ export class QuestService {
     private filesService: FilesService,
     private questGraphql: QuestGraphql,
     private checkRewardService: CheckRewardService,
-    private questRewardService: QuestRewardService
+    // private questRewardService: QuestRewardService,
+    @InjectQueue('quest')
+    private readonly questQueue: Queue
   ) { }
 
   async answerQuest(questId: number, answer: string) {
@@ -103,42 +107,52 @@ export class QuestService {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
 
-      const quest = await this.questGraphql.getQuestDetail({
-        id: questId,
+      await this.questQueue.add('claim', {
+        userId,
+        token,
+        questId
       });
 
-      const rewardStatus = await this.checkRewardService.getClaimRewardStatus(
-        quest,
-        userId
-      );
-      if (rewardStatus !== RewardStatus.CanClaimReward)
-        throw new ForbiddenException();
+      // const quest = await this.questGraphql.getQuestDetail({
+      //   id: questId,
+      // });
 
-      const txs = [];
-      if (quest.reward?.xp) {
-        // increase user xp
-        txs.push(await this.questRewardService.increaseUserXp(
-          userId,
-          quest,
-          quest.reward?.xp,
-          token
-        ));
+      // const rewardStatus = await this.checkRewardService.getClaimRewardStatus(
+      //   quest,
+      //   userId
+      // );
+      // if (rewardStatus !== RewardStatus.CanClaimReward)
+      //   throw new ForbiddenException();
+
+      // const txs = [];
+      // if (quest.reward?.xp) {
+      //   // increase user xp
+      //   txs.push(await this.questRewardService.increaseUserXp(
+      //     userId,
+      //     quest,
+      //     quest.reward?.xp,
+      //     token
+      //   ));
+      // }
+
+      // if (quest.reward?.nft && quest.reward?.nft.ipfs !== "") {
+      //   // mint nft
+      //   txs.push(await this.questRewardService.mintNft(userId, quest, token));
+      // }
+
+      // // save logs
+      // const insertUserRewardResult = await this.questRewardService.saveRewardHistory(
+      //   quest,
+      //   userId,
+      //   txs
+      // );
+
+      // this.logger.debug(insertUserRewardResult)
+      // return insertUserRewardResult;
+      return {
+        success: true,
+        // ref_quest: refQuest,
       }
-
-      if (quest.reward?.nft && quest.reward?.nft.ipfs !== "") {
-        // mint nft
-        txs.push(await this.questRewardService.mintNft(userId, quest, token));
-      }
-
-      // save logs
-      const insertUserRewardResult = await this.questRewardService.saveRewardHistory(
-        quest,
-        userId,
-        txs
-      );
-
-      this.logger.debug(insertUserRewardResult)
-      return insertUserRewardResult;
     } catch (errors) {
       return {
         errors,

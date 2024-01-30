@@ -1,12 +1,14 @@
+import { join } from 'path';
+
+import { BullModule } from '@nestjs/bull';
 import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
-
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+
 import configuration from './config/configuration';
 import { CampaignModule } from './modules/campaign/campaign.module';
 import { ChapterModule } from './modules/chapter/chapter.module';
@@ -22,6 +24,17 @@ import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6380,
+      },
+      prefix: 'punkga',
+      defaultJobOptions: {
+        removeOnComplete: true,
+        removeOnFail: true
+      }
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
     }),
