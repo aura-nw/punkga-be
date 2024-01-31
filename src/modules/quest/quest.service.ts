@@ -13,6 +13,7 @@ import { CheckRewardService } from './check-reward.service';
 // import { RewardStatus } from '../../common/enum';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { errorOrEmpty } from '../graphql/utils';
 
 @Injectable()
 export class QuestService {
@@ -107,11 +108,31 @@ export class QuestService {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
 
+      // insert new request
+      const result = await this.questGraphql.insertRequestLog({
+        data: {
+          userId,
+          questId
+        }
+      })
+
+      if (errorOrEmpty(result, 'insert_request_log_one')) return result;
+      this.logger.debug(`insert request success ${JSON.stringify(result)}`)
+
+      const requestId = result.data.insert_request_log_one.id;
+
       await this.questQueue.add('claim', {
+        requestId,
         userId,
         token,
-        questId
+        questId,
       });
+
+      return {
+        requestId,
+        // ref_quest: refQuest,
+      }
+
 
       // const quest = await this.questGraphql.getQuestDetail({
       //   id: questId,

@@ -1,0 +1,3 @@
+table:
+  name: request_log
+  schema: public

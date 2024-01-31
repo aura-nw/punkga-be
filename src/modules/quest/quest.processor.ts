@@ -19,10 +19,9 @@ export class QuestProcessor {
   @Process('claim')
   async handleClaimQuest(job: Job) {
     this.logger.debug('Start claiming...');
-    this.logger.debug(job.data);
 
+    const { userId, token, questId, requestId } = job.data;
     try {
-      const { userId, token, questId } = job.data;
 
       const quest = await this.questGraphql.getQuestDetail({
         id: questId,
@@ -57,6 +56,11 @@ export class QuestProcessor {
         userId,
         txs
       );
+      this.questGraphql.updateRequestLog({
+        id: requestId,
+        log: JSON.stringify(insertUserRewardResult),
+        status: 'SUCCEEDED'
+      })
 
       this.logger.debug(insertUserRewardResult)
 
@@ -64,6 +68,12 @@ export class QuestProcessor {
       return insertUserRewardResult;
 
     } catch (errors) {
+
+      this.questGraphql.updateRequestLog({
+        id: requestId,
+        log: JSON.stringify(errors),
+        status: 'FAILED'
+      })
       this.logger.error(errors)
       return {
         errors,

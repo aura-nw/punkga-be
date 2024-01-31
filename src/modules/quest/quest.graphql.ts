@@ -13,6 +13,67 @@ export class QuestGraphql {
     private graphqlSvc: GraphqlService
   ) { }
 
+  async insertRequestLog(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_request_log_one($data: jsonb!) {
+        insert_request_log_one(object: {data: $data, status: "CREATED"}) {
+          id
+          data
+          created_at
+        }
+      }`,
+      'insert_request_log_one',
+      variables,
+      headers
+    );
+
+    return result;
+
+    // if (errorOrEmpty(result, 'insert_request_log_one')) throw new Error(`insert request fail: ${JSON.stringify(result)}`)
+
+    // this.logger.debug(`insert request success ${JSON.stringify(result)}`)
+    // return result.data.insert_request_log_one.id;
+  }
+
+  async updateRequestLog(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_request_log_by_pk($id: Int!, $log: String!, $status: String!) {
+        update_request_log_by_pk(pk_columns: {id: $id}, _set: {status: $status, log: $log}) {
+          id
+          data
+          log
+          status
+        }
+      }`,
+      'update_request_log_by_pk',
+      variables,
+      headers
+    );
+
+    return result;
+
+    // if (errorOrEmpty(result, 'insert_request_log_one')) throw new Error(`insert request fail: ${JSON.stringify(result)}`)
+
+    // this.logger.debug(`insert request success ${JSON.stringify(result)}`)
+    // return result.data.insert_request_log_one.id;
+  }
+
   async queryUserWalletData(variables: any, token: string) {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
