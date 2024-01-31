@@ -3,7 +3,7 @@ import { join } from 'path';
 import { BullModule } from '@nestjs/bull';
 import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { Module, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -24,16 +24,21 @@ import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6380,
-      },
-      prefix: 'punkga',
-      defaultJobOptions: {
-        removeOnComplete: true,
-        removeOnFail: true
-      }
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('redis.host'),
+          port: configService.get('redis.port'),
+          db: configService.get('redis.db'),
+        },
+        prefix: 'punkga',
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: true
+        }
+      }),
+      inject: [ConfigService],
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
