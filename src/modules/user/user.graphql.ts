@@ -53,6 +53,7 @@ export class UserGraphql {
               type
               repeat_quests(limit: 1, order_by: {created_at: desc}) {
                 id
+                repeat_quest_reward_claimed
                 quest_id
                 created_at
               }
