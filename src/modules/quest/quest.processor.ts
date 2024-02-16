@@ -67,16 +67,16 @@ export class QuestProcessor {
       this.logger.debug('Claiming completed');
       return insertUserRewardResult;
 
-    } catch (errors) {
+    } catch (error) {
 
       this.questGraphql.updateRequestLog({
         id: requestId,
-        log: JSON.stringify(errors),
+        log: error.toString(),
         status: 'FAILED'
       })
-      this.logger.error(errors)
+      this.logger.error(error.toString())
       return {
-        errors,
+        error,
       };
     }
   }

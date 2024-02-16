@@ -7,7 +7,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ServeStaticModule } from '@nestjs/serve-static';
 
 import configuration from './config/configuration';
 import { CampaignModule } from './modules/campaign/campaign.module';
@@ -40,9 +39,6 @@ import { RequestModule } from './modules/request/request.module';
         }
       }),
       inject: [ConfigService],
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client'),
     }),
     JwtModule,
     ScheduleModule.forRoot(),

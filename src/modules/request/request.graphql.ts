@@ -18,6 +18,7 @@ export class RequestGraphql {
       '',
       `query request_log_by_pk($id: Int!) {
         request_log_by_pk(id: $id) {
+          log
           status
         }
       }`,

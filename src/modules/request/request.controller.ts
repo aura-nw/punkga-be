@@ -8,8 +8,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { GetRequestDto } from './dto/get-request.dto';
 import { RequestService } from './request.service';
 
-@Controller('request')
-@ApiTags('request')
+@Controller('request-log')
+@ApiTags('request-log')
 export class RequestController {
   constructor(private readonly requestSvc: RequestService) { }
 
