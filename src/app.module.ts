@@ -21,6 +21,7 @@ import { QuestModule } from './modules/quest/quest.module';
 import { TasksModule } from './modules/task/task.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
 import { UserModule } from './modules/user/user.module';
+import { RequestModule } from './modules/request/request.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { UserModule } from './modules/user/user.module';
     SysKeyModule,
     UserWalletModule,
     CampaignModule,
+    RequestModule
   ],
   controllers: [],
   providers: [

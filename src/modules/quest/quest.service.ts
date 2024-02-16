@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   // ForbiddenException,
   Injectable,
   Logger,
@@ -14,6 +15,7 @@ import { CheckRewardService } from './check-reward.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { errorOrEmpty } from '../graphql/utils';
+import { RewardStatus } from '../../common/enum';
 
 @Injectable()
 export class QuestService {
@@ -107,6 +109,17 @@ export class QuestService {
   async claimReward(questId: number) {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
+
+      const quest = await this.questGraphql.getQuestDetail({
+        id: questId,
+      });
+
+      const rewardStatus = await this.checkRewardService.getClaimRewardStatus(
+        quest,
+        userId
+      );
+      if (rewardStatus !== RewardStatus.CanClaimReward)
+        throw new ForbiddenException();
 
       // insert new request
       const result = await this.questGraphql.insertRequestLog({
