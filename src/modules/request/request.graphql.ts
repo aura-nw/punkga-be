@@ -13,7 +13,7 @@ export class RequestGraphql {
   ) { }
 
   async queryRequest(variables: any) {
-    const result = await this.graphqlSvc.query(
+    return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query request_log_by_pk($id: Int!) {
@@ -26,6 +26,5 @@ export class RequestGraphql {
       variables
     );
 
-    return result.data.request_log_by_pk;
   }
 }
