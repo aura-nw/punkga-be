@@ -9,14 +9,21 @@ export class RequestService {
 
   async get(request_id: number) {
     try {
-      const request = await this.requestGraphql.queryRequest({
+      const result = await this.requestGraphql.queryRequest({
         id: request_id,
       });
 
-      return request;
+      if (result.data?.request_log_by_pk) {
+        return result.data?.request_log_by_pk
+      } else {
+        return result;
+      }
+
     } catch (errors) {
       return {
-        errors,
+        errors: {
+          message: JSON.stringify(errors)
+        },
       };
     }
   }
