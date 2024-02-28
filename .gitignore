@@ -40,3 +40,5 @@ tsconfig.build.tsbuildinfo
 tsconfig.tsbuildinfo
 *.pem*
 credentials/*
+
+src/test/**/*.json

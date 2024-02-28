@@ -21,6 +21,7 @@ import { TasksModule } from './modules/task/task.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
 import { UserModule } from './modules/user/user.module';
 import { RequestModule } from './modules/request/request.module';
+import { RedisModule } from './modules/redis/redis.module';
 
 @Module({
   imports: [
@@ -35,7 +36,7 @@ import { RequestModule } from './modules/request/request.module';
         prefix: 'punkga',
         defaultJobOptions: {
           removeOnComplete: true,
-          removeOnFail: true
+          removeOnFail: 10
         }
       }),
       inject: [ConfigService],
@@ -62,7 +63,8 @@ import { RequestModule } from './modules/request/request.module';
     SysKeyModule,
     UserWalletModule,
     CampaignModule,
-    RequestModule
+    RequestModule,
+    RedisModule
   ],
   controllers: [],
   providers: [

@@ -17,93 +17,83 @@ export class QuestRewardService {
     private masterWalletSerivce: MasterWalletService
   ) { }
 
-  async mintNft(userId: string, quest: any, userToken: string) {
-    const tokenUri = quest.reward.nft.ipfs;
+  // async mintNft(userId: string, quest: any, userToken: string) {
+  //   const tokenUri = quest.reward.nft.ipfs;
 
-    const user = await this.questGraphql.queryUserWalletData(
-      {
-        id: userId,
-      },
-      userToken
-    );
+  //   const user = await this.questGraphql.queryUserWalletData(
+  //     {
+  //       id: userId,
+  //     },
+  //     userToken
+  //   );
 
-    // execute contract
-    const tx = await this.masterWalletSerivce.mintNft(
-      user.authorizer_users_user_wallet.address,
-      Number(new Date()).toString(),
-      {
-        image: tokenUri,
-        name: quest.reward.nft.nft_name || '',
-      }
-    );
+  //   // execute contract
+  //   const tx = await this.masterWalletSerivce.mintNft(
+  //     user.authorizer_users_user_wallet.address,
+  //     Number(new Date()).toString(),
+  //     {
+  //       image: tokenUri,
+  //       name: quest.reward.nft.nft_name || '',
+  //     }
+  //   );
 
-    // const insertUserRewardResult = await this.saveRewardHistory(
-    //   quest,
-    //   userId,
-    //   tx.transactionHash
-    // );
+  //   this.logger.debug('Mint nft result: ');
+  //   this.logger.debug(JSON.stringify(tx));
+  //   return tx.transactionHash;
+  // }
 
-    this.logger.debug('Mint nft result: ');
-    this.logger.debug(JSON.stringify(tx));
-    return tx.transactionHash;
-  }
+  // async increaseUserXp(
+  //   userId: string,
+  //   quest: any,
+  //   xp: number,
+  //   userToken: string
+  // ) {
+  //   const user = await this.questGraphql.queryUserWalletData(
+  //     {
+  //       id: userId,
+  //     },
+  //     userToken
+  //   );
 
-  async increaseUserXp(
-    userId: string,
-    quest: any,
-    xp: number,
-    userToken: string
-  ) {
-    const user = await this.questGraphql.queryUserWalletData(
-      {
-        id: userId,
-      },
-      userToken
-    );
+  //   // TODO: increase xp in db => update level
+  //   const currentXp = user.levels[0] ? user.levels[0].xp : 0;
+  //   const totalXp = currentXp + xp;
+  //   // calculate level from xp
+  //   const newLevel = this.levelingService.xpToLevel(totalXp);
 
-    const currentXp = user.levels[0] ? user.levels[0].xp : 0;
-    const totalXp = currentXp + xp;
-    // calculate level from xp
-    const newLevel = this.levelingService.xpToLevel(totalXp);
+  //   // TODO: move to queue
+  //   // execute contract
+  //   // const tx = await this.masterWalletSerivce.updateUserLevel(
+  //   //   user.authorizer_users_user_wallet.address,
+  //   //   totalXp,
+  //   //   newLevel
+  //   // );
 
-    // execute contract
-    const tx = await this.masterWalletSerivce.updateUserLevel(
-      user.authorizer_users_user_wallet.address,
-      totalXp,
-      newLevel
-    );
+  //   // const result = await this.userLevelGraphql.insertUserLevel(
+  //   //   {
+  //   //     user_id: userId,
+  //   //     xp: totalXp,
+  //   //     level: newLevel,
+  //   //   },
+  //   //   userToken
+  //   // );
 
-    // save db
-    // const insertUserRewardResult = await this.saveRewardHistory(
-    //   quest,
-    //   userId,
-    //   tx.transactionHash
-    // );
+  //   // TODO: what to do???? keep
+  //   // increase user campaign xp
+  //   const increaseXpResult = await this.questGraphql.increaseUserCampaignXp({
+  //     campaign_id: quest.campaign_id,
+  //     user_id: userId,
+  //     reward_xp: xp
+  //   })
 
-    const result = await this.userLevelGraphql.insertUserLevel(
-      {
-        user_id: userId,
-        xp: totalXp,
-        level: newLevel,
-      },
-      userToken
-    );
+  //   this.logger.debug('Increase user xp result: ');
+  //   // this.logger.debug(JSON.stringify(tx));
+  //   this.logger.debug(JSON.stringify(result));
+  //   this.logger.debug(JSON.stringify(increaseXpResult));
+  //   // return tx.transactionHash;
+  // }
 
-    // increase user campaign xp
-    const increaseXpResult = await this.questGraphql.increaseUserCampaignXp({
-      campaign_id: quest.campaign_id,
-      user_id: userId,
-      reward_xp: xp
-    })
-
-    this.logger.debug('Increase user xp result: ');
-    this.logger.debug(JSON.stringify(tx));
-    this.logger.debug(JSON.stringify(result));
-    this.logger.debug(JSON.stringify(increaseXpResult));
-    return tx.transactionHash;
-  }
-
-  async saveRewardHistory(quest: any, userId: string, txsHash: string[]) {
+  async saveUserQuest(quest: any, userId: string, requestId: number) {
     let quest_id, repeat_quest_id;
     if (quest.repeat === 'Once') {
       quest_id = quest.id;
@@ -118,17 +108,17 @@ export class QuestRewardService {
       quest_id = quest.id;
     }
 
-    const insertUserRewardResult =
-      await this.userRewardGraphql.insertUserReward({
+    const insertUserQuestResult =
+      await this.userRewardGraphql.insertUserQuest({
         objects: {
           quest_id,
           repeat_quest_id,
           status: 'Claimed',
           user_id: userId,
           user_quest_rewards: {
-            data: txsHash.map(tx_hash => ({
-              tx_hash
-            })),
+            data: {
+              request_id: requestId
+            },
             on_conflict: {
               constraint: 'user_quest_reward_pkey',
               update_columns: 'updated_at',
@@ -136,6 +126,49 @@ export class QuestRewardService {
           },
         },
       });
-    return insertUserRewardResult;
+    return insertUserQuestResult.data.insert_user_quest.returning[0].id;
   }
+
+  async updateUserQuestReward(userQuestIds: number[], txHash: string) {
+    return this.questGraphql.updateUserQuestResult({
+      user_quest_id: userQuestIds,
+      tx_hash: txHash
+    });
+  }
+
+  // async saveRewardHistory(quest: any, userId: string, txsHash: string[]) {
+  //   let quest_id, repeat_quest_id;
+  //   if (quest.repeat === 'Once') {
+  //     quest_id = quest.id;
+  //   } else {
+  //     // get latest repeat quest by quest id
+  //     const repeatQuest = await this.questGraphql.queryRepeatQuest({
+  //       quest_id: quest.id,
+  //     });
+
+  //     if (!repeatQuest) throw new NotFoundException("repeat quest not found");
+  //     repeat_quest_id = repeatQuest.id;
+  //     quest_id = quest.id;
+  //   }
+
+  //   const insertUserRewardResult =
+  //     await this.userRewardGraphql.insertUserReward({
+  //       objects: {
+  //         quest_id,
+  //         repeat_quest_id,
+  //         status: 'Claimed',
+  //         user_id: userId,
+  //         user_quest_rewards: {
+  //           data: txsHash.map(tx_hash => ({
+  //             tx_hash
+  //           })),
+  //           on_conflict: {
+  //             constraint: 'user_quest_reward_pkey',
+  //             update_columns: 'updated_at',
+  //           },
+  //         },
+  //       },
+  //     });
+  //   return insertUserRewardResult;
+  // }
 }

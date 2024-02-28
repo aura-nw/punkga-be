@@ -1,3 +1,4 @@
+import { toUtf8 } from '@cosmjs/encoding';
 // export function verifyQuestCondition(condition: any, currentLevel?: number) {
 //   // optional condition
 //   if (Object.keys(condition).length === 0) return true;
@@ -33,3 +34,4 @@ export function isClaimed(userQuest: any): boolean {
   }
   return false;
 }
+

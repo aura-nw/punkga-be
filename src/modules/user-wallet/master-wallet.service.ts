@@ -1,6 +1,7 @@
 import { Secp256k1HdWallet, StdFee } from '@cosmjs/amino';
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import { GasPrice, calculateFee } from '@cosmjs/stargate';
+import { toUtf8 } from '@cosmjs/encoding';
+import { calculateFee, GasPrice } from '@cosmjs/stargate';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -22,7 +23,7 @@ export class MasterWalletService implements OnModuleInit {
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService,
     private userWalletService: UserWalletService
-  ) {}
+  ) { }
 
   // init master wallet
   async onModuleInit() {
@@ -89,6 +90,18 @@ export class MasterWalletService implements OnModuleInit {
     );
   }
 
+  async broadcastTx(messages: any) {
+    const result = await this.client.signAndBroadcast(
+      this.masterWalletAddress,
+      messages,
+      'auto',
+      'punkga'
+    )
+
+    // this.logger.debug(result);
+    return result;
+  }
+
   async mintNft(userAddress: string, tokenId: string, extension: any) {
     const result = await this.client.execute(
       this.masterWalletAddress,
@@ -123,5 +136,32 @@ export class MasterWalletService implements OnModuleInit {
 
     this.logger.debug(result);
     return result;
+  }
+
+  generateIncreaseXpMsg(userAddress: string, xp: number, level: number) {
+    return this.generateExecuteContractMsg(this.masterWalletAddress, this.contractAddress, {
+      update_user_info: {
+        address: userAddress,
+        level,
+        total_xp: xp,
+      },
+    })
+  }
+
+  generateMintNftMsg(userAddress: string, tokenId: string, extension: any) {
+    return this.generateExecuteContractMsg(this.masterWalletAddress, this.contractAddress, {
+      mint_reward: {
+        user_addr: userAddress,
+        token_id: tokenId,
+        extension,
+      },
+    })
+  }
+
+  generateExecuteContractMsg(sender: string, contract: string, msg) {
+    return {
+      typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
+      value: { msg: toUtf8(JSON.stringify(msg)), sender, contract, funds: [] },
+    };
   }
 }
