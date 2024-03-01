@@ -22,10 +22,10 @@ const main = async () => {
   // enroll campaign
   await enrollCampaign(loggedUsers, 11);
 
-
   // comment
 
   // claim reward
+  // cmd: k6 run k6.js 
 
 }
 

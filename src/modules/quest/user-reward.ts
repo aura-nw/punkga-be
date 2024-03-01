@@ -16,7 +16,7 @@ export class UserRewardInfo {
   userXp = 0;
   userLevel = 0;
 
-  constructor(public userId: string, public token: string) {
+  constructor(public userId: string) {
     this.reward = new RewardInfo();
   }
 }

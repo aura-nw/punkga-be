@@ -60,11 +60,6 @@ export class QuestGraphql {
     );
 
     return result;
-
-    // if (errorOrEmpty(result, 'insert_request_log_one')) throw new Error(`insert request fail: ${JSON.stringify(result)}`)
-
-    // this.logger.debug(`insert request success ${JSON.stringify(result)}`)
-    // return result.data.insert_request_log_one.id;
   }
 
   async updateRequestLogs(variables: any) {
@@ -90,10 +85,6 @@ export class QuestGraphql {
 
     return result;
 
-    // if (errorOrEmpty(result, 'insert_request_log_one')) throw new Error(`insert request fail: ${JSON.stringify(result)}`)
-
-    // this.logger.debug(`insert request success ${JSON.stringify(result)}`)
-    // return result.data.insert_request_log_one.id;
   }
 
   async updateRequestLog(variables: any) {
@@ -125,6 +116,33 @@ export class QuestGraphql {
 
     // this.logger.debug(`insert request success ${JSON.stringify(result)}`)
     // return result.data.insert_request_log_one.id;
+  }
+
+  async queryPublicUserWalletData(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query authorizer_users($id: bpchar = "") {
+        authorizer_users(where: {id: {_eq: $id}}) {
+          id
+          levels {
+            level
+            xp
+          }
+          authorizer_users_user_wallet {
+            address
+            user_id
+          }
+        }
+      }
+      `,
+      'authorizer_users',
+      variables
+    );
+
+    if (errorOrEmpty(result, 'authorizer_users')) throw new NotFoundException();
+
+    return result.data.authorizer_users[0];
   }
 
   async queryUserWalletData(variables: any, token: string) {

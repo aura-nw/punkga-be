@@ -161,17 +161,9 @@ export class QuestService {
 
       const requestId = result.data.insert_request_log_one.id;
 
-      // await this.questQueue.add('claim', {
-      //   requestId,
-      //   userId,
-      //   token,
-      //   questId,
-      // });
-
       const rewardInfo: IRewardInfo = {
         requestId,
         userId,
-        token,
         questId,
       }
 
