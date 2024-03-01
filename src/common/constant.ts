@@ -18,3 +18,4 @@ export const CHAPTER_STATUS = {
   INACTIVE: 'Inactive',
   PUBLISHED: 'Published',
 };
+

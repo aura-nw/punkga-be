@@ -13,6 +13,30 @@ export class QuestGraphql {
     private graphqlSvc: GraphqlService
   ) { }
 
+  async updateUserQuestResult(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_user_quest_reward($user_quest_id: [Int!], $tx_hash: String!) {
+        update_user_quest_reward(where: {user_quest_id: {_in: $user_quest_id}}, _set: {tx_hash: $tx_hash}) {
+          affected_rows
+        }
+      }`,
+      'update_user_quest_reward',
+      variables,
+      headers
+    );
+
+    return result;
+
+  }
+
   async insertRequestLog(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
@@ -23,8 +47,8 @@ export class QuestGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation insert_request_log_one($data: jsonb!) {
-        insert_request_log_one(object: {data: $data, status: "CREATED"}) {
+      `mutation insert_request_log_one($data: jsonb = null, $unique_key: String!) {
+        insert_request_log_one(object: {status: "CREATED", data: $data, unique_key: $unique_key}) {
           id
           data
           created_at
@@ -36,11 +60,31 @@ export class QuestGraphql {
     );
 
     return result;
+  }
 
-    // if (errorOrEmpty(result, 'insert_request_log_one')) throw new Error(`insert request fail: ${JSON.stringify(result)}`)
+  async updateRequestLogs(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
 
-    // this.logger.debug(`insert request success ${JSON.stringify(result)}`)
-    // return result.data.insert_request_log_one.id;
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_request_log($ids: [Int!], $log: String, $status: String) {
+        update_request_log(where: {id: {_in: $ids}}, _set: {log: $log, status: $status}) {
+          affected_rows
+        }
+      }
+      `,
+      'update_request_log',
+      variables,
+      headers
+    );
+
+    return result;
+
   }
 
   async updateRequestLog(variables: any) {
@@ -72,6 +116,33 @@ export class QuestGraphql {
 
     // this.logger.debug(`insert request success ${JSON.stringify(result)}`)
     // return result.data.insert_request_log_one.id;
+  }
+
+  async queryPublicUserWalletData(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query authorizer_users($id: bpchar = "") {
+        authorizer_users(where: {id: {_eq: $id}}) {
+          id
+          levels {
+            level
+            xp
+          }
+          authorizer_users_user_wallet {
+            address
+            user_id
+          }
+        }
+      }
+      `,
+      'authorizer_users',
+      variables
+    );
+
+    if (errorOrEmpty(result, 'authorizer_users')) throw new NotFoundException();
+
+    return result.data.authorizer_users[0];
   }
 
   async queryUserWalletData(variables: any, token: string) {

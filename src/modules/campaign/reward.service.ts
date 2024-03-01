@@ -91,11 +91,8 @@ export class CampaignRewardService {
         xp: totalXp,
         level: newLevel,
       },
-      userToken
     );
-    this.logger.debug('Increase user xp result: ');
-    this.logger.debug(JSON.stringify(insertUserRewardResult));
-    this.logger.debug(JSON.stringify(result));
+
     return result;
   }
 }

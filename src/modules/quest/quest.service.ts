@@ -1,6 +1,5 @@
 import {
   ForbiddenException,
-  // ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -10,12 +9,13 @@ import { ContextProvider } from '../../providers/contex.provider';
 import { FilesService } from '../files/files.service';
 import { QuestGraphql } from './quest.graphql';
 import { CheckRewardService } from './check-reward.service';
-// import { QuestRewardService } from './reward.service';
-// import { RewardStatus } from '../../common/enum';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { errorOrEmpty } from '../graphql/utils';
 import { RewardStatus } from '../../common/enum';
+import { RedisService } from '../redis/redis.service';
+import { IRewardInfo } from './interface/ireward-info';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class QuestService {
@@ -25,10 +25,32 @@ export class QuestService {
     private filesService: FilesService,
     private questGraphql: QuestGraphql,
     private checkRewardService: CheckRewardService,
-    // private questRewardService: QuestRewardService,
+    private redisClientService: RedisService,
     @InjectQueue('quest')
     private readonly questQueue: Queue
   ) { }
+
+  @Cron(CronExpression.EVERY_5_SECONDS)
+  async triggerClaimReward() {
+    const activeJobCount = await this.questQueue.getActiveCount();
+    if (activeJobCount > 0) {
+      this.logger.debug(`Busy Queue Execute Onchain`);
+      return true;
+    }
+
+    const data = {
+      redisKey: 'punkga:job:claim-reward',
+      time: new Date().toUTCString(),
+    };
+
+    // create job to claim reward
+    await this.questQueue.add('claim-reward', data, {
+      removeOnComplete: true,
+      removeOnFail: 10,
+      attempts: 5,
+      backoff: 5000
+    });
+  }
 
   async answerQuest(questId: number, answer: string) {
     try {
@@ -121,12 +143,17 @@ export class QuestService {
       if (rewardStatus !== RewardStatus.CanClaimReward)
         throw new ForbiddenException();
 
+      // add unique key to db (duplicate item protection)
+      let uniqueKey = `q-${userId}-${questId}`
+      if (quest.repeat === 'Daily' && quest.repeat_quests?.length > 0) uniqueKey = `q-${userId}-${questId}-${quest.repeat_quests[0].id}`
+
       // insert new request
       const result = await this.questGraphql.insertRequestLog({
         data: {
           userId,
           questId
-        }
+        },
+        unique_key: uniqueKey
       })
 
       if (errorOrEmpty(result, 'insert_request_log_one')) return result;
@@ -134,59 +161,18 @@ export class QuestService {
 
       const requestId = result.data.insert_request_log_one.id;
 
-      await this.questQueue.add('claim', {
+      const rewardInfo: IRewardInfo = {
         requestId,
         userId,
-        token,
         questId,
-      });
+      }
+
+      this.redisClientService.client.rPush('punkga:reward-users', JSON.stringify(rewardInfo))
 
       return {
         requestId,
-        // ref_quest: refQuest,
       }
 
-
-      // const quest = await this.questGraphql.getQuestDetail({
-      //   id: questId,
-      // });
-
-      // const rewardStatus = await this.checkRewardService.getClaimRewardStatus(
-      //   quest,
-      //   userId
-      // );
-      // if (rewardStatus !== RewardStatus.CanClaimReward)
-      //   throw new ForbiddenException();
-
-      // const txs = [];
-      // if (quest.reward?.xp) {
-      //   // increase user xp
-      //   txs.push(await this.questRewardService.increaseUserXp(
-      //     userId,
-      //     quest,
-      //     quest.reward?.xp,
-      //     token
-      //   ));
-      // }
-
-      // if (quest.reward?.nft && quest.reward?.nft.ipfs !== "") {
-      //   // mint nft
-      //   txs.push(await this.questRewardService.mintNft(userId, quest, token));
-      // }
-
-      // // save logs
-      // const insertUserRewardResult = await this.questRewardService.saveRewardHistory(
-      //   quest,
-      //   userId,
-      //   txs
-      // );
-
-      // this.logger.debug(insertUserRewardResult)
-      // return insertUserRewardResult;
-      return {
-        success: true,
-        // ref_quest: refQuest,
-      }
     } catch (errors) {
       return {
         errors,

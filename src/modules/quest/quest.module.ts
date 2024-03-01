@@ -18,12 +18,14 @@ import { CheckConditionService } from './check-condition.service';
 import { QuestRewardService } from './reward.service';
 import { QuestProcessor } from './quest.processor';
 import { BullModule } from '@nestjs/bull';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({
       name: 'quest',
     }),
+    RedisModule,
     FilesModule,
     JwtModule,
     GraphqlModule,
