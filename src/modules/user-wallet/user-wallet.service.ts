@@ -1,15 +1,11 @@
 import * as bip39 from 'bip39';
 
 import { Secp256k1HdWallet } from '@cosmjs/amino';
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { SysKeyService } from '../keys/syskey.service';
+import { RedisService } from '../redis/redis.service';
 import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UserWalletGraphql } from './user-wallet.graphql';
 
@@ -19,7 +15,8 @@ export class UserWalletService {
   constructor(
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
-    private sysKeyService: SysKeyService
+    private sysKeyService: SysKeyService,
+    private redisClientService: RedisService,
   ) { }
 
 
@@ -58,20 +55,11 @@ export class UserWalletService {
 
     const { user_id: userId } = data;
 
-    const { account, serializedWallet } = await this.randomWallet();
+    this.redisClientService.client.rPush('punkga:genereate-user-wallet', userId)
 
-    // store db
-    const result = await this.userWalletGraphql.insertManyUserWallet({
-      objects: [
-        {
-          address: account[0].address,
-          data: JSON.parse(serializedWallet).data,
-          user_id: userId,
-        },
-      ],
-    });
-
-    return result;
+    return {
+      success: true,
+    }
   }
 
   async randomWallet() {

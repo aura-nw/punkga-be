@@ -5,7 +5,6 @@ import { CheckRewardService } from './check-reward.service';
 import { RewardStatus } from '../../common/enum';
 import { QuestRewardService } from './reward.service';
 import { RedisService } from '../redis/redis.service';
-import { ConfigService } from '@nestjs/config';
 import { IRewardInfo } from './interface/ireward-info';
 import { UserRewardInfo } from './user-reward';
 import { LevelingService } from '../leveling/leveling.service';
@@ -17,7 +16,6 @@ export class QuestProcessor {
   private readonly logger = new Logger(QuestProcessor.name);
 
   constructor(
-    private configService: ConfigService,
     private questGraphql: QuestGraphql,
     private checkRewardService: CheckRewardService,
     private questRewardService: QuestRewardService,
@@ -30,7 +28,7 @@ export class QuestProcessor {
 
   @Process({ name: 'claim-reward', concurrency: 1 })
   async claimQuestReward() {
-    const redisData = await this.popListRedis('punkga:reward-users');
+    const redisData = await this.redisClientService.popListRedis('punkga:reward-users');
     if (redisData.length === 0) return true;
 
     const listRewards = redisData.map((dataStr) => JSON.parse(dataStr) as IRewardInfo)
@@ -192,16 +190,5 @@ export class QuestProcessor {
       })
     }
   }
-
-  async popListRedis(key: string): Promise<string[]> {
-    const batchAmount = this.configService.get<number>('redis.batchAmount') ?? 300;
-
-    const redisData = await this.redisClientService.client.lRange(key, 0, batchAmount);
-    const delResult = await this.redisClientService.client.lTrim(key, batchAmount + 1, -1);
-    if (redisData.length > 0)
-      this.logger.debug(`POP ${redisData.length} item ${key} - ${delResult}`);
-    return redisData;
-  }
-
 
 }

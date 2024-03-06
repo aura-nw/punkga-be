@@ -1,21 +1,17 @@
-import {
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Queue } from 'bull';
 
+import { InjectQueue } from '@nestjs/bull';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+
+import { RewardStatus } from '../../common/enum';
 import { ContextProvider } from '../../providers/contex.provider';
 import { FilesService } from '../files/files.service';
-import { QuestGraphql } from './quest.graphql';
-import { CheckRewardService } from './check-reward.service';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
 import { errorOrEmpty } from '../graphql/utils';
-import { RewardStatus } from '../../common/enum';
 import { RedisService } from '../redis/redis.service';
+import { CheckRewardService } from './check-reward.service';
 import { IRewardInfo } from './interface/ireward-info';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { QuestGraphql } from './quest.graphql';
 
 @Injectable()
 export class QuestService {
