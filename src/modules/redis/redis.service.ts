@@ -21,6 +21,16 @@ export class RedisService implements OnModuleDestroy {
     });
   }
 
+  async popListRedis(key: string, batchOptionAmount?: number): Promise<string[]> {
+    const batchAmount = batchOptionAmount ?? this.configService.get<number>('redis.batchAmount') ?? 300;
+
+    const redisData = await this.client.lRange(key, 0, batchAmount);
+    const delResult = await this.client.lTrim(key, batchAmount + 1, -1);
+    if (redisData.length > 0)
+      this.logger.debug(`POP ${redisData.length} item ${key} - ${delResult}`);
+    return redisData;
+  }
+
   onModuleDestroy() {
     this.redisClient.quit().then((msg: string) => {
       this.logger.log(`Quit Redis ${msg}`);
