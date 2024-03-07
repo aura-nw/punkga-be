@@ -32,7 +32,6 @@ ARG PORT=3000
 
 EXPOSE $PORT
 
-ARG REPILCAS=1
-CMD [ "pm2", "start", "dist/main.js", "-f", "-i", REPILCAS ]
+CMD [ "pm2", "start", "dist/main.js" ]
 # CMD [ "yarn", "start:prod" ]
 # CMD [ "tail","-f" ,"/dev/null" ]
