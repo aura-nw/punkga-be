@@ -7,7 +7,8 @@ RUN apk add --update --no-cache curl py-pip g++ make
 COPY package.json yarn.lock ./
 
 RUN yarn install --ignore-scripts
-RUN yarn add mmmagic pm2
+RUN yarn add mmmagic
+RUN yarn global add pm2
 
 COPY . .
 
