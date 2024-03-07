@@ -7,7 +7,7 @@ RUN apk add --update --no-cache curl py-pip g++ make
 COPY package.json yarn.lock ./
 
 RUN yarn install --ignore-scripts
-RUN yarn add mmmagic
+RUN yarn add mmmagic pm2
 
 COPY . .
 
@@ -32,5 +32,7 @@ ARG PORT=3000
 
 EXPOSE $PORT
 
-CMD [ "yarn", "start:prod" ]
+ARG REPILCAS=1
+CMD [ "pm2", "start", "dist/main.js", "-f", "-i", REPILCAS ]
+# CMD [ "yarn", "start:prod" ]
 # CMD [ "tail","-f" ,"/dev/null" ]
