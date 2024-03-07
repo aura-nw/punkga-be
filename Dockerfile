@@ -33,6 +33,6 @@ ARG PORT=3000
 
 EXPOSE $PORT
 
-CMD [ "pm2", "start", "dist/main.js" ]
+CMD [ "pm2-runtime", "dist/main.js" ]
 # CMD [ "yarn", "start:prod" ]
 # CMD [ "tail","-f" ,"/dev/null" ]
