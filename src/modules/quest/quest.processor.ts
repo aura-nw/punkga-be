@@ -40,6 +40,11 @@ export class QuestProcessor {
 
     // execute contract
     try {
+      if (messages.length === 0) {
+        const errMsg = `Request ${listRewards.map((reward) => reward.requestId).toString()}: 0 message`;
+        this.logger.error(errMsg);
+        throw new Error(errMsg);
+      }
       const tx = await this.masterWalletSerivce.broadcastTx(messages);
 
       // update offchain db info
@@ -158,6 +163,9 @@ export class QuestProcessor {
 
   async updateOffchainData(rewardMap: Map<string, UserRewardInfo>, txHash: string) {
     const promises = [];
+    const userQuestIds = [];
+    const requestLogIds = [];
+
     for (const [, value] of rewardMap.entries()) {
       if (value.userXp > 0) {
         promises.push(this.userLevelGraphql.insertUserLevel(
@@ -169,16 +177,19 @@ export class QuestProcessor {
         ));
       }
 
-      promises.push(this.questRewardService.updateUserQuestReward(value.userQuestIds, txHash))
-      promises.push(this.questGraphql.updateRequestLogs({
-        ids: value.requestIds,
-        log: txHash,
-        status: 'SUCCEEDED'
-      }))
+      userQuestIds.push(...value.userQuestIds);
+      requestLogIds.push(...value.requestIds)
     }
 
     // save reward history & request status
     await Promise.all(promises);
+
+    await this.questRewardService.updateUserQuestReward(userQuestIds, txHash);
+    this.questGraphql.updateRequestLogs({
+      ids: requestLogIds,
+      log: txHash,
+      status: 'SUCCEEDED'
+    })
   }
 
   async updateErrorRequest(rewardMap: Map<string, UserRewardInfo>, errorDetail: string) {
