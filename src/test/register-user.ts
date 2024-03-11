@@ -4,23 +4,25 @@ import { GraphqlClient } from './graphql-client';
 import { mkdirp } from '../modules/chapter/utils';
 import { writeFile } from 'fs/promises';
 
-// const graphqlEndpoint = 'https://hasura.dev.punkga.me/v1/graphql';
+const authorizerUrl = 'http://localhost:8090/graphql';
+// const authorizerUrl = 'https://auth.dev.punkga.me/graphql';
 
 const main = async () => {
 
   // generate users
-  const users = generateUsers('c14', 10500);
+  const users = generateUsers('local10', 10000);
+  // const users = generateUsers('dev12', 10000);
 
   // register users
   // note: must disable verify email
-
-  // await registerUser(users);
+  await registerUser(users);
 
   // login
-  const loggedUsers = await loadUsersAuth(users, true)
+  // const loggedUsers = await loadUsersAuth(users, true)
 
   // enroll campaign
-  await enrollCampaign(loggedUsers, 11);
+  // await enrollCampaign(loggedUsers, 11);
+  // await enrollCampaign(loggedUsers, 64);
 
   // comment
 
@@ -30,11 +32,15 @@ const main = async () => {
 }
 
 const enrollCampaign = async (loggedUsers: any[], campaignId: number) => {
-  const result = await Promise.all(loggedUsers.map((user => axios.post(`http://localhost:3000/campaign/${campaignId}/enroll`, {}, {
-    headers: {
-      Authorization: `Bearer ${user.access_token}`,
-    }
-  }))));
+  const result = await Promise.all(loggedUsers.map((user =>
+    axios.post(
+      `https://api.dev.punkga.me/campaign/${campaignId}/enroll`
+      // `http://localhost:3000/campaign/${campaignId}/enroll`
+      , {}, {
+      headers: {
+        Authorization: `Bearer ${user.access_token}`,
+      }
+    }))));
 
   const success = result.filter((result) => result.data.data?.insert_user_campaign).length;
   const fail = result.filter((result) => result.data.errors).length;
@@ -62,7 +68,7 @@ const loadUsersAuth = async (users: any, renew = true) => {
 
 const login = async (users) => {
   const totalUsers = users.length;
-  const chunkSize = 500;
+  const chunkSize = 100;
   const loggedUsers = [];
   for (let i = 0; i < users.length; i += chunkSize) {
     const chunk = users.slice(i, i + chunkSize);
@@ -71,8 +77,8 @@ const login = async (users) => {
     const graphqlClient = new GraphqlClient();
 
     const result = await Promise.all(chunk.map((user) => graphqlClient.query(
-      'http://localhost:8090/graphql',
-      // 'https://auth.dev.punkga.me/graphql',
+      // 'http://localhost:8090/graphql',
+      'https://auth.dev.punkga.me/graphql',
       '',
       `mutation userLogin {
         login(params: {email: "${user.email}", password: "${user.password}"}) {
@@ -102,7 +108,7 @@ const generateUsers = (prefix: string, total: number) => {
 }
 
 const registerUser = async (users: any[]) => {
-  const chunkSize = 500;
+  const chunkSize = 300;
   console.log(`🎆 starting register ${users.length} users, batch-size: ${chunkSize}`)
   for (let i = 0; i < users.length; i += chunkSize) {
     const chunk = users.slice(i, i + chunkSize);
@@ -110,7 +116,7 @@ const registerUser = async (users: any[]) => {
     const graphqlClient = new GraphqlClient();
 
     const result = await Promise.all(chunk.map((user) => graphqlClient.query(
-      'http://localhost:8090/graphql',
+      authorizerUrl,
       // 'https://auth.dev.punkga.me/graphql',
       '',
       `mutation signup_user {
@@ -127,6 +133,8 @@ const registerUser = async (users: any[]) => {
     const success = result.filter((result) => result.data?.signup).length;
     const fail = result.filter((result) => result.errors).length;
     console.log(` - batch ${i / chunkSize + 1}: ${success} ✅ -  ${fail} ❌`)
+    if (fail > 0)
+      console.log(JSON.stringify(result.filter((result) => result.errors)))
   }
 }
 
