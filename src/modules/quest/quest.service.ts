@@ -1,7 +1,7 @@
 import { Queue } from 'bull';
 
 import { InjectQueue } from '@nestjs/bull';
-import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { RewardStatus } from '../../common/enum';
@@ -127,6 +127,15 @@ export class QuestService {
   async claimReward(questId: number) {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
+
+      const user = await this.questGraphql.queryPublicUserWalletData(
+        {
+          id: userId,
+        },
+      );
+      if (!user.authorizer_users_user_wallet?.address) {
+        throw new BadRequestException('User wallet address not found')
+      }
 
       const quest = await this.questGraphql.getQuestDetail({
         id: questId,
