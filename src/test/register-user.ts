@@ -10,8 +10,8 @@ const authorizerUrl = 'http://localhost:8090/graphql';
 const main = async () => {
 
   // generate users
-  const users = generateUsers('local10', 10000);
-  // const users = generateUsers('dev12', 10000);
+  const users = generateUsers('local13', 10);
+  // const users = generateUsers('dev14', 10000);
 
   // register users
   // note: must disable verify email
