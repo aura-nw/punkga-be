@@ -276,15 +276,14 @@ export class CampaignGraphql {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       userToken,
-      `mutation insert_user_campaign_reward($campaign_id: Int!, $tx_hash: String!, $user_campaign_id: Int!) {
-        insert_user_campaign_reward(objects: {campaign_id: $campaign_id, tx_hash: $tx_hash, user_campaign_id: $user_campaign_id}) {
+      `mutation insert_user_campaign_reward($campaign_id: Int!, $user_campaign_id: Int!) {
+        insert_user_campaign_reward(objects: {campaign_id: $campaign_id, user_campaign_id: $user_campaign_id}) {
           affected_rows
         }
       }`,
       'insert_user_campaign_reward',
       {
         campaign_id: campaignId,
-        tx_hash: txHash,
         user_campaign_id: userCampaignId,
       }
     );

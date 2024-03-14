@@ -62,42 +62,72 @@ export class QuestProcessor {
 
     for (let i = 0; i < listRewards.length; i += 1) {
       try {
-        const { userId, questId, requestId } = listRewards[i];
+        const { userId, questId, campaignId, requestId } = listRewards[i];
         const userReward = rewardMap.get(userId) ?? new UserRewardInfo(userId);
 
-        const quest = await this.questGraphql.getQuestDetail({
-          id: questId,
-        });
+        if (campaignId) {
 
-        const rewardStatus = await this.checkRewardService.getClaimRewardStatus(
-          quest,
-          userId
-        );
-
-        if (rewardStatus !== RewardStatus.CanClaimReward)
-          throw new ForbiddenException();
-
-        if (quest.reward?.xp) {
-          userReward.reward.xp += quest.reward?.xp
-        }
-
-        if (quest.reward?.nft && quest.reward?.nft.ipfs !== "") {
-          const nftInfo = {
-            name: quest.reward.nft.nft_name || '',
-            image: quest.reward.nft.ipfs,
-            tokenId: userId + Number(new Date()).toString()
+          const userCampaign = await this.questGraphql.getUserCampaignReward(campaignId);
+          const reward = userCampaign.user_campaign_campaign.reward;
+          if (reward.xp) {
+            userReward.reward.xp += reward.xp
           }
-          userReward.reward.nft.push(nftInfo);
+
+          if (reward.nft && reward.nft.ipfs !== "") {
+            const nftInfo = {
+              name: reward.nft.nft_name || '',
+              image: reward.nft.ipfs,
+              tokenId: userId + Number(new Date()).toString()
+            }
+            userReward.reward.nft.push(nftInfo);
+          }
+
+          // danh dau campaign nay da co 1 luot claim
+          const userCampaignRewardId = await this.questRewardService.saveUserCampaignReward(
+            campaignId,
+            userCampaign.id,
+          );
+          userReward.userCampaignRewardIds.push(userCampaignRewardId);
+          userReward.requestIds.push(requestId);
         }
 
-        // danh dau quest nay da co 1 luot claim
-        const userQuestId = await this.questRewardService.saveUserQuest(
-          quest,
-          userId,
-          requestId
-        );
-        userReward.userQuestIds.push(userQuestId);
-        userReward.requestIds.push(requestId);
+        if (questId) {
+          const quest = await this.questGraphql.getQuestDetail({
+            id: questId,
+          });
+
+          const rewardStatus = await this.checkRewardService.getClaimRewardStatus(
+            quest,
+            userId
+          );
+
+          if (rewardStatus !== RewardStatus.CanClaimReward)
+            throw new ForbiddenException();
+
+          if (quest.reward?.xp) {
+            userReward.reward.xp += quest.reward?.xp
+          }
+
+          if (quest.reward?.nft && quest.reward?.nft.ipfs !== "") {
+            const nftInfo = {
+              name: quest.reward.nft.nft_name || '',
+              image: quest.reward.nft.ipfs,
+              tokenId: userId + Number(new Date()).toString()
+            }
+            userReward.reward.nft.push(nftInfo);
+          }
+
+          // danh dau quest nay da co 1 luot claim
+          const userQuestId = await this.questRewardService.saveUserQuest(
+            quest,
+            userId,
+            requestId
+          );
+          userReward.userQuestIds.push(userQuestId);
+          userReward.requestIds.push(requestId);
+
+        }
+
         rewardMap.set(userId, userReward)
 
       } catch (error) {
@@ -164,6 +194,7 @@ export class QuestProcessor {
   async updateOffchainData(rewardMap: Map<string, UserRewardInfo>, txHash: string) {
     const promises = [];
     const userQuestIds = [];
+    const userCampaignRewardIds = [];
     const requestLogIds = [];
 
     for (const [, value] of rewardMap.entries()) {
@@ -178,18 +209,25 @@ export class QuestProcessor {
       }
 
       userQuestIds.push(...value.userQuestIds);
-      requestLogIds.push(...value.requestIds)
+      userCampaignRewardIds.push(...value.userCampaignRewardIds);
+      requestLogIds.push(...value.requestIds);
     }
 
     // save reward history & request status
     await Promise.all(promises);
 
-    await this.questRewardService.updateUserQuestReward(userQuestIds, txHash);
-    this.questGraphql.updateRequestLogs({
-      ids: requestLogIds,
-      log: txHash,
-      status: 'SUCCEEDED'
-    })
+    if (userQuestIds.length > 0)
+      await this.questRewardService.updateUserQuestReward(userQuestIds, txHash);
+
+    if (userCampaignRewardIds.length > 0)
+      await this.questRewardService.updateUserCampaignReward(userCampaignRewardIds, txHash);
+
+    if (requestLogIds.length > 0)
+      await this.questGraphql.updateRequestLogs({
+        ids: requestLogIds,
+        log: txHash,
+        status: 'SUCCEEDED'
+      })
   }
 
   async updateErrorRequest(rewardMap: Map<string, UserRewardInfo>, errorDetail: string) {

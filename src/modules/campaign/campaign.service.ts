@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ContextProvider } from '../../providers/contex.provider';
 import { errorOrEmpty } from '../graphql/utils';
 import { generateSlug } from '../manga/util';
@@ -7,7 +7,9 @@ import { CheckRewardService } from '../quest/check-reward.service';
 import { UserGraphql } from '../user/user.graphql';
 import { CampaignGraphql } from './campaign.graphql';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
-import { CampaignRewardService } from './reward.service';
+import { QuestGraphql } from '../quest/quest.graphql';
+import { IRewardInfo } from '../quest/interface/ireward-info';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class CampaignService {
@@ -18,7 +20,8 @@ export class CampaignService {
     private checkConditionService: CheckConditionService,
     private checkRewardService: CheckRewardService,
     private userGraphql: UserGraphql,
-    private campaignRewardService: CampaignRewardService
+    private questGraphql: QuestGraphql,
+    private redisClientService: RedisService,
   ) { }
 
   async create(data: CreateCampaignDto) {
@@ -127,6 +130,16 @@ export class CampaignService {
   async claimReward(campaignId: number) {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
+
+      const user = await this.questGraphql.queryPublicUserWalletData(
+        {
+          id: userId,
+        },
+      );
+      if (!user.authorizer_users_user_wallet?.address) {
+        throw new BadRequestException('User wallet address not found')
+      }
+
       // check top 1 user of campaign
       const top1UserCampaign = await this.campaignGraphql.getTop1UserCampaign(
         campaignId,
@@ -138,26 +151,34 @@ export class CampaignService {
       if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
         throw new ForbiddenException();
 
-      // reward
-      const result = [];
-      if (top1UserCampaign.user_campaign_campaign.reward?.xp) {
-        result.push(await this.campaignRewardService.increaseUserXp(
+      // add unique key to db (duplicate item protection)
+      const uniqueKey = `c-${userId}-${campaignId}`
+
+      // insert new request
+      const result = await this.questGraphql.insertRequestLog({
+        data: {
           userId,
-          top1UserCampaign,
-          token
-        ));
+          campaignId
+        },
+        unique_key: uniqueKey
+      })
+
+      if (errorOrEmpty(result, 'insert_request_log_one')) return result;
+      this.logger.debug(`insert request success ${JSON.stringify(result)}`)
+
+      const requestId = result.data.insert_request_log_one.id;
+
+      const rewardInfo: IRewardInfo = {
+        requestId,
+        userId,
+        campaignId,
       }
 
-      if (top1UserCampaign.user_campaign_campaign.reward?.nft) {
-        // mint nft
-        result.push(await this.campaignRewardService.mintNft(
-          userId,
-          top1UserCampaign,
-          token
-        ));
-      }
+      this.redisClientService.client.rPush('punkga:reward-users', JSON.stringify(rewardInfo))
 
-      return result;
+      return {
+        requestId,
+      }
     } catch (errors) {
       return {
         errors,

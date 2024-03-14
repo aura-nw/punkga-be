@@ -1,5 +1,6 @@
 export interface IRewardInfo {
   requestId: number,
   userId: string,
-  questId: number
+  questId?: number
+  campaignId?: number
 }

@@ -12,6 +12,7 @@ class RewardInfo {
 export class UserRewardInfo {
   reward: RewardInfo;
   userQuestIds: number[] = []
+  userCampaignRewardIds: number[] = []
   requestIds: number[] = []
   userXp = 0;
   userLevel = 0;

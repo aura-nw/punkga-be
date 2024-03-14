@@ -54,8 +54,21 @@ export class UserWalletService {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 
     const { user_id: userId } = data;
+    const variables = {
+      objects: [
+        {
+          user_id: userId,
+        },
+      ],
+    }
+    const result = await this.userWalletGraphql.insertManyUserWallet(variables);
+    const id = result.data.insert_user_wallet.returning[0].id;
+    const redisData = {
+      id,
+      userId
+    }
 
-    this.redisClientService.client.rPush('punkga:genereate-user-wallet', userId)
+    this.redisClientService.client.rPush('punkga:generate-user-wallet', JSON.stringify(redisData))
 
     return {
       success: true,

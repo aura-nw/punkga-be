@@ -29,7 +29,7 @@ services:
       ## uncomment next line to set an admin secret
       HASURA_GRAPHQL_ADMIN_SECRET: z6KTncr37daLn5Vq
       HASURA_GRAPHQL_METADATA_DEFAULTS: '{"backend_configs":{"dataconnector":{"athena":{"uri":"http://data-connector-agent:8081/api/v1/athena"},"mariadb":{"uri":"http://data-connector-agent:8081/api/v1/mariadb"},"mysql8":{"uri":"http://data-connector-agent:8081/api/v1/mysql"},"oracle":{"uri":"http://data-connector-agent:8081/api/v1/oracle"},"snowflake":{"uri":"http://data-connector-agent:8081/api/v1/snowflake"}}}}'
-      HASURA_GRAPHQL_JWT_SECRET: '{"type": "RS256", "key": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAq2k8+nAAR6EMS9/kk1yv30LkpWZlLYS5isTGnGSytB6xxl3nDR3q\nhFRBxQslpacrWbwilo1dnyI4GT4UHNwdPbzPf4WQbE7Y0SDRIfdUXw9DUuvLTqNU\ny/yBXaztIoRxDMSWg5pz736mdlCuAmzIfmN2cTSJYay2NPQ54rafZSYNnmqLBAQY\nofkD31vVMeicZX7hmmdolM1ymDZd2ufpVoH4Z6+I4QtBAu0oMPyL3rns6Wa5Fwrg\nbH9Y/GDJgYGA81dbW/jFq2W9yZetLNm2H9k/cO4EORdWqRFh0XH2utVEAWj3IKIy\nb5oAVnBlPGnBBrwNX5s8FVQGuLVE4VpeaQIDAQAB\n-----END RSA PUBLIC KEY-----"}'
+      HASURA_GRAPHQL_JWT_SECRET: '{"type": "RS256", "key": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAu4H5cKl1P1wnZB9mUgLjUAtyA7kmlzlJwXwUBwPIInxP3kKWJIF8\no4oW4EO5d75qeRjUueYPVh6WCe0OHrOyoFNcd0VsTkuYVMyXlPYlQM1HmBA64b5r\nC7nmr+mk4xlBE6i3EPx1kQAUJTR147WqeFvS3PeWaQVwocffb1KZjfVks3+3WOYA\nNkxoYiDmxGwi+MShzOSyvYizxBHPFm8WgTUhHWPiBCHkX+CRXlz3R7k2nDVxnD7s\nnDDJ8ITxxeY3DJVH4qvARNE+cbFyLbQsmnw72zzsBQmuTt7qLXdQlEmYxxgBZceE\nilkPJOtV11LM/S/CzZOkYZg+Df2F9+PggwIDAQAB\n-----END RSA PUBLIC KEY-----"}'
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: 'anonymous'
       ACTION_API_DOMAIN: 'http://172.27.10.137:3000'
       # HASURA_GRAPHQL_ENABLED_APIS: graphql

@@ -13,8 +13,8 @@ export const options = {
   scenarios: {
     'use-all-the-data': {
       executor: 'shared-iterations',
+      // vus: 10,
       vus: 250,
-      // vus: 250,
       iterations: data.length,
       maxDuration: '1h',
     },
@@ -24,7 +24,8 @@ export const options = {
 export default () => {
   const user = data[scenario.iterationInTest];
 
-  const url = 'http://localhost:3000/quest/19/claim';
+  const url = 'https://api.dev.punkga.me/quest/124/claim';
+  // const url = 'http://localhost:3000/quest/19/claim';
   const params = {
     headers: {
       'Content-Type': 'application/json',
@@ -33,9 +34,10 @@ export default () => {
   };
   const payload = {};
   const res = http.post(url, payload, params);
+  console.log(res.json());
 
   // check that response is 200
   check(res, {
-    'insert success': (res) => res.json().data && res.json().data.requestId,
+    'insert success': (res) => res.json().data && res.json().data,
   });
 };

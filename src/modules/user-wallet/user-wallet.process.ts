@@ -1,10 +1,10 @@
-import * as bip39 from 'bip39';
 
-import { Injectable, Logger } from "@nestjs/common";
-import { Cron, CronExpression } from "@nestjs/schedule";
-import { RedisService } from "../redis/redis.service";
-import { Secp256k1HdWallet } from "@cosmjs/amino";
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+
 import { SysKeyService } from '../keys/syskey.service';
+import { RedisService } from '../redis/redis.service';
+import { IGenerateUserWallet } from './interfaces/generate-user-wallet.interface';
 import { UserWalletGraphql } from './user-wallet.graphql';
 
 @Injectable()
@@ -20,15 +20,17 @@ export class UserWalletProcessor {
   @Cron(CronExpression.EVERY_5_SECONDS)
   async generateUserWallet() {
 
-    const redisData = await this.redisClientService.popListRedis('punkga:genereate-user-wallet', 50);
+    const redisData = await this.redisClientService.popListRedis('punkga:generate-user-wallet', 50);
     if (redisData.length === 0) return true;
 
-    const wallets = await this.randomWallets(redisData.length);
+    const data = redisData.map(data => JSON.parse(data) as IGenerateUserWallet);
+
+    const wallets = await this.generateWallets(data);
 
     const insertObjects = wallets.map(({ account, serializedWallet }, index) => ({
       address: account[0].address,
       data: JSON.parse(serializedWallet).data,
-      user_id: redisData[index],
+      user_id: data[index].userId,
     }));
 
     // store db
@@ -39,12 +41,9 @@ export class UserWalletProcessor {
     this.logger.debug(`Insert user wallet result ${JSON.stringify(result)}`);
   }
 
-  async randomWallets(amount: number) {
+  async generateWallets(data: IGenerateUserWallet[]) {
     this.logger.debug(`starting generate account..`)
-    const mnemonics = [...Array(amount)].map(() => bip39.generateMnemonic());
-    const wallets = await Promise.all(mnemonics.map((mnemonic) => Secp256k1HdWallet.fromMnemonic(mnemonic, {
-      prefix: 'aura',
-    })));
+    const wallets = await Promise.all(data.map((data) => this.sysKeyService.generateWallet(data.id)));
 
     const accounts = await Promise.all(wallets.map(async (wallet) => wallet.getAccounts()));
 
