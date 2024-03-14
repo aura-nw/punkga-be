@@ -17,6 +17,12 @@ export class QuestRewardService {
     private masterWalletSerivce: MasterWalletService
   ) { }
 
+  async saveUserCampaignReward(campaignId: number, userCampaignId: number) {
+    const insertUserQuestResult =
+      await this.questGraphql.saveUserCampaignReward(campaignId, userCampaignId);
+    return insertUserQuestResult.data.insert_user_campaign_reward.returning[0].id;
+  }
+
   async saveUserQuest(quest: any, userId: string, requestId: number) {
     let quest_id, repeat_quest_id;
     if (quest.repeat === 'Once') {
@@ -51,6 +57,13 @@ export class QuestRewardService {
         },
       });
     return insertUserQuestResult.data.insert_user_quest.returning[0].id;
+  }
+
+  async updateUserCampaignReward(userCampaignRewardIds: number[], txHash: string) {
+    return this.questGraphql.updateUserCampaignRewardResult({
+      ids: userCampaignRewardIds,
+      tx_hash: txHash
+    });
   }
 
   async updateUserQuestReward(userQuestIds: number[], txHash: string) {

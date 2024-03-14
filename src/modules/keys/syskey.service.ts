@@ -7,7 +7,6 @@ import { KeysGraphql } from './keys.graphql';
 import { KMSBuilderService } from './kms.service';
 import { randomSeed } from './util';
 import { Secp256k1HdWallet, makeCosmoshubPath } from '@cosmjs/amino';
-import e from 'express';
 
 @Injectable()
 export class SysKeyService implements OnModuleInit {
