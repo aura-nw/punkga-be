@@ -1089,8 +1089,8 @@
           }
       - name: Admin - Get All Users
         query: |
-          query GetAllUsers {
-            authorizer_users(order_by: {created_at:desc}) {
+          query GetAllUsers ($limit: Int = 50, $offset: Int = 0) {
+            authorizer_users(order_by: {created_at:desc}, limit: $limit, offset: $offset) {
               id
               nickname
               email
