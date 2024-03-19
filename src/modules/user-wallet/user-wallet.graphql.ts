@@ -36,7 +36,7 @@ export class UserWalletGraphql {
     return result;
   }
 
-  async queryAllUser(): Promise<any[]> {
+  async queryAllUser(offset: number): Promise<any[]> {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
@@ -46,13 +46,18 @@ export class UserWalletGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query query_user_wallet($ids: [bpchar!] = "") {
-        authorizer_users {
+      `query query_user_wallet($offset: Int = 0) {
+        authorizer_users(limit: 100, offset: $offset) {
           id
+          authorizer_users_user_wallet {
+            address
+          }
         }
       }`,
       'query_user_wallet',
-      {},
+      {
+        offset
+      },
       headers
     );
     return result.data.authorizer_users;
