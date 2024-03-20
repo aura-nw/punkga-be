@@ -6,7 +6,7 @@ import { RewardStatus } from '../../common/enum';
 import { QuestRewardService } from './reward.service';
 import { RedisService } from '../redis/redis.service';
 import { IRewardInfo } from './interface/ireward-info';
-import { UserRewardInfo } from './user-reward';
+import { UserCampaignXp, UserRewardInfo } from './user-reward';
 import { LevelingService } from '../leveling/leveling.service';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
@@ -57,12 +57,12 @@ export class QuestProcessor {
     }
   }
 
-  async mapUserReward(listRewards: any[]) {
+  async mapUserReward(listRewards: IRewardInfo[]) {
     const rewardMap = new Map<string, UserRewardInfo>();
 
     for (let i = 0; i < listRewards.length; i += 1) {
       try {
-        const { userId, questId, campaignId, requestId } = listRewards[i];
+        const { userId, questId, campaignId, requestId, userCampaignId } = listRewards[i];
         const userReward = rewardMap.get(userId) ?? new UserRewardInfo(userId);
 
         if (campaignId) {
@@ -106,6 +106,10 @@ export class QuestProcessor {
 
           if (quest.reward?.xp) {
             userReward.reward.xp += quest.reward?.xp
+            userReward.userCampaignXp.push({
+              userCampaignId,
+              xp: quest.reward?.xp
+            })
           }
 
           if (quest.reward?.nft && quest.reward?.nft.ipfs !== "") {
@@ -197,6 +201,9 @@ export class QuestProcessor {
     const userCampaignRewardIds = [];
     const requestLogIds = [];
 
+    // userCampaignIds: used for increase total xp of user in campaign
+    const userCampaignXpIds: UserCampaignXp[] = [];
+
     for (const [, value] of rewardMap.entries()) {
       if (value.userXp > 0) {
         promises.push(this.userLevelGraphql.insertUserLevel(
@@ -208,6 +215,7 @@ export class QuestProcessor {
         ));
       }
 
+      userCampaignXpIds.push(...value.userCampaignXp);
       userQuestIds.push(...value.userQuestIds);
       userCampaignRewardIds.push(...value.userCampaignRewardIds);
       requestLogIds.push(...value.requestIds);
@@ -228,6 +236,13 @@ export class QuestProcessor {
         log: txHash,
         status: 'SUCCEEDED'
       })
+
+    await Promise.all(userCampaignXpIds.map((userCampaignXp) =>
+      this.questGraphql.increaseUserCampaignXp({
+        user_campaign_id: userCampaignXp.userCampaignId,
+        reward_xp: userCampaignXp.xp
+      })
+    ));
   }
 
   async updateErrorRequest(rewardMap: Map<string, UserRewardInfo>, errorDetail: string) {
