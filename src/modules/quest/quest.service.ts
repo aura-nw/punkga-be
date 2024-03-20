@@ -137,9 +137,12 @@ export class QuestService {
         throw new BadRequestException('User wallet address not found')
       }
 
-      const quest = await this.questGraphql.getQuestDetail({
+      const quest = await this.questGraphql.getQuestDetailWithUserCampaign({
         id: questId,
+        user_id: userId
       });
+
+      const userCampaignId = quest.quests_campaign.campaign_user[0].id;
 
       const rewardStatus = await this.checkRewardService.getClaimRewardStatus(
         quest,
@@ -170,6 +173,7 @@ export class QuestService {
         requestId,
         userId,
         questId,
+        userCampaignId
       }
 
       this.redisClientService.client.rPush('punkga:reward-users', JSON.stringify(rewardInfo))

@@ -13,6 +13,42 @@ export class QuestGraphql {
     private graphqlSvc: GraphqlService
   ) { }
 
+  async getQuestDetailWithUserCampaign(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query quests($id: Int!, $user_id: bpchar!) {
+        quests(where: {id: {_eq: $id}, status: {_eq: "Published"}}) {
+          id
+          name
+          status
+          type
+          repeat
+          requirement
+          reward
+          campaign_id
+          quests_campaign {
+            campaign_user(where: {user_id: {_eq: $user_id}}) {
+              id
+            }
+          }
+          created_at
+          repeat_quests(order_by: {created_at: desc}, limit: 1) {
+            id
+            created_at
+          }
+          quest_reward_claimed
+        }
+      }
+      
+      `,
+      'quests',
+      variables
+    );
+
+    return result.data.quests[0];
+  }
+
   async saveUserCampaignReward(
     campaignId: number,
     userCampaignId: number,
@@ -279,8 +315,8 @@ export class QuestGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation increaseUserCampaignXp($campaign_id: Int!, $user_id: bpchar!, $reward_xp: Int!) {
-        update_user_campaign(where: {campaign_id: {_eq: $campaign_id}, user_id: {_eq: $user_id}}, _inc: {total_reward_xp: $reward_xp}) {
+      `mutation increaseUserCampaignXp($user_campaign_id: Int!, $reward_xp: Int!, $_eq: Int = 10) {
+        update_user_campaign(where: {id: {_eq: $user_campaign_id}}, _inc: {total_reward_xp: $reward_xp}) {
           affected_rows
         }
       }`,

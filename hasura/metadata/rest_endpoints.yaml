@@ -218,6 +218,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Admin - Search users
+  methods:
+    - GET
+  name: Admin - Search users
+  url: admin/users/search
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Query creator by id
   methods:
     - GET
