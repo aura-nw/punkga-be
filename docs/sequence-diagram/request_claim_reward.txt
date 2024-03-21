@@ -1,0 +1,13 @@
+title Request claim reward
+
+participant FE
+participant BE
+participant DB
+
+FE->BE:Request claim reward
+activate BE
+BE->DB:insert new request with data
+BE<--DB:return request id
+BE->BE:create new job and add it to queue
+FE<--BE:return processing request id to client\n
+deactivate BE

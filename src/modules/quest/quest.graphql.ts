@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { GraphqlService } from '../graphql/graphql.service';
@@ -12,6 +12,270 @@ export class QuestGraphql {
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
   ) { }
+
+  async getQuestDetailWithUserCampaign(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query quests($id: Int!, $user_id: bpchar!) {
+        quests(where: {id: {_eq: $id}, status: {_eq: "Published"}}) {
+          id
+          name
+          status
+          type
+          repeat
+          requirement
+          reward
+          campaign_id
+          quests_campaign {
+            campaign_user(where: {user_id: {_eq: $user_id}}) {
+              id
+            }
+          }
+          created_at
+          repeat_quests(order_by: {created_at: desc}, limit: 1) {
+            id
+            created_at
+          }
+          quest_reward_claimed
+        }
+      }
+      
+      `,
+      'quests',
+      variables
+    );
+
+    return result.data.quests[0];
+  }
+
+  async saveUserCampaignReward(
+    campaignId: number,
+    userCampaignId: number,
+  ) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_user_campaign_reward($campaign_id: Int!, $user_campaign_id: Int!) {
+        insert_user_campaign_reward(objects: {campaign_id: $campaign_id, user_campaign_id: $user_campaign_id}) {
+          affected_rows
+          returning {
+            id
+          }
+        }
+      }`,
+      'insert_user_campaign_reward',
+      {
+        campaign_id: campaignId,
+        user_campaign_id: userCampaignId,
+      },
+      headers
+    );
+  }
+
+  async getUserCampaignReward(id: number) {
+
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query user_campaign_reward($id: Int!) {
+        user_campaign(where: {campaign_id: {_eq: $id}}, order_by: {total_reward_xp: desc_nulls_last, created_at: asc}, limit: 1) {
+          id
+          user_id
+          campaign_id
+          total_reward_xp
+          user_campaign_rank
+          campaign_id
+          user_campaign_campaign {
+            reward
+          }
+          user_campaign_user_campaign_rewards {
+            tx_hash
+            created_at
+          }
+        }
+      }`,
+      'user_campaign_reward',
+      {
+        id
+      },
+      headers
+    );
+
+    if (errorOrEmpty(result, 'user_campaign'))
+      throw new ForbiddenException(result.errors);
+
+    return result.data.user_campaign[0];
+
+  }
+
+  async updateUserCampaignRewardResult(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_user_campaign_reward($ids: [Int!], $tx_hash: String!) {
+        update_user_campaign_reward(where: {id: {_in: $ids}}, _set: {tx_hash: $tx_hash}) {
+          affected_rows
+        }
+      }`,
+      'update_user_campaign_reward',
+      variables,
+      headers
+    );
+
+    return result;
+
+  }
+
+  async updateUserQuestResult(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_user_quest_reward($user_quest_id: [Int!], $tx_hash: String!) {
+        update_user_quest_reward(where: {user_quest_id: {_in: $user_quest_id}}, _set: {tx_hash: $tx_hash}) {
+          affected_rows
+        }
+      }`,
+      'update_user_quest_reward',
+      variables,
+      headers
+    );
+
+    return result;
+
+  }
+
+  async insertRequestLog(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_request_log_one($data: jsonb = null, $unique_key: String!) {
+        insert_request_log_one(object: {status: "CREATED", data: $data, unique_key: $unique_key}) {
+          id
+          data
+          created_at
+        }
+      }`,
+      'insert_request_log_one',
+      variables,
+      headers
+    );
+
+    return result;
+  }
+
+  async updateRequestLogs(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_request_log($ids: [Int!], $log: String, $status: String) {
+        update_request_log(where: {id: {_in: $ids}}, _set: {log: $log, status: $status}) {
+          affected_rows
+        }
+      }
+      `,
+      'update_request_log',
+      variables,
+      headers
+    );
+
+    return result;
+
+  }
+
+  async updateRequestLog(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_request_log_by_pk($id: Int!, $log: String!, $status: String!) {
+        update_request_log_by_pk(pk_columns: {id: $id}, _set: {status: $status, log: $log}) {
+          id
+          data
+          log
+          status
+        }
+      }`,
+      'update_request_log_by_pk',
+      variables,
+      headers
+    );
+
+    return result;
+
+    // if (errorOrEmpty(result, 'insert_request_log_one')) throw new Error(`insert request fail: ${JSON.stringify(result)}`)
+
+    // this.logger.debug(`insert request success ${JSON.stringify(result)}`)
+    // return result.data.insert_request_log_one.id;
+  }
+
+  async queryPublicUserWalletData(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query authorizer_users($id: bpchar = "") {
+        authorizer_users(where: {id: {_eq: $id}}) {
+          id
+          levels {
+            level
+            xp
+          }
+          authorizer_users_user_wallet {
+            address
+            user_id
+          }
+        }
+      }
+      `,
+      'authorizer_users',
+      variables
+    );
+
+    if (errorOrEmpty(result, 'authorizer_users')) throw new NotFoundException();
+
+    return result.data.authorizer_users[0];
+  }
 
   async queryUserWalletData(variables: any, token: string) {
     const result = await this.graphqlSvc.query(
@@ -51,8 +315,8 @@ export class QuestGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation increaseUserCampaignXp($campaign_id: Int!, $user_id: bpchar!, $reward_xp: Int!) {
-        update_user_campaign(where: {campaign_id: {_eq: $campaign_id}, user_id: {_eq: $user_id}}, _inc: {total_reward_xp: $reward_xp}) {
+      `mutation increaseUserCampaignXp($user_campaign_id: Int!, $reward_xp: Int!, $_eq: Int = 10) {
+        update_user_campaign(where: {id: {_eq: $user_campaign_id}}, _inc: {total_reward_xp: $reward_xp}) {
           affected_rows
         }
       }`,

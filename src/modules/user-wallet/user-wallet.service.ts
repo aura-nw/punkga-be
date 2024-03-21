@@ -1,15 +1,11 @@
 import * as bip39 from 'bip39';
 
 import { Secp256k1HdWallet } from '@cosmjs/amino';
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { SysKeyService } from '../keys/syskey.service';
+import { RedisService } from '../redis/redis.service';
 import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UserWalletGraphql } from './user-wallet.graphql';
 
@@ -19,17 +15,43 @@ export class UserWalletService {
   constructor(
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
-    private sysKeyService: SysKeyService
+    private sysKeyService: SysKeyService,
+    private redisClientService: RedisService,
   ) { }
 
 
   async insertAllUserWallet() {
-    const users = await this.userWalletGraphql.queryAllUser();
+    let count = 0;
+    let offset = 0;
 
     do {
-      const batch = users.splice(0, 10);
-      await this.insertUserWallet(batch);
-    } while (users.length > 0);
+      const users = await this.userWalletGraphql.queryAllUser(offset);
+      console.log(users.length);
+      count = users.length;
+      offset += count;
+      const filtedUsers = users.filter((user) => user.authorizer_users_user_wallet === null || user.authorizer_users_user_wallet.address === null);
+      const results = await Promise.all(filtedUsers.map((user) => {
+        const variables = {
+          objects: [
+            {
+              user_id: user.id,
+            },
+          ],
+        }
+        return this.userWalletGraphql.insertManyUserWallet(variables);
+      }));
+
+      results.forEach((result, index) => {
+        const userWalletId = result.data.insert_user_wallet.returning[0].id;
+        const redisData = {
+          id: userWalletId,
+          userId: users[index].id
+        }
+        const env = this.configService.get<string>('app.env') || 'prod';
+        this.redisClientService.client.rPush(`punkga-${env}:generate-user-wallet`, JSON.stringify(redisData))
+      })
+
+    } while (count > 0);
 
   }
 
@@ -57,21 +79,26 @@ export class UserWalletService {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 
     const { user_id: userId } = data;
-
-    const { account, serializedWallet } = await this.randomWallet();
-
-    // store db
-    const result = await this.userWalletGraphql.insertManyUserWallet({
+    const variables = {
       objects: [
         {
-          address: account[0].address,
-          data: JSON.parse(serializedWallet).data,
           user_id: userId,
         },
       ],
-    });
+    }
+    const result = await this.userWalletGraphql.insertManyUserWallet(variables);
+    const id = result.data.insert_user_wallet.returning[0].id;
+    const redisData = {
+      id,
+      userId
+    }
 
-    return result;
+    const env = this.configService.get<string>('app.env') || 'prod';
+    this.redisClientService.client.rPush(`punkga-${env}:generate-user-wallet`, JSON.stringify(redisData))
+
+    return {
+      success: true,
+    }
   }
 
   async randomWallet() {

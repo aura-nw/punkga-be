@@ -8,6 +8,7 @@ COPY package.json yarn.lock ./
 
 RUN yarn install --ignore-scripts
 RUN yarn add mmmagic
+RUN yarn global add pm2
 
 COPY . .
 
@@ -32,5 +33,6 @@ ARG PORT=3000
 
 EXPOSE $PORT
 
-CMD [ "yarn", "start:prod" ]
+CMD [ "pm2-runtime", "dist/main.js" ]
+# CMD [ "yarn", "start:prod" ]
 # CMD [ "tail","-f" ,"/dev/null" ]

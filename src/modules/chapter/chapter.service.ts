@@ -31,7 +31,7 @@ export class ChapterService {
     private mangaService: MangaService,
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService
-  ) {}
+  ) { }
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
     try {
@@ -39,8 +39,7 @@ export class ChapterService {
       const { name, currentChunkIndex, totalChunks } = data;
 
       this.logger.debug(
-        `uploading file ${name}: ${
-          Number(currentChunkIndex) + 1
+        `uploading file ${name}: ${Number(currentChunkIndex) + 1
         }/${totalChunks}`
       );
 
@@ -145,14 +144,16 @@ export class ChapterService {
           uploadChapterResult,
           (chapter) => chapter.language_id
         );
-        const chapterLanguages = chapter_images.chapter_languages.map((m) => ({
-          languageId: m.language_id,
-          detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
-            order: r.order,
-            image_path: r.image_path,
-            name: r.name,
-          })),
-        }));
+        const chapterLanguages = chapter_images.chapter_languages
+          .filter((chapter_language) => Object.keys(groupLanguageChapter).includes(chapter_language.language_id.toString()))
+          .map((m) => ({
+            languageId: m.language_id,
+            detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
+              order: r.order,
+              image_path: r.image_path,
+              name: r.name,
+            })),
+          }));
 
         const updateResult =
           await this.chapterGraphql.insertUpdateChapterLanguages(
@@ -193,17 +194,12 @@ export class ChapterService {
         status,
       } = data;
 
-      const chapter_images = plainToInstance(
-        UpdateChapterImage,
-        JSON.parse(data.chapter_images)
-      );
-
       // get chapter info
       const chapter = await this.chapterGraphql.getChapterInfo(
         token,
         chapter_id
       );
-      const { manga_id, thumbnail_url, chapter_languages } = chapter;
+      const { manga_id, thumbnail_url, chapter_languages: current_chapter_languages } = chapter;
 
       // create folder
       writeFilesToFolder(files, storageFolder);
@@ -230,6 +226,12 @@ export class ChapterService {
         return result;
       }
 
+      // update chapter images by language
+      const input_chapter_images = plainToInstance(
+        UpdateChapterImage,
+        JSON.parse(data.chapter_images)
+      );
+
       // upload chapter languages
       const uploadChapterResult =
         await this.uploadChapterService.uploadChapterLanguagesFiles({
@@ -237,43 +239,93 @@ export class ChapterService {
           mangaId: manga_id,
           chapterNumber: chapter_number,
           storageFolder,
-          chapterImages: chapter_images,
+          chapterImages: input_chapter_images,
         });
 
       // remove files
       rimraf.sync(storageFolder);
 
-      // build new chapter languages
-      const newChapterLanguages = chapter_languages.map(
-        ({ language_id, detail }) => {
-          const { add_images, delete_images } =
-            chapter_images.chapter_languages.filter(
-              (chapLang) => chapLang.language_id === language_id
-            )[0];
+      const newChapterLanguages = input_chapter_images.chapter_languages.map(({ add_images, delete_images, language_id }) => {
+        const [existingLanguageData] = current_chapter_languages.filter((chapter_language) => chapter_language.language_id === language_id);
 
-          _.remove(detail, (image: any) => delete_images.includes(image.name));
+        if (existingLanguageData) {
+          // remove images
+          _.remove(existingLanguageData.detail, (image: any) => delete_images.includes(image.name));
 
+          // add images without duplicate
           uploadChapterResult
-            .filter((uploadResult) => add_images.includes(uploadResult.name))
+            .filter((uploadResult) =>
+              // by languages
+              uploadResult.language_id === existingLanguageData.language_id
+              // images already uploaded
+              && add_images.includes(uploadResult.name)
+              // and unique
+              && !existingLanguageData.detail.some((item) => item.name === uploadResult.name))
             .forEach((uploadResult) => {
-              const isNameExists = detail.some(
-                (item) => item.name === uploadResult.name
-              );
-              if (!isNameExists) {
-                detail.push({
-                  order: uploadResult.order,
-                  image_path: uploadResult.image_path,
-                  name: uploadResult.name,
-                });
-              }
+              // push new data to existing data
+              existingLanguageData.detail.push({
+                order: uploadResult.order,
+                image_path: uploadResult.image_path,
+                name: uploadResult.name,
+              });
             });
 
           return {
             languageId: language_id,
-            detail,
+            detail: existingLanguageData.detail.sort((a, b) => a.order - b.order),
           };
+        } else {
+          const newLanguageData = {
+            languageId: language_id,
+            detail: []
+          }
+          // add images already uploaded
+          uploadChapterResult.filter((uploadResult) => add_images.includes(uploadResult.name))
+            .forEach((uploadResult) => {
+              // push new data
+              newLanguageData.detail.push({
+                order: uploadResult.order,
+                image_path: uploadResult.image_path,
+                name: uploadResult.name,
+              });
+            });
+
+          return newLanguageData;
         }
-      );
+      });
+
+      // console.log(JSON.stringify(newChapterLanguages))
+      // build new chapter languages for existing languages
+      // const newChapterLanguages = current_chapter_languages.map(
+      //   ({ language_id, detail }) => {
+      //     const { add_images, delete_images } =
+      //       input_chapter_images.chapter_languages.filter(
+      //         (chapLang) => chapLang.language_id === language_id
+      //       )[0];
+
+      //     _.remove(detail, (image: any) => delete_images.includes(image.name));
+
+      //     uploadChapterResult
+      //       .filter((uploadResult) => add_images.includes(uploadResult.name))
+      //       .forEach((uploadResult) => {
+      //         const isNameExists = detail.some(
+      //           (item) => item.name === uploadResult.name
+      //         );
+      //         if (!isNameExists) {
+      //           detail.push({
+      //             order: uploadResult.order,
+      //             image_path: uploadResult.image_path,
+      //             name: uploadResult.name,
+      //           });
+      //         }
+      //       });
+
+      //     return {
+      //       languageId: language_id,
+      //       detail: detail.sort((a, b) => a.order - b.order),
+      //     };
+      //   }
+      // );
 
       // update data
       const updateChapterLangResult =

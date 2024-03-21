@@ -17,6 +17,9 @@ export class CheckRewardService {
     let rewardStatus = this.isOutOfSlot(quest)
       ? RewardStatus.OutOfSlot
       : RewardStatus.NotSatisfy;
+
+    if (rewardStatus === RewardStatus.OutOfSlot) return rewardStatus;
+
     if (userId) {
       const claimed = isClaimed(userQuest);
       if (claimed) {

@@ -18,6 +18,7 @@
 - "!include public_quest_activities.yaml"
 - "!include public_quests.yaml"
 - "!include public_repeat_quests.yaml"
+- "!include public_request_log.yaml"
 - "!include public_social_activities.yaml"
 - "!include public_subscribers.yaml"
 - "!include public_system_key.yaml"

@@ -1,0 +1,22 @@
+table:
+  name: request_log
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - created_at
+        - id
+        - log
+        - status
+        - updated_at
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - id
+        - log
+        - status
+        - updated_at
+      filter: {}

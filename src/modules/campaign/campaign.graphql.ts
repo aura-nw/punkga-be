@@ -127,7 +127,7 @@ export class CampaignGraphql {
             repeat
             quest_reward_claimed
             created_at
-            repeat_quests {
+            repeat_quests(order_by: {created_at: desc}, limit: 1) {
               id
               repeat_quest_reward_claimed
               created_at
@@ -148,7 +148,8 @@ export class CampaignGraphql {
             }
           }
         }
-      }`,
+      }
+      `,
       'campaign_detail',
       {
         id,
@@ -171,6 +172,7 @@ export class CampaignGraphql {
           end_date
           status
           reward
+          created_at
           campaign_user(where: {user_id: {_eq: $user_id}}) {
             id
             created_at
@@ -274,15 +276,14 @@ export class CampaignGraphql {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       userToken,
-      `mutation insert_user_campaign_reward($campaign_id: Int!, $tx_hash: String!, $user_campaign_id: Int!) {
-        insert_user_campaign_reward(objects: {campaign_id: $campaign_id, tx_hash: $tx_hash, user_campaign_id: $user_campaign_id}) {
+      `mutation insert_user_campaign_reward($campaign_id: Int!, $user_campaign_id: Int!) {
+        insert_user_campaign_reward(objects: {campaign_id: $campaign_id, user_campaign_id: $user_campaign_id}) {
           affected_rows
         }
       }`,
       'insert_user_campaign_reward',
       {
         campaign_id: campaignId,
-        tx_hash: txHash,
         user_campaign_id: userCampaignId,
       }
     );

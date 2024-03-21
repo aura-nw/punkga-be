@@ -8,12 +8,18 @@ export class UserLevelGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) {}
+  ) { }
 
-  insertUserLevel(variables: any, token: string) {
+  insertUserLevel(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
-      token,
+      '',
       `mutation insert_user_level($level: Int!, $user_id: bpchar!, $xp: Int!) {
         insert_user_level(objects: {level: $level, user_id: $user_id, xp: $xp}, on_conflict: {constraint: user_level_pkey, update_columns: [level, xp]}) {
           affected_rows
@@ -25,7 +31,8 @@ export class UserLevelGraphql {
         }
       }`,
       'insert_user_level',
-      variables
+      variables,
+      headers
     );
   }
 }

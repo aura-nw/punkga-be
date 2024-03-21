@@ -8,11 +8,13 @@ import { UserWalletController } from './user-wallet.controller';
 import { UserWalletGraphql } from './user-wallet.graphql';
 import { UserWalletService } from './user-wallet.service';
 import { MasterWalletService } from './master-wallet.service';
+import { UserWalletProcessor } from './user-wallet.process';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, FilesModule, SysKeyModule],
-  providers: [UserWalletService, UserWalletGraphql, MasterWalletService],
+  imports: [JwtModule, GraphqlModule, FilesModule, SysKeyModule, RedisModule],
+  providers: [UserWalletService, UserWalletGraphql, MasterWalletService, UserWalletProcessor],
   controllers: [UserWalletController],
   exports: [MasterWalletService],
 })
-export class UserWalletModule {}
+export class UserWalletModule { }

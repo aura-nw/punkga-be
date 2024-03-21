@@ -51,6 +51,12 @@ export class UserGraphql {
               reward
               status
               type
+              repeat_quests(limit: 1, order_by: {created_at: desc}) {
+                id
+                repeat_quest_reward_claimed
+                quest_id
+                created_at
+              }
               created_at
               updated_at
             }
@@ -85,6 +91,7 @@ export class UserGraphql {
       '',
       `query authorizer_users($id: bpchar!) {
         authorizer_users(where: {id: {_eq: $id}}) {
+          id
           levels {
             xp
             level

@@ -1,11 +1,16 @@
 version: '3.6'
 services:
   authorizer:
-    image: quochai194/authorizer:0.1.10
+    image: ghcr.io/aura-nw/authorizer:0.1.16
+    # image: quochai194/authorizer:0.1.16
     # image: lakhansamani/authorizer:1.1.50
     restart: always
     ports:
       - '8090:8090'
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: vip
     environment:
       ENV: production
       DATABASE_TYPE: postgres

@@ -8,13 +8,22 @@ import { UserModule } from '../user/user.module';
 import { CampaignController } from './campaign.controller';
 import { CampaignGraphql } from './campaign.graphql';
 import { CampaignService } from './campaign.service';
-import { CampaignRewardService } from './reward.service';
 import { UserLevelModule } from '../user-level/user-level.module';
 import { UserWalletModule } from '../user-wallet/user-wallet.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, QuestModule, UserModule, LevelingModule, UserLevelModule, UserWalletModule],
-  providers: [CampaignService, CampaignGraphql, CampaignRewardService],
+  imports: [
+    JwtModule,
+    GraphqlModule,
+    QuestModule,
+    UserModule,
+    LevelingModule,
+    UserLevelModule,
+    UserWalletModule,
+    RedisModule
+  ],
+  providers: [CampaignService, CampaignGraphql],
   controllers: [CampaignController],
 })
 export class CampaignModule { }

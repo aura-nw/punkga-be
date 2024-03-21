@@ -7,7 +7,7 @@ import { isActiveQuest } from './utils';
 @Injectable()
 export class RepeatQuestTaskService {
   private readonly logger = new Logger(RepeatQuestTaskService.name);
-  constructor(private repeatQuestsGraphql: RepeatQuestsGraphql) {}
+  constructor(private repeatQuestsGraphql: RepeatQuestsGraphql) { }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async createRepeatQuests() {
