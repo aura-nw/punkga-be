@@ -16,9 +16,7 @@ export class UserWalletService {
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService,
     private redisClientService: RedisService,
-  ) {
-    this.insertAllUserWallet();
-  }
+  ) { }
 
   async deserialize(userId: string) {
     const custodialUserWallet = await this.userWalletGraphql.getCustodialUserWallet(userId);
