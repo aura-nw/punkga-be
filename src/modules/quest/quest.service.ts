@@ -12,12 +12,14 @@ import { RedisService } from '../redis/redis.service';
 import { CheckRewardService } from './check-reward.service';
 import { IRewardInfo } from './interface/ireward-info';
 import { QuestGraphql } from './quest.graphql';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class QuestService {
   private readonly logger = new Logger(QuestService.name);
 
   constructor(
+    private configService: ConfigService,
     private filesService: FilesService,
     private questGraphql: QuestGraphql,
     private checkRewardService: CheckRewardService,
@@ -126,7 +128,7 @@ export class QuestService {
 
   async claimReward(questId: number) {
     try {
-      const { userId, token } = ContextProvider.getAuthUser();
+      const { userId } = ContextProvider.getAuthUser();
 
       const user = await this.questGraphql.queryPublicUserWalletData(
         {
@@ -176,7 +178,8 @@ export class QuestService {
         userCampaignId
       }
 
-      this.redisClientService.client.rPush('punkga:reward-users', JSON.stringify(rewardInfo))
+      const env = this.configService.get<string>('app.env') || 'prod';
+      this.redisClientService.client.rPush(`punkga-${env}:reward-users`, JSON.stringify(rewardInfo))
 
       return {
         requestId,

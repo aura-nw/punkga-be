@@ -47,7 +47,8 @@ export class UserWalletService {
           id: userWalletId,
           userId: users[index].id
         }
-        this.redisClientService.client.rPush('punkga:generate-user-wallet', JSON.stringify(redisData))
+        const env = this.configService.get<string>('app.env') || 'prod';
+        this.redisClientService.client.rPush(`punkga-${env}:generate-user-wallet`, JSON.stringify(redisData))
       })
 
     } while (count > 0);
@@ -92,7 +93,8 @@ export class UserWalletService {
       userId
     }
 
-    this.redisClientService.client.rPush('punkga:generate-user-wallet', JSON.stringify(redisData))
+    const env = this.configService.get<string>('app.env') || 'prod';
+    this.redisClientService.client.rPush(`punkga-${env}:generate-user-wallet`, JSON.stringify(redisData))
 
     return {
       success: true,

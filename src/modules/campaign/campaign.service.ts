@@ -10,12 +10,14 @@ import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { QuestGraphql } from '../quest/quest.graphql';
 import { IRewardInfo } from '../quest/interface/ireward-info';
 import { RedisService } from '../redis/redis.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CampaignService {
   private readonly logger = new Logger(CampaignService.name);
 
   constructor(
+    private configService: ConfigService,
     private campaignGraphql: CampaignGraphql,
     private checkConditionService: CheckConditionService,
     private checkRewardService: CheckRewardService,
@@ -174,7 +176,8 @@ export class CampaignService {
         campaignId,
       }
 
-      this.redisClientService.client.rPush('punkga:reward-users', JSON.stringify(rewardInfo))
+      const env = this.configService.get<string>('app.env') || 'prod';
+      this.redisClientService.client.rPush(`punkga-${env}:reward-users`, JSON.stringify(rewardInfo))
 
       return {
         requestId,

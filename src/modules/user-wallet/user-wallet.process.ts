@@ -6,12 +6,14 @@ import { SysKeyService } from '../keys/syskey.service';
 import { RedisService } from '../redis/redis.service';
 import { IGenerateUserWallet } from './interfaces/generate-user-wallet.interface';
 import { UserWalletGraphql } from './user-wallet.graphql';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserWalletProcessor {
   private readonly logger = new Logger(UserWalletProcessor.name);
 
   constructor(
+    private configService: ConfigService,
     private sysKeyService: SysKeyService,
     private redisClientService: RedisService,
     private userWalletGraphql: UserWalletGraphql,
@@ -20,7 +22,8 @@ export class UserWalletProcessor {
   @Cron(CronExpression.EVERY_5_SECONDS)
   async generateUserWallet() {
 
-    const redisData = await this.redisClientService.popListRedis('punkga:generate-user-wallet', 50);
+    const env = this.configService.get<string>('app.env') || 'prod';
+    const redisData = await this.redisClientService.popListRedis(`punkga-${env}:generate-user-wallet`, 50);
     if (redisData.length === 0) return true;
 
     const data = redisData.map(data => JSON.parse(data) as IGenerateUserWallet);

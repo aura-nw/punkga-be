@@ -10,12 +10,14 @@ import { UserCampaignXp, UserRewardInfo } from './user-reward';
 import { LevelingService } from '../leveling/leveling.service';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
+import { ConfigService } from '@nestjs/config';
 
 @Processor('quest')
 export class QuestProcessor {
   private readonly logger = new Logger(QuestProcessor.name);
 
   constructor(
+    private configService: ConfigService,
     private questGraphql: QuestGraphql,
     private checkRewardService: CheckRewardService,
     private questRewardService: QuestRewardService,
@@ -28,7 +30,8 @@ export class QuestProcessor {
 
   @Process({ name: 'claim-reward', concurrency: 1 })
   async claimQuestReward() {
-    const redisData = await this.redisClientService.popListRedis('punkga:reward-users');
+    const env = this.configService.get<string>('app.env') || 'prod';
+    const redisData = await this.redisClientService.popListRedis(`punkga-${env}:reward-users`);
     if (redisData.length === 0) return true;
 
     const listRewards = redisData.map((dataStr) => JSON.parse(dataStr) as IRewardInfo)
