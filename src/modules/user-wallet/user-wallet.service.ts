@@ -17,7 +17,9 @@ export class UserWalletService {
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService,
     private redisClientService: RedisService,
-  ) { }
+  ) {
+    this.insertAllUserWallet();
+  }
 
 
   async insertAllUserWallet() {
