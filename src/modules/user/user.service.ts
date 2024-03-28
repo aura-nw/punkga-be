@@ -11,6 +11,11 @@ import { UserGraphql } from './user.graphql';
 import { MangaService } from '../manga/manga.service';
 import { CheckConditionService } from '../quest/check-condition.service';
 import { CheckRewardService } from '../quest/check-reward.service';
+import { RedisService } from '../redis/redis.service';
+import { errorOrEmpty } from '../graphql/utils';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class UserService {
@@ -21,8 +26,76 @@ export class UserService {
     private mangaService: MangaService,
     private checkConditionService: CheckConditionService,
     private checkRewardService: CheckRewardService,
-    private userGraphql: UserGraphql
+    private userGraphql: UserGraphql,
+    private redisClientService: RedisService,
+    @InjectQueue('userWallet')
+    private readonly userWalletQueue: Queue
   ) { }
+
+  @Cron(CronExpression.EVERY_5_SECONDS)
+  async triggerMigrateWallet() {
+    const activeJobCount = await this.userWalletQueue.getActiveCount();
+    if (activeJobCount > 0) {
+      this.logger.debug(`Busy Queue Execute Onchain`);
+      return true;
+    }
+
+    const data = {
+      redisKey: 'punkga:job:migrate-wallet',
+      time: new Date().toUTCString(),
+    };
+
+    // create job to migrate wallet
+    await this.userWalletQueue.add('migrate-wallet', data, {
+      removeOnComplete: true,
+      removeOnFail: 10,
+      attempts: 5,
+      backoff: 5000
+    });
+  }
+
+  async connectPersonalWallet(address: string) {
+    try {
+      const { userId, token } = ContextProvider.getAuthUser();
+
+      const result = await this.userGraphql.setPersonalAddress({
+        wallet_address: address
+      }, token)
+
+      if (result.errors && result.errors.length > 0) return result;
+
+      // request migrate
+      const uniqueKey = `mw-${userId}`
+      const insertRequestResult = await this.userGraphql.insertRequestLog({
+        data: {
+          userId
+        },
+        unique_key: uniqueKey
+      })
+
+      if (errorOrEmpty(result, 'insert_request_log_one')) return result;
+      this.logger.debug(`insert request success ${JSON.stringify(result)}`)
+
+      const requestId = insertRequestResult.data.insert_request_log_one.id;
+      const migrateWalletData = {
+        requestId,
+        userId
+      };
+
+      const env = this.configService.get<string>('app.env') || 'prod';
+      this.redisClientService.client.rPush(`punkga-${env}:migrate-user-wallet`, JSON.stringify(migrateWalletData))
+
+      return {
+        requestId,
+      }
+
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+
+  }
 
   async readChapter(chapterId: number) {
     try {

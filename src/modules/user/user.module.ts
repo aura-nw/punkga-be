@@ -7,9 +7,12 @@ import { FilesModule } from '../files/files.module';
 import { UserGraphql } from './user.graphql';
 import { MangaModule } from '../manga/manga.module';
 import { QuestModule } from '../quest/quest.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, FilesModule, MangaModule, QuestModule],
+  imports: [BullModule.registerQueue({
+    name: 'userWallet',
+  }), JwtModule, GraphqlModule, FilesModule, MangaModule, QuestModule],
   providers: [UserService, UserGraphql],
   controllers: [UserController],
   exports: [UserGraphql],

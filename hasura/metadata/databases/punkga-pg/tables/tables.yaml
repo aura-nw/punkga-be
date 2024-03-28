@@ -21,6 +21,7 @@
 - "!include public_request_log.yaml"
 - "!include public_social_activities.yaml"
 - "!include public_subscribers.yaml"
+- "!include public_system_custodial_wallet.yaml"
 - "!include public_system_key.yaml"
 - "!include public_tag_languages.yaml"
 - "!include public_tags.yaml"

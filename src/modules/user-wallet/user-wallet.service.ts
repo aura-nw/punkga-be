@@ -1,7 +1,6 @@
-import * as bip39 from 'bip39';
 
 import { Secp256k1HdWallet } from '@cosmjs/amino';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { SysKeyService } from '../keys/syskey.service';
@@ -19,6 +18,30 @@ export class UserWalletService {
     private redisClientService: RedisService,
   ) { }
 
+  async deserialize(userId: string) {
+    const custodialUserWallet = await this.userWalletGraphql.getCustodialUserWallet(userId);
+    if (!custodialUserWallet) throw new NotFoundException('Cannot find custodial wallet');
+
+    const serialization = JSON.stringify({
+      type: 'secp256k1wallet-v1',
+      kdf: {
+        algorithm: 'argon2id',
+        params: { outputLength: 32, opsLimit: 24, memLimitKib: 12288 },
+      },
+      encryption: { algorithm: 'xchacha20poly1305-ietf' },
+      data: custodialUserWallet.data,
+    });
+
+    const wallet = await Secp256k1HdWallet.deserialize(
+      serialization,
+      this.sysKeyService.originalSeed
+    );
+    const account = await wallet.getAccounts();
+    return {
+      wallet,
+      address: account[0].address
+    }
+  }
 
   async insertAllUserWallet() {
     let count = 0;
@@ -58,7 +81,7 @@ export class UserWalletService {
   async insertUserWallet(data: any) {
     const wallets = await Promise.all(
       data.map(() => {
-        return this.randomWallet();
+        return this.sysKeyService.randomWallet();
       })
     );
 
@@ -99,23 +122,5 @@ export class UserWalletService {
     return {
       success: true,
     }
-  }
-
-  async randomWallet() {
-    const mnemonic = bip39.generateMnemonic();
-    const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
-      prefix: 'aura',
-    });
-
-    const account = await wallet.getAccounts();
-    const serializedWallet = await wallet.serialize(
-      this.sysKeyService.originalSeed
-    );
-
-    return {
-      wallet,
-      serializedWallet,
-      account,
-    };
   }
 }

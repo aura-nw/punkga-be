@@ -7,7 +7,6 @@ import { ConfigService } from '@nestjs/config';
 
 import { SysKeyService } from '../keys/syskey.service';
 import { UserWalletGraphql } from './user-wallet.graphql';
-import { UserWalletService } from './user-wallet.service';
 
 @Injectable()
 export class MasterWalletService implements OnModuleInit {
@@ -22,7 +21,6 @@ export class MasterWalletService implements OnModuleInit {
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService,
-    private userWalletService: UserWalletService
   ) { }
 
   // init master wallet
@@ -53,7 +51,7 @@ export class MasterWalletService implements OnModuleInit {
       this.masterWalletAddress = account[0].address;
     } else {
       const { wallet, account, serializedWallet } =
-        await this.userWalletService.randomWallet();
+        await this.sysKeyService.randomWallet();
 
       this.masterWallet = wallet;
       this.masterWalletAddress = account[0].address;
@@ -88,6 +86,27 @@ export class MasterWalletService implements OnModuleInit {
         gasPrice,
       }
     );
+  }
+
+  async deserializeWallet(data: any) {
+    const serialization = JSON.stringify({
+      type: 'secp256k1wallet-v1',
+      kdf: {
+        algorithm: 'argon2id',
+        params: { outputLength: 32, opsLimit: 24, memLimitKib: 12288 },
+      },
+      encryption: { algorithm: 'xchacha20poly1305-ietf' },
+      data: data,
+    });
+    const wallet = await Secp256k1HdWallet.deserialize(
+      serialization,
+      this.sysKeyService.originalSeed
+    );
+    const account = await wallet.getAccounts();
+    return {
+      wallet,
+      account
+    }
   }
 
   async broadcastTx(messages: any) {

@@ -128,4 +128,30 @@ export class UserWalletGraphql {
 
     return result.data.user_wallet[0];
   }
+
+  async getCustodialUserWallet(userId: string) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query query_user_wallet($user_id: bpchar!) {
+        user_wallet(where: {user_id: {_eq: $user_id}}) {
+          address
+          data
+        }
+      }
+      `,
+      'query_user_wallet',
+      {
+        user_id: userId
+      },
+      headers
+    );
+
+    return result.data.user_wallet[0];
+  }
 }

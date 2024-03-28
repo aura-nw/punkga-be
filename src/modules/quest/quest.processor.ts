@@ -57,6 +57,7 @@ export class QuestProcessor {
     } catch (error) {
       this.logger.error(JSON.stringify(error));
       await this.updateErrorRequest(rewardMap, error.toString());
+
     }
   }
 
