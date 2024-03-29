@@ -25,7 +25,6 @@ export class SystemCustodialWalletService implements OnModuleInit {
   constructor(
     private configService: ConfigService,
     private walletGraphql: SystemCustodialWalletGraphql,
-    private masterWalletService: MasterWalletService,
     private sysKeyService: SysKeyService,
   ) { }
 
