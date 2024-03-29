@@ -1,5 +1,3 @@
-import { join } from 'path';
-
 import { BullModule } from '@nestjs/bull';
 import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { Module, ValidationPipe } from '@nestjs/common';

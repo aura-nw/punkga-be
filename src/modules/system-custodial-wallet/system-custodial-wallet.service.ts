@@ -4,12 +4,11 @@ import { BasicAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/feegrant';
 import { MsgGrantAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/tx';
 
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import { calculateFee, GasPrice, StdFee } from '@cosmjs/stargate';
+import { GasPrice } from '@cosmjs/stargate';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { SysKeyService } from '../keys/syskey.service';
-import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { SystemCustodialWalletGraphql } from './system-custodial-wallet.graphql';
 import { Any } from 'cosmjs-types/google/protobuf/any';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
@@ -19,7 +18,6 @@ export class SystemCustodialWalletService implements OnModuleInit {
   private readonly logger = new Logger(SystemCustodialWalletService.name);
   private granterWallet = null;
   private granterWalletAddress: string;
-  private executeFee: StdFee;
   private client: SigningCosmWasmClient;
 
   constructor(
@@ -87,7 +85,6 @@ export class SystemCustodialWalletService implements OnModuleInit {
     const gasPrice = GasPrice.fromString(
       this.configService.get<string>('network.gasPrice')
     );
-    this.executeFee = calculateFee(300_000, gasPrice);
 
     // build client
     const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
