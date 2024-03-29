@@ -113,7 +113,6 @@ export class SystemCustodialWalletService implements OnModuleInit {
   generateGrantFeeMsg(granteeAddress: string) {
     const denom = this.configService.get<string>('network.denom');
     const grantAmount = this.configService.get<string>('network.grantAmount');
-    const spendLimit: Coin[] = [{ denom, amount: grantAmount }];
     const allowance: Any = {
       typeUrl: '/cosmos.feegrant.v1beta1.BasicAllowance',
       value: Uint8Array.from(
@@ -121,8 +120,8 @@ export class SystemCustodialWalletService implements OnModuleInit {
           BasicAllowance.fromPartial({
             spendLimit: [
               {
-                denom: "ueaura",
-                amount: "1000000",
+                denom: denom || "uaura",
+                amount: grantAmount || '100000',
               },
             ],
           })
