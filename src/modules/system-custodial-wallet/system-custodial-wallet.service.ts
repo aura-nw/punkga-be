@@ -11,7 +11,6 @@ import { ConfigService } from '@nestjs/config';
 import { SysKeyService } from '../keys/syskey.service';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { SystemCustodialWalletGraphql } from './system-custodial-wallet.graphql';
-import { Coin } from 'cosmjs-types/cosmos/base/v1beta1/coin';
 import { Any } from 'cosmjs-types/google/protobuf/any';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 

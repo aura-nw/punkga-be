@@ -64,7 +64,7 @@ export class UserWalletProcessor {
         const queryClient = QueryClient.withExtensions(cometClient, setupFeegrantExtension);
         let allowanceExists: boolean;
         try {
-          const _existingAllowance = await queryClient.feegrant.allowance(granterAddress, custodialWalletAddress);
+          await queryClient.feegrant.allowance(granterAddress, custodialWalletAddress);
           allowanceExists = true;
         } catch {
           allowanceExists = false;
