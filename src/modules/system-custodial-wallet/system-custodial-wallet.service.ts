@@ -132,7 +132,7 @@ export class SystemCustodialWalletService implements OnModuleInit {
       typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
       value: MsgGrantAllowance.fromPartial({
         granter: this.granterWalletAddress,
-        grantee: 'aura1smfxm4v3p4h4s2wve9adlm655kvqvupvlsa8ky',
+        grantee: granteeAddress,
         allowance: allowance,
       }),
     };
