@@ -13,7 +13,8 @@ import { ICustodialWalletAsset } from './interfaces/account-onchain.interface';
 import { UserGraphql } from './user.graphql';
 import { coin } from '@cosmjs/amino';
 import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
-import { GasPrice } from "@cosmjs/stargate";
+import { GasPrice, QueryClient, calculateFee, setupFeegrantExtension } from "@cosmjs/stargate";
+import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 
 interface IMigrateWalletRequest {
   requestId: number,
@@ -30,7 +31,8 @@ export class UserWalletProcessor {
     private userWalletService: UserWalletService,
     private userGraphql: UserGraphql,
     private systemWalletSvc: SystemCustodialWalletService
-  ) { }
+  ) {
+  }
 
   @Process({ name: 'migrate-wallet', concurrency: 1 })
   async migrateWallet() {
@@ -38,6 +40,7 @@ export class UserWalletProcessor {
     const redisData = await this.redisClientService.popListRedis(`punkga-${env}:migrate-user-wallet`, 1);
     if (redisData.length === 0) return true;
 
+    // const redisData = ['{"userId": "c4d15562-4b80-425f-a933-2658b264f6d7" }']
     const { userId, requestId } = redisData.map((dataStr) => JSON.parse(dataStr) as IMigrateWalletRequest)[0]
 
     try {
@@ -47,24 +50,44 @@ export class UserWalletProcessor {
       })
 
       if (!user.wallet_address || user.wallet_address === '') throw new Error('User address is empty')
+      if (!user.authorizer_users_user_wallet.address || user.authorizer_users_user_wallet.address === '') throw new Error('User custodial address is empty')
+      const custodialWalletAddress = user.authorizer_users_user_wallet.address;
+      const granterAddress = this.systemWalletSvc.granterAddress;
 
       // check asset in custodial wallet
-      const custodialWalletAsset = await this.userGraphql.queryCustodialWaleltAsset(user.wallet_address);
+      const custodialWalletAsset = await this.userGraphql.queryCustodialWaleltAsset(user.authorizer_users_user_wallet.address);
       if (!this.isEmptyWallet(custodialWalletAsset)) {
+        const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
+
         // fee grant
-        const msgs = this.systemWalletSvc.generateGrantFeeMsg(user.wallet_address);
-        const tx = await this.systemWalletSvc.broadcastTx(msgs);
-        this.logger.debug(`Feegrant success ${tx.transactionHash}`)
+        const cometClient = await Tendermint34Client.connect(rpcEndpoint);
+        const queryClient = QueryClient.withExtensions(cometClient, setupFeegrantExtension);
+        let allowanceExists: boolean;
+        try {
+          const _existingAllowance = await queryClient.feegrant.allowance(granterAddress, custodialWalletAddress);
+          allowanceExists = true;
+        } catch {
+          allowanceExists = false;
+        }
+
+        if (!allowanceExists) {
+          const msgs = this.systemWalletSvc.generateGrantFeeMsg(user.authorizer_users_user_wallet.address);
+
+          const tx = await this.systemWalletSvc.broadcastTx(msgs, 'fee-grant-migrate-wallet');
+          this.logger.debug(`Feegrant success ${tx.transactionHash}`)
+        }
 
         // transfer asset
         // generate msg
         const { wallet, address } = await this.userWalletService.deserialize(userId);
-        const transferMsgs = this.generateTransferMsgs(wallet, user.wallet_address, custodialWalletAsset);
+        const transferMsgs = this.generateTransferMsgs(address, user.wallet_address, custodialWalletAsset);
 
         const gasPrice = GasPrice.fromString(
           this.configService.get<string>('network.gasPrice')
         );
-        const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
+
+
+
         const client = await SigningCosmWasmClient.connectWithSigner(
           rpcEndpoint,
           wallet,
@@ -73,11 +96,18 @@ export class UserWalletProcessor {
           }
         );
 
+        const gasEstimation = await client.simulate(address, transferMsgs, 'punkga-migrate-asset');
+        const fee = calculateFee(Math.round(gasEstimation * 1.8), gasPrice);
+
         const transferTx = await client.signAndBroadcast(
           address,
           transferMsgs,
-          'auto',
-          'punkga'
+          {
+            amount: fee.amount,
+            gas: fee.gas,
+            granter: granterAddress
+          },
+          'punkga-migrate-asset'
         )
 
         // update request
@@ -90,6 +120,14 @@ export class UserWalletProcessor {
 
 
         this.logger.debug(`Migrate wallet success!!!`)
+      } else {
+        this.logger.debug(`Wallet ${user.authorizer_users_user_wallet.address} empty`)
+        // update request
+        await this.userGraphql.updateRequestLogs({
+          ids: [requestId],
+          log: 'Wallet empty',
+          status: 'SUCCEEDED'
+        })
       }
     } catch (error) {
       this.logger.error(JSON.stringify(error));
@@ -140,7 +178,7 @@ export class UserWalletProcessor {
 
   isEmptyWallet(walletAsset: ICustodialWalletAsset) {
 
-    if (Number(walletAsset.balance.amount) > 0) return false;
+    if (walletAsset.balance && Number(walletAsset.balance.amount) > 0) return false;
 
     if (walletAsset.cw721Tokens.length > 0) return false;
 

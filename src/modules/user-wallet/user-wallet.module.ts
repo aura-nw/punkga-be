@@ -15,6 +15,6 @@ import { RedisModule } from '../redis/redis.module';
   imports: [JwtModule, GraphqlModule, FilesModule, SysKeyModule, RedisModule],
   providers: [UserWalletService, UserWalletGraphql, MasterWalletService, UserWalletProcessor],
   controllers: [UserWalletController],
-  exports: [MasterWalletService],
+  exports: [MasterWalletService, UserWalletService],
 })
 export class UserWalletModule { }

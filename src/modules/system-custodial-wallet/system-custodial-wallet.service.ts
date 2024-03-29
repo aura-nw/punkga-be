@@ -1,3 +1,5 @@
+import * as bip39 from 'bip39';
+
 import { BasicAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/feegrant';
 import { MsgGrantAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/tx';
 
@@ -10,6 +12,8 @@ import { SysKeyService } from '../keys/syskey.service';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { SystemCustodialWalletGraphql } from './system-custodial-wallet.graphql';
 import { Coin } from 'cosmjs-types/cosmos/base/v1beta1/coin';
+import { Any } from 'cosmjs-types/google/protobuf/any';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 @Injectable()
 export class SystemCustodialWalletService implements OnModuleInit {
@@ -30,12 +34,12 @@ export class SystemCustodialWalletService implements OnModuleInit {
     await this.initGranterWallet();
   }
 
-  async broadcastTx(messages: any) {
+  async broadcastTx(messages: any, memo = 'punkga') {
     const result = await this.client.signAndBroadcast(
       this.granterWalletAddress,
       messages,
-      'auto',
-      'punkga'
+      1.5,
+      memo
     )
 
     // this.logger.debug(result);
@@ -46,13 +50,25 @@ export class SystemCustodialWalletService implements OnModuleInit {
     // get from db
     const granterWalletData = await this.walletGraphql.getGranterWallet();
     if (granterWalletData) {
-      const { wallet, account } = await this.masterWalletService.deserializeWallet(granterWalletData.data);
+      const wallet = await DirectSecp256k1HdWallet.deserialize(
+        granterWalletData.data,
+        this.sysKeyService.originalSeed
+      );
+      const account = await wallet.getAccounts();
 
       this.granterWallet = wallet;
       this.granterWalletAddress = account[0].address;
     } else {
-      const { wallet, account, serializedWallet } =
-        await this.sysKeyService.randomWallet();
+
+      const mnemonic = bip39.generateMnemonic();
+      const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, {
+        prefix: 'aura',
+      });
+
+      const account = await wallet.getAccounts();
+      const serializedWallet = await wallet.serialize(
+        this.sysKeyService.originalSeed
+      );
 
       this.granterWallet = wallet;
       this.granterWalletAddress = account[0].address;
@@ -62,7 +78,7 @@ export class SystemCustodialWalletService implements OnModuleInit {
         objects: [
           {
             address: account[0].address,
-            data: JSON.parse(serializedWallet).data,
+            data: serializedWallet,
             type: "GRANTER",
           },
         ],
@@ -90,29 +106,39 @@ export class SystemCustodialWalletService implements OnModuleInit {
   //   const msgs = this.generateGrantFeeMsg(granteeAddress)
   // }
 
-  generateGrantFeeMsg(granteeAddress: string) {
+  get granterAddress() {
+    return this.granterWalletAddress;
+  }
 
+  generateGrantFeeMsg(granteeAddress: string) {
     const denom = this.configService.get<string>('network.denom');
     const grantAmount = this.configService.get<string>('network.grantAmount');
     const spendLimit: Coin[] = [{ denom, amount: grantAmount }];
-    const allowance = {
+    const allowance: Any = {
       typeUrl: '/cosmos.feegrant.v1beta1.BasicAllowance',
       value: Uint8Array.from(
-        BasicAllowance.encode({
-          spendLimit,
-        }).finish(),
+        BasicAllowance.encode(
+          BasicAllowance.fromPartial({
+            spendLimit: [
+              {
+                denom: "ueaura",
+                amount: "1000000",
+              },
+            ],
+          })
+        ).finish(),
       ),
     };
-    const message = {
-      typeUrl: '/cosmos.feegrant.v1beta1.MsgGrantAllowance',
+    const grantMsg = {
+      typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
       value: MsgGrantAllowance.fromPartial({
         granter: this.granterWalletAddress,
-        grantee: granteeAddress,
-        allowance,
-      })
+        grantee: 'aura1smfxm4v3p4h4s2wve9adlm655kvqvupvlsa8ky',
+        allowance: allowance,
+      }),
     };
 
-    return [message];
+    return [grantMsg];
 
   }
 }

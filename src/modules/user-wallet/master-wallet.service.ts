@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { SysKeyService } from '../keys/syskey.service';
 import { UserWalletGraphql } from './user-wallet.graphql';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 @Injectable()
 export class MasterWalletService implements OnModuleInit {
@@ -98,7 +99,7 @@ export class MasterWalletService implements OnModuleInit {
       encryption: { algorithm: 'xchacha20poly1305-ietf' },
       data: data,
     });
-    const wallet = await Secp256k1HdWallet.deserialize(
+    const wallet = await DirectSecp256k1HdWallet.deserialize(
       serialization,
       this.sysKeyService.originalSeed
     );

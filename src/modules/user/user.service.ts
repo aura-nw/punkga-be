@@ -12,7 +12,6 @@ import { MangaService } from '../manga/manga.service';
 import { CheckConditionService } from '../quest/check-condition.service';
 import { CheckRewardService } from '../quest/check-reward.service';
 import { RedisService } from '../redis/redis.service';
-import { errorOrEmpty } from '../graphql/utils';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
@@ -63,6 +62,7 @@ export class UserService {
       }, token)
 
       if (result.errors && result.errors.length > 0) return result;
+      if (result.data.update_authorizer_users.affected_rows === 0) throw new ForbiddenException('already link wallet');
 
       // request migrate
       const uniqueKey = `mw-${userId}`
@@ -73,7 +73,7 @@ export class UserService {
         unique_key: uniqueKey
       })
 
-      if (errorOrEmpty(result, 'insert_request_log_one')) return result;
+      if (insertRequestResult.errors) return result;
       this.logger.debug(`insert request success ${JSON.stringify(result)}`)
 
       const requestId = insertRequestResult.data.insert_request_log_one.id;

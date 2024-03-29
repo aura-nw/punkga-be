@@ -8,6 +8,6 @@ import { SysKeyModule } from '../keys/syskey.module';
 @Module({
   imports: [GraphqlModule, UserWalletModule, SysKeyModule],
   providers: [SystemCustodialWalletService, SystemCustodialWalletGraphql],
-  exports: [],
+  exports: [SystemCustodialWalletService],
 })
 export class SystemCustodialWalletModule { }
