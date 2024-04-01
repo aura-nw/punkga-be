@@ -32,6 +32,7 @@ select_permissions:
         - socials
         - subcribers
         - updated_at
+        - wallet_address
       computed_fields:
         - total_subscribers
       filter: {}
@@ -52,6 +53,7 @@ select_permissions:
         - socials
         - subcribers
         - updated_at
+        - wallet_address
       computed_fields:
         - total_subscribers
       filter: {}

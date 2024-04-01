@@ -7,7 +7,7 @@ export class CreatorGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) {}
+  ) { }
 
   queryCreatorByIdOrSlug(variables: any) {
     return this.graphqlSvc.query(
@@ -26,6 +26,7 @@ export class CreatorGraphql {
           socials
           total_subscribers
           isActive
+          wallet_address
           created_at
           manga_creators(where: {manga: {status: {_neq: "Removed"}}}) {
             manga {
@@ -84,15 +85,15 @@ export class CreatorGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `mutation AddCreator($name: String, $bio: String, $socials: jsonb = null, $pen_name: String = "", $profile_picture: String = "", $gender: String = "", $dob: String = "", $avatar_url: String = "") {
-      insert_creators_one(object: {name: $name, bio: $bio, socials: $socials, pen_name: $pen_name, gender: $gender, dob: $dob, avatar_url: $avatar_url}) {
-        id
-        name
-        socials
-        created_at
-        bio
-      }
-    }`,
+      `mutation AddCreator($name: String, $bio: String, $socials: jsonb = null, $pen_name: String = "", $profile_picture: String = "", $gender: String = "", $dob: String = "", $avatar_url: String = "", $wallet_address: String = "") {
+        insert_creators_one(object: {name: $name, bio: $bio, socials: $socials, pen_name: $pen_name, gender: $gender, dob: $dob, avatar_url: $avatar_url, wallet_address: $wallet_address}) {
+          id
+          name
+          socials
+          created_at
+          bio
+        }
+      }`,
       'AddCreator',
       variables
     );
@@ -134,8 +135,8 @@ export class CreatorGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
-      `mutation UpdateCreator($name: String, $bio: String, $socials: jsonb = null, $pen_name: String = "", $gender: String = "", $dob: String = "", $avatar_url: String = "", $id: Int = 10) {
-        insert_creators_one(object: {name: $name, bio: $bio, socials: $socials, pen_name: $pen_name, gender: $gender, dob: $dob, avatar_url: $avatar_url, id: $id}, on_conflict: {constraint: creators_pkey, update_columns: [name, pen_name, bio, socials, gender, dob, avatar_url]}) {
+      `mutation UpdateCreator($name: String, $bio: String, $socials: jsonb = null, $pen_name: String = "", $gender: String = "", $dob: String = "", $avatar_url: String = "", $id: Int = 10, $wallet_address: String = "") {
+        insert_creators_one(object: {name: $name, bio: $bio, socials: $socials, pen_name: $pen_name, gender: $gender, dob: $dob, avatar_url: $avatar_url, id: $id, wallet_address: $wallet_address}, on_conflict: {constraint: creators_pkey, update_columns: [name, pen_name, bio, socials, gender, dob, avatar_url, wallet_address]}) {
           id
           name
           pen_name
@@ -146,7 +147,7 @@ export class CreatorGraphql {
           bio
           avatar_url
         }
-      }
+      }      
       `,
       'UpdateCreator',
       variables

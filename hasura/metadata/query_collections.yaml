@@ -259,28 +259,6 @@
               affected_rows
             }
           }
-      - name: Admin - Query creators
-        query: |
-          query QueryCreators {
-            creators(order_by: {created_at:desc}) {
-              id
-              name
-              total_subscribers
-              manga_creators_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              created_at
-              socials
-              isActive
-              bio
-              avatar_url
-              dob
-              gender
-              pen_name
-            }
-          }
       - name: Admin - Get manga detail
         query: |
           query GetMangaReadingDetail ($id: Int = 1) {
@@ -1123,5 +1101,28 @@
               aggregate {
                 count
               }
+            }
+          }
+      - name: Admin - Query creators
+        query: |
+          query QueryCreators {
+            creators(order_by: {created_at:desc}) {
+              id
+              name
+              total_subscribers
+              manga_creators_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              created_at
+              socials
+              isActive
+              bio
+              avatar_url
+              dob
+              gender
+              pen_name
+              wallet_address
             }
           }
