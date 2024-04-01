@@ -467,67 +467,6 @@
               }
             }
           }
-      - name: Public - Query creator by id
-        query: |
-          query QueryCreatorById ($id: Int!) {
-            creators(where: {id:{_eq:$id}}) {
-              id
-              slug
-              avatar_url
-              bio
-              dob
-              gender
-              name
-              pen_name
-              socials
-              total_subscribers
-              isActive
-              created_at
-              manga_creators(where: {manga:{status:{_neq:"Removed"}}}) {
-                manga {
-                  id
-                  status
-                  poster
-                  banner
-                  manga_creators {
-                    creator {
-                      name
-                      pen_name
-                      id
-                      slug
-                    }
-                  }
-                  manga_total_likes {
-                    likes
-                  }
-                  manga_total_views {
-                    views
-                  }
-                  manga_tags {
-                    tag {
-                      tag_languages {
-                        language_id
-                        value
-                      }
-                      id
-                    }
-                  }
-                  chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
-                    id
-                    chapter_number
-                    chapter_name
-                  }
-                  contract_addresses
-                  manga_languages {
-                    id
-                    is_main_language
-                    title
-                    description
-                  }
-                }
-              }
-            }
-          }
       - name: Public - Query latest update manga
         query: |
           query GetLatestUpdatedManga {
@@ -1124,5 +1063,67 @@
               gender
               pen_name
               wallet_address
+            }
+          }
+      - name: Public - Query creator by id
+        query: |
+          query QueryCreatorById ($id: Int!) {
+            creators(where: {id:{_eq:$id}}) {
+              id
+              slug
+              avatar_url
+              bio
+              dob
+              gender
+              name
+              pen_name
+              socials
+              wallet_address
+              total_subscribers
+              isActive
+              created_at
+              manga_creators(where: {manga:{status:{_neq:"Removed"}}}) {
+                manga {
+                  id
+                  status
+                  poster
+                  banner
+                  manga_creators {
+                    creator {
+                      name
+                      pen_name
+                      id
+                      slug
+                    }
+                  }
+                  manga_total_likes {
+                    likes
+                  }
+                  manga_total_views {
+                    views
+                  }
+                  manga_tags {
+                    tag {
+                      tag_languages {
+                        language_id
+                        value
+                      }
+                      id
+                    }
+                  }
+                  chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
+                    id
+                    chapter_number
+                    chapter_name
+                  }
+                  contract_addresses
+                  manga_languages {
+                    id
+                    is_main_language
+                    title
+                    description
+                  }
+                }
+              }
             }
           }
