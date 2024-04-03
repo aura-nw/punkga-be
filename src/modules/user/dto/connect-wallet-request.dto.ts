@@ -1,6 +1,10 @@
+import { StdSignDoc, StdSignature } from '@cosmjs/amino';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ConnectWalletRequest {
   @ApiProperty()
-  address: string;
+  signedDoc: StdSignDoc;
+
+  @ApiProperty()
+  signature: StdSignature;
 }

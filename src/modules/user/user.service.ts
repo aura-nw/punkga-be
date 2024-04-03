@@ -1,5 +1,5 @@
 import { Authorizer } from '@authorizerdev/authorizer-js';
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { FilesService } from '../files/files.service';
@@ -15,6 +15,9 @@ import { RedisService } from '../redis/redis.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { ConnectWalletRequest } from './dto/connect-wallet-request.dto';
+import { decodeSignature, pubkeyToAddress, serializeSignDoc } from '@cosmjs/amino';
+import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
 
 @Injectable()
 export class UserService {
@@ -53,9 +56,23 @@ export class UserService {
     });
   }
 
-  async connectPersonalWallet(address: string) {
+  async connectPersonalWallet(request: ConnectWalletRequest) {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
+
+      const { signedDoc, signature } = request;
+
+      const { pubkey, signature: decodedSignature } = decodeSignature(signature);
+      const valid = await Secp256k1.verifySignature(
+        Secp256k1Signature.fromFixedLength(decodedSignature),
+        sha256(serializeSignDoc(signedDoc)),
+        pubkey,
+      );
+      if (!valid) {
+        throw new BadRequestException('Invalid signature!');
+      }
+
+      const address = pubkeyToAddress(signature.pub_key, 'aura');
 
       const result = await this.userGraphql.setPersonalAddress({
         wallet_address: address

@@ -36,7 +36,7 @@ export class UserController {
   @Post('connect')
   @UseInterceptors(AuthUserInterceptor)
   connect(@Query() data: ConnectWalletRequest) {
-    return this.userSvc.connectPersonalWallet(data.address);
+    return this.userSvc.connectPersonalWallet(data);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
