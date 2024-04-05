@@ -43,6 +43,8 @@ export class UserGraphql {
       variables
     );
 
+    if (result.data[network].account.length === 0) return {};
+
     const nativeDenom = this.configSvc.get<string>('network.denom');
     const balance = result.data[network].account[0].balances.filter((balance) => balance.denom === nativeDenom)[0] as IAccountBalance;
     const cw721Tokens: ICw721Token[] = result.data[network].cw721_token.map((token) => {
