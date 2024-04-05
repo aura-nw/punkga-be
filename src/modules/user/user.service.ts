@@ -15,7 +15,7 @@ import { RedisService } from '../redis/redis.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-import { ConnectWalletRequest } from './dto/connect-wallet-request.dto';
+import { ConnectWalletRequestDto } from './dto/connect-wallet-request.dto';
 import { decodeSignature, pubkeyToAddress, serializeSignDoc } from '@cosmjs/amino';
 import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
 
@@ -56,11 +56,11 @@ export class UserService {
     });
   }
 
-  async connectPersonalWallet(request: ConnectWalletRequest) {
+  async connectPersonalWallet(request: ConnectWalletRequestDto) {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
 
-      const { signedDoc, signature } = request;
+      const { signature, signedDoc } = request;
 
       const { pubkey, signature: decodedSignature } = decodeSignature(signature);
       const valid = await Secp256k1.verifySignature(

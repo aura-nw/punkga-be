@@ -71,9 +71,7 @@ export class UserWalletProcessor {
         }
 
         if (!allowanceExists) {
-          const msgs = this.systemWalletSvc.generateGrantFeeMsg(user.authorizer_users_user_wallet.address);
-
-          const tx = await this.systemWalletSvc.broadcastTx(msgs, 'fee-grant-migrate-wallet');
+          const tx = await this.systemWalletSvc.grantFee(user.authorizer_users_user_wallet.address);
           this.logger.debug(`Feegrant success ${tx.transactionHash}`)
         }
 
@@ -130,7 +128,7 @@ export class UserWalletProcessor {
         })
       }
     } catch (error) {
-      this.logger.error(JSON.stringify(error));
+      this.logger.error(error.toString());
       await this.userGraphql.updateRequestLogs({
         ids: [requestId],
         log: error.toString(),
@@ -142,7 +140,7 @@ export class UserWalletProcessor {
 
   generateTransferMsgs(custodialWalletAddr, personalWalletAddr, walletAsset: ICustodialWalletAsset) {
     const msgs = [];
-    if (Number(walletAsset.balance.amount) > 0) {
+    if (!!walletAsset.balance && Number(walletAsset.balance.amount) > 0) {
       msgs.push({
         typeUrl: '/cosmos.bank.v1beta1.MsgSend',
         value: MsgSend.fromPartial({

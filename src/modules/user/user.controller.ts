@@ -23,7 +23,7 @@ import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { UserService } from './user.service';
 import { ReadChapterRequestDto } from './dto/read-chapter-request.dto';
-import { ConnectWalletRequest } from './dto/connect-wallet-request.dto';
+import { ConnectWalletRequestDto } from './dto/connect-wallet-request.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -35,7 +35,7 @@ export class UserController {
   @Roles(Role.User)
   @Post('connect')
   @UseInterceptors(AuthUserInterceptor)
-  connect(@Query() data: ConnectWalletRequest) {
+  connect(@Body() data: ConnectWalletRequestDto) {
     return this.userSvc.connectPersonalWallet(data);
   }
 

@@ -3,8 +3,7 @@ import * as bip39 from 'bip39';
 import { BasicAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/feegrant';
 import { MsgGrantAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/tx';
 
-import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import { GasPrice } from '@cosmjs/stargate';
+import { GasPrice, SigningStargateClient, SigningStargateClientOptions } from '@cosmjs/stargate';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -16,9 +15,9 @@ import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 @Injectable()
 export class SystemCustodialWalletService implements OnModuleInit {
   private readonly logger = new Logger(SystemCustodialWalletService.name);
-  private granterWallet = null;
+  private granterWallet: DirectSecp256k1HdWallet = null;
   private granterWalletAddress: string;
-  private client: SigningCosmWasmClient;
+  private client: SigningStargateClient;
 
   constructor(
     private configService: ConfigService,
@@ -28,6 +27,11 @@ export class SystemCustodialWalletService implements OnModuleInit {
 
   async onModuleInit() {
     await this.initGranterWallet();
+  }
+
+  async grantFee(granteeWalletAddress: string) {
+    const grantMsg = this.generateGrantFeeMsg(granteeWalletAddress);
+    return this.broadcastTx([grantMsg], 'fee-grant-migrate-wallet');
   }
 
   async broadcastTx(messages: any, memo = 'punkga') {
@@ -82,24 +86,20 @@ export class SystemCustodialWalletService implements OnModuleInit {
       this.logger.debug(`Insert granter wallet: ${JSON.stringify(result)}`);
     }
 
-    const gasPrice = GasPrice.fromString(
-      this.configService.get<string>('network.gasPrice')
-    );
+    const defaultSigningClientOptions: SigningStargateClientOptions = {
+      broadcastPollIntervalMs: 300,
+      broadcastTimeoutMs: 8_000,
+      gasPrice: GasPrice.fromString(this.configService.get<string>('network.gasPrice')),
+    };
 
     // build client
     const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
-    this.client = await SigningCosmWasmClient.connectWithSigner(
+    this.client = await SigningStargateClient.connectWithSigner(
       rpcEndpoint,
       this.granterWallet,
-      {
-        gasPrice,
-      }
+      defaultSigningClientOptions
     );
   }
-
-  // async grantFee(granteeAddress: string) {
-  //   const msgs = this.generateGrantFeeMsg(granteeAddress)
-  // }
 
   get granterAddress() {
     return this.granterWalletAddress;
@@ -116,7 +116,7 @@ export class SystemCustodialWalletService implements OnModuleInit {
             spendLimit: [
               {
                 denom: denom || "uaura",
-                amount: grantAmount || '100000',
+                amount: String(grantAmount) || '100000',
               },
             ],
           })
@@ -132,7 +132,7 @@ export class SystemCustodialWalletService implements OnModuleInit {
       }),
     };
 
-    return [grantMsg];
+    return grantMsg;
 
   }
 }
