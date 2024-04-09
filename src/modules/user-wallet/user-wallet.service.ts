@@ -8,6 +8,7 @@ import { SysKeyService } from '../keys/syskey.service';
 import { RedisService } from '../redis/redis.service';
 import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UserWalletGraphql } from './user-wallet.graphql';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class UserWalletService {
@@ -22,16 +23,18 @@ export class UserWalletService {
   }
 
 
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async insertAllUserWallet() {
     let count = 0;
     let offset = 0;
 
     do {
       const users = await this.userWalletGraphql.queryAllUser(offset);
-      console.log(users.length);
+      console.log(`user length: ${users.length}`);
       count = users.length;
       offset += count;
       const filtedUsers = users.filter((user) => user.authorizer_users_user_wallet === null || user.authorizer_users_user_wallet.address === null);
+      console.log(`filter length: ${filtedUsers.length}`);
       const results = await Promise.all(filtedUsers.map((user) => {
         const variables = {
           objects: [
