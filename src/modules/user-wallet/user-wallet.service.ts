@@ -8,6 +8,7 @@ import { RedisService } from '../redis/redis.service';
 import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UserWalletGraphql } from './user-wallet.graphql';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { errorOrEmpty } from '../graphql/utils';
 
 @Injectable()
 export class UserWalletService {
@@ -18,7 +19,22 @@ export class UserWalletService {
     private sysKeyService: SysKeyService,
     private redisClientService: RedisService,
   ) {
-    this.insertAllUserWallet();
+    // this.handleEmptyUserWallet()
+  }
+
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async handleEmptyUserWallet() {
+    const result = await this.userWalletGraphql.getNullUserWallets();
+    if (!errorOrEmpty(result, 'user_wallet')) {
+      result.data.user_wallet.forEach((userWallet) => {
+        const redisData = {
+          id: userWallet.id,
+          userId: userWallet.user_id
+        }
+        const env = this.configService.get<string>('app.env') || 'prod';
+        this.redisClientService.client.rPush(`punkga-${env}:generate-user-wallet`, JSON.stringify(redisData))
+      });
+    }
   }
 
   async deserialize(userId: string) {
@@ -46,7 +62,6 @@ export class UserWalletService {
     }
   }
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
   async insertAllUserWallet() {
     let count = 0;
     let offset = 0;
