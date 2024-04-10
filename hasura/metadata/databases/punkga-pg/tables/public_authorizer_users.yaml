@@ -31,6 +31,12 @@ array_relationships:
         table:
           name: user_quest
           schema: public
+computed_fields:
+  - name: active_wallet_address
+    definition:
+      function:
+        name: main_wallet_address
+        schema: public
 select_permissions:
   - role: anonymous
     permission:
