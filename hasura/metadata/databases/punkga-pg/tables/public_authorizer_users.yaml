@@ -48,6 +48,9 @@ select_permissions:
         - id
         - nickname
         - picture
+        - wallet_address
+      computed_fields:
+        - active_wallet_address
       filter: {}
       allow_aggregations: true
   - role: user
@@ -75,6 +78,8 @@ select_permissions:
         - signup_methods
         - updated_at
         - wallet_address
+      computed_fields:
+        - active_wallet_address
       filter:
         id:
           _eq: X-Hasura-User-Id

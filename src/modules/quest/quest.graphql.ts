@@ -265,6 +265,7 @@ export class QuestGraphql {
             address
             user_id
           }
+          active_wallet_address
         }
       }
       `,
