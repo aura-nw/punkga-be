@@ -1004,25 +1004,6 @@
               }
             }
           }
-      - name: Admin - Search users
-        query: |
-          query search_users ($text: String = "%%", $offset: Int = 0, $limit: Int = 100) {
-            authorizer_users(order_by: {created_at:desc}, offset: $offset, limit: $limit, where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
-              id
-              nickname
-              email
-              created_at
-              updated_at
-              authorizer_users_user_wallet {
-                address
-              }
-            }
-            authorizer_users_aggregate(where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
-              aggregate {
-                count
-              }
-            }
-          }
       - name: Admin - Get All Users
         query: |
           query GetAllUsers ($limit: Int = 50, $offset: Int = 0) {
@@ -1124,6 +1105,23 @@
                     description
                   }
                 }
+              }
+            }
+          }
+      - name: Admin - Search users
+        query: |
+          query search_users ($text: String = "%%", $offset: Int = 0, $limit: Int = 100) {
+            authorizer_users(order_by: {created_at:desc}, offset: $offset, limit: $limit, where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
+              id
+              nickname
+              email
+              created_at
+              updated_at
+              active_wallet_address
+            }
+            authorizer_users_aggregate(where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
+              aggregate {
+                count
               }
             }
           }
