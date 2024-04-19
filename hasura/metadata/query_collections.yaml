@@ -761,43 +761,6 @@
               xp
             }
           }
-      - name: User - Get Profile
-        query: |
-          query GetUserProfile {
-            authorizer_users {
-              id
-              email
-              email_verified_at
-              bio
-              birthdate
-              gender
-              wallet_address
-              nickname
-              picture
-              signup_methods
-              levels {
-                xp
-                level
-              }
-              authorizer_users_user_wallet {
-                address
-              }
-              user_quests_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              user_quests(order_by: {created_at:desc}, limit: 20) {
-                created_at
-                status
-                quest {
-                  id
-                  name
-                  reward
-                }
-              }
-            }
-          }
       - name: Public - Get leaderboard
         query: |
           query leaderboard {
@@ -1122,6 +1085,44 @@
             authorizer_users_aggregate(where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
               aggregate {
                 count
+              }
+            }
+          }
+      - name: User - Get Profile
+        query: |
+          query GetUserProfile {
+            authorizer_users(limit: 1) {
+              id
+              email
+              email_verified_at
+              bio
+              birthdate
+              gender
+              wallet_address
+              active_wallet_address
+              nickname
+              picture
+              signup_methods
+              levels {
+                xp
+                level
+              }
+              authorizer_users_user_wallet {
+                address
+              }
+              user_quests_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_quests(order_by: {created_at:desc}, limit: 20) {
+                created_at
+                status
+                quest {
+                  id
+                  name
+                  reward
+                }
               }
             }
           }
