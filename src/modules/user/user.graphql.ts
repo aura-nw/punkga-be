@@ -14,6 +14,23 @@ export class UserGraphql {
     private graphqlSvc: GraphqlService
   ) { }
 
+  async queryUserByWalletAddress(walletAddress: string) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query authorizer_users($wallet_address: String!) {
+        authorizer_users(where: {wallet_address: {_eq: $wallet_address}}) {
+          id
+        }
+      }
+      `,
+      'authorizer_users',
+      {
+        wallet_address: walletAddress
+      },
+    );
+  }
+
   async queryCustodialWaleltAsset(address: string) {
     const variables = {
       owner_address: address

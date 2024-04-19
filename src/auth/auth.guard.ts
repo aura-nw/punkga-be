@@ -12,7 +12,7 @@ import * as path from 'path';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
     if (!token) {
       throw new UnauthorizedException();
     }
-    const pubkey = await readFile(path.resolve(__dirname, '../../public.pem'));
+    const pubkey = await readFile(path.resolve(__dirname, '../../credentials/public.pem'));
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         publicKey: pubkey,

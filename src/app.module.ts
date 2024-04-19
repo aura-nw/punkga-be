@@ -21,6 +21,7 @@ import { UserModule } from './modules/user/user.module';
 import { RequestModule } from './modules/request/request.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/system-custodial-wallet.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -64,7 +65,8 @@ import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/s
     CampaignModule,
     RequestModule,
     RedisModule,
-    SystemCustodialWalletModule
+    SystemCustodialWalletModule,
+    AuthModule
   ],
   controllers: [],
   providers: [
