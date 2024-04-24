@@ -10,6 +10,22 @@ export class UserWalletGraphql {
     private graphqlSvc: GraphqlService
   ) { }
 
+  async getNullUserWallets() {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query user_wallet {
+        user_wallet(where: {address: {_is_null: true}}) {
+          id
+          user_id
+          address
+        }
+      }`,
+      'user_wallet',
+      {},
+    );
+  }
+
   async insertManyUserWallet(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
