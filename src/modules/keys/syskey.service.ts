@@ -7,6 +7,9 @@ import { KeysGraphql } from './keys.graphql';
 import { KMSBuilderService } from './kms.service';
 import { randomSeed } from './util';
 import { Secp256k1HdWallet, makeCosmoshubPath } from '@cosmjs/amino';
+import { JsonRpcProvider, Wallet } from 'ethers';
+import { ConfigService } from '@nestjs/config';
+import { Crypter } from '../../utils/crypto';
 
 @Injectable()
 export class SysKeyService implements OnModuleInit {
@@ -15,9 +18,10 @@ export class SysKeyService implements OnModuleInit {
   private mnemonic = '';
 
   constructor(
+    private configService: ConfigService,
     private keysGraphql: KeysGraphql,
     private kmsService: KMSBuilderService
-  ) { }
+  ) {}
 
   async onModuleInit() {
     // get from db
@@ -28,28 +32,30 @@ export class SysKeyService implements OnModuleInit {
       this.seed = await this.kmsService.getSeed(encryptedSeed);
 
       if (result.encrypted_mnemonic) {
-        this.mnemonic = AES.decrypt(result.encrypted_mnemonic, this.seed).toString(enc.Utf8);
-
+        this.mnemonic = AES.decrypt(
+          result.encrypted_mnemonic,
+          this.seed
+        ).toString(enc.Utf8);
       } else {
-        const {
-          mnemonic,
-          encryptedMnemonic
-        } = await this.randomMnemonic();
+        const { mnemonic, encryptedMnemonic } = await this.randomMnemonic();
 
         this.mnemonic = mnemonic;
-        await this.keysGraphql.addEncryptedMnemonic(result.id, encryptedMnemonic);
+        await this.keysGraphql.addEncryptedMnemonic(
+          result.id,
+          encryptedMnemonic
+        );
       }
     } else {
       this.seed = randomSeed();
       const encryptedSeed = await this.kmsService.encryptSeed(this.seed);
-      const {
-        mnemonic,
-        encryptedMnemonic
-      } = await this.randomMnemonic();
+      const { mnemonic, encryptedMnemonic } = await this.randomMnemonic();
 
       this.mnemonic = mnemonic;
 
-      await this.keysGraphql.storeEncryptedData(encryptedSeed, encryptedMnemonic);
+      await this.keysGraphql.storeEncryptedData(
+        encryptedSeed,
+        encryptedMnemonic
+      );
     }
   }
 
@@ -57,31 +63,45 @@ export class SysKeyService implements OnModuleInit {
     return this.seed;
   }
 
-  async randomWallet() {
-    const mnemonic = bip39.generateMnemonic();
-    const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
-      prefix: 'aura',
-    });
+  async randomWallet(provider: JsonRpcProvider) {
+    const wallet = Wallet.createRandom(provider);
 
-    const account = await wallet.getAccounts();
-    const serializedWallet = await wallet.serialize(
-      this.originalSeed
-    );
+    const phrase = wallet.mnemonic.phrase;
+
+    const cipherPhrase = Crypter.encrypt(phrase, this.originalSeed);
+
+    // const mnemonic = bip39.generateMnemonic();
+    // const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
+    //   prefix: 'aura',
+    // });
+
+    // const account = await wallet.getAccounts();
+    // const serializedWallet = await wallet.serialize(this.originalSeed);
 
     return {
       wallet,
-      serializedWallet,
-      account,
+      cipherPhrase,
+      address: wallet.address,
     };
   }
 
-  async generateWallet(accountIndex: number) {
-    const wallet = await Secp256k1HdWallet.fromMnemonic(this.mnemonic, {
-      hdPaths: [makeCosmoshubPath(accountIndex)],
-      prefix: 'aura',
-    });
+  generateWallet() {
+    const wallet = Wallet.createRandom();
+    const cipherPhrase = Crypter.encrypt(
+      wallet.mnemonic.phrase,
+      this.originalSeed
+    );
+    return {
+      cipherPhrase,
+      address: wallet.address,
+    };
 
-    return wallet;
+    // const wallet = await Secp256k1HdWallet.fromMnemonic(this.mnemonic, {
+    //   hdPaths: [makeCosmoshubPath(accountIndex)],
+    //   prefix: 'aura',
+    // });
+
+    // return wallet;
   }
 
   private async randomMnemonic() {
@@ -90,7 +110,7 @@ export class SysKeyService implements OnModuleInit {
 
     return {
       mnemonic,
-      encryptedMnemonic
-    }
+      encryptedMnemonic,
+    };
   }
 }
