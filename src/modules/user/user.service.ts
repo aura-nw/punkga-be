@@ -1,4 +1,8 @@
+import { Queue } from 'bull';
+import { SiweMessage } from 'siwe';
+
 import { Authorizer } from '@authorizerdev/authorizer-js';
+import { InjectQueue } from '@nestjs/bull';
 import {
   BadRequestException,
   ForbiddenException,
@@ -6,24 +10,19 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
-import { FilesService } from '../files/files.service';
 import { ContextProvider } from '../../providers/contex.provider';
-import { DeleteUserRequest } from './dto/delete-user-request.dto';
-import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
-import { IUpdateProfile } from './interfaces/update-profile.interface';
-import { UserGraphql } from './user.graphql';
+import { FilesService } from '../files/files.service';
 import { MangaService } from '../manga/manga.service';
 import { CheckConditionService } from '../quest/check-condition.service';
 import { CheckRewardService } from '../quest/check-reward.service';
 import { RedisService } from '../redis/redis.service';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 import { ConnectWalletRequestDto } from './dto/connect-wallet-request.dto';
-import { pubkeyToAddress } from '@cosmjs/amino';
-import { errorOrEmpty } from '../graphql/utils';
-import { verifySignature } from '../../utils/utils';
+import { DeleteUserRequest } from './dto/delete-user-request.dto';
+import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
+import { IUpdateProfile } from './interfaces/update-profile.interface';
+import { UserGraphql } from './user.graphql';
 
 @Injectable()
 export class UserService {
@@ -66,14 +65,16 @@ export class UserService {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
 
-      const { signature, signedDoc } = request;
+      const { signature, message } = request;
 
-      const valid = await verifySignature(signature, signedDoc);
-      if (!valid) {
-        throw new BadRequestException('Invalid signature!');
-      }
+      const SIWEObject = new SiweMessage(message);
 
-      const address = pubkeyToAddress(signature.pub_key, 'aura');
+      const { data } = await SIWEObject.verify({
+        signature,
+        nonce: SIWEObject.nonce,
+      });
+
+      const address = data.address;
 
       const result = await this.userGraphql.setPersonalAddress(
         {
@@ -114,8 +115,11 @@ export class UserService {
         requestId,
       };
     } catch (errors) {
+      this.logger.error(errors);
       return {
-        errors,
+        errors: {
+          message: errors.toString(),
+        },
       };
     }
   }
