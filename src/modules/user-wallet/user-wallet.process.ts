@@ -62,6 +62,4 @@ export class UserWalletProcessor {
       account: accounts[index]
     }));
   }
-
-
 }

@@ -19,6 +19,9 @@ export class CreateCreatorRequestDto {
   @ApiProperty()
   dob: string;
 
+  @ApiProperty()
+  wallet_address: string;
+
   @ApiProperty({ type: 'string', format: 'binary' })
   avatar: Express.Multer.File;
 }

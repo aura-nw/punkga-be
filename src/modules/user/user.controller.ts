@@ -23,11 +23,21 @@ import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { UserService } from './user.service';
 import { ReadChapterRequestDto } from './dto/read-chapter-request.dto';
+import { ConnectWalletRequestDto } from './dto/connect-wallet-request.dto';
 
 @Controller('user')
 @ApiTags('user')
 export class UserController {
   constructor(private readonly userSvc: UserService) { }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post('connect')
+  @UseInterceptors(AuthUserInterceptor)
+  connect(@Body() data: ConnectWalletRequestDto) {
+    return this.userSvc.connectPersonalWallet(data);
+  }
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()

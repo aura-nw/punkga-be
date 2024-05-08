@@ -259,28 +259,6 @@
               affected_rows
             }
           }
-      - name: Admin - Query creators
-        query: |
-          query QueryCreators {
-            creators(order_by: {created_at:desc}) {
-              id
-              name
-              total_subscribers
-              manga_creators_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              created_at
-              socials
-              isActive
-              bio
-              avatar_url
-              dob
-              gender
-              pen_name
-            }
-          }
       - name: Admin - Get manga detail
         query: |
           query GetMangaReadingDetail ($id: Int = 1) {
@@ -486,67 +464,6 @@
                 created_at
                 user_id
                 chapter_id
-              }
-            }
-          }
-      - name: Public - Query creator by id
-        query: |
-          query QueryCreatorById ($id: Int!) {
-            creators(where: {id:{_eq:$id}}) {
-              id
-              slug
-              avatar_url
-              bio
-              dob
-              gender
-              name
-              pen_name
-              socials
-              total_subscribers
-              isActive
-              created_at
-              manga_creators(where: {manga:{status:{_neq:"Removed"}}}) {
-                manga {
-                  id
-                  status
-                  poster
-                  banner
-                  manga_creators {
-                    creator {
-                      name
-                      pen_name
-                      id
-                      slug
-                    }
-                  }
-                  manga_total_likes {
-                    likes
-                  }
-                  manga_total_views {
-                    views
-                  }
-                  manga_tags {
-                    tag {
-                      tag_languages {
-                        language_id
-                        value
-                      }
-                      id
-                    }
-                  }
-                  chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
-                    id
-                    chapter_number
-                    chapter_name
-                  }
-                  contract_addresses
-                  manga_languages {
-                    id
-                    is_main_language
-                    title
-                    description
-                  }
-                }
               }
             }
           }
@@ -844,43 +761,6 @@
               xp
             }
           }
-      - name: User - Get Profile
-        query: |
-          query GetUserProfile {
-            authorizer_users {
-              id
-              email
-              email_verified_at
-              bio
-              birthdate
-              gender
-              wallet_address
-              nickname
-              picture
-              signup_methods
-              levels {
-                xp
-                level
-              }
-              authorizer_users_user_wallet {
-                address
-              }
-              user_quests_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              user_quests(order_by: {created_at:desc}, limit: 20) {
-                created_at
-                status
-                quest {
-                  id
-                  name
-                  reward
-                }
-              }
-            }
-          }
       - name: Public - Get leaderboard
         query: |
           query leaderboard {
@@ -1087,25 +967,6 @@
               }
             }
           }
-      - name: Admin - Search users
-        query: |
-          query search_users ($text: String = "%%", $offset: Int = 0, $limit: Int = 100) {
-            authorizer_users(order_by: {created_at:desc}, offset: $offset, limit: $limit, where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
-              id
-              nickname
-              email
-              created_at
-              updated_at
-              authorizer_users_user_wallet {
-                address
-              }
-            }
-            authorizer_users_aggregate(where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
-              aggregate {
-                count
-              }
-            }
-          }
       - name: Admin - Get All Users
         query: |
           query GetAllUsers ($limit: Int = 50, $offset: Int = 0) {
@@ -1122,6 +983,146 @@
             authorizer_users_aggregate {
               aggregate {
                 count
+              }
+            }
+          }
+      - name: Admin - Query creators
+        query: |
+          query QueryCreators {
+            creators(order_by: {created_at:desc}) {
+              id
+              name
+              total_subscribers
+              manga_creators_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              created_at
+              socials
+              isActive
+              bio
+              avatar_url
+              dob
+              gender
+              pen_name
+              wallet_address
+            }
+          }
+      - name: Public - Query creator by id
+        query: |
+          query QueryCreatorById ($id: Int!) {
+            creators(where: {id:{_eq:$id}}) {
+              id
+              slug
+              avatar_url
+              bio
+              dob
+              gender
+              name
+              pen_name
+              socials
+              wallet_address
+              total_subscribers
+              isActive
+              created_at
+              manga_creators(where: {manga:{status:{_neq:"Removed"}}}) {
+                manga {
+                  id
+                  status
+                  poster
+                  banner
+                  manga_creators {
+                    creator {
+                      name
+                      pen_name
+                      id
+                      slug
+                    }
+                  }
+                  manga_total_likes {
+                    likes
+                  }
+                  manga_total_views {
+                    views
+                  }
+                  manga_tags {
+                    tag {
+                      tag_languages {
+                        language_id
+                        value
+                      }
+                      id
+                    }
+                  }
+                  chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
+                    id
+                    chapter_number
+                    chapter_name
+                  }
+                  contract_addresses
+                  manga_languages {
+                    id
+                    is_main_language
+                    title
+                    description
+                  }
+                }
+              }
+            }
+          }
+      - name: Admin - Search users
+        query: |
+          query search_users ($text: String = "%%", $offset: Int = 0, $limit: Int = 100) {
+            authorizer_users(order_by: {created_at:desc}, offset: $offset, limit: $limit, where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
+              id
+              nickname
+              email
+              created_at
+              updated_at
+              active_wallet_address
+            }
+            authorizer_users_aggregate(where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: User - Get Profile
+        query: |
+          query GetUserProfile {
+            authorizer_users(limit: 1) {
+              id
+              email
+              email_verified_at
+              bio
+              birthdate
+              gender
+              wallet_address
+              active_wallet_address
+              nickname
+              picture
+              signup_methods
+              levels {
+                xp
+                level
+              }
+              authorizer_users_user_wallet {
+                address
+              }
+              user_quests_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_quests(order_by: {created_at:desc}, limit: 20) {
+                created_at
+                status
+                quest {
+                  id
+                  name
+                  reward
+                }
               }
             }
           }

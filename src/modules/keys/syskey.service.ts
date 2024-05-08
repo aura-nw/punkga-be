@@ -57,6 +57,24 @@ export class SysKeyService implements OnModuleInit {
     return this.seed;
   }
 
+  async randomWallet() {
+    const mnemonic = bip39.generateMnemonic();
+    const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
+      prefix: 'aura',
+    });
+
+    const account = await wallet.getAccounts();
+    const serializedWallet = await wallet.serialize(
+      this.originalSeed
+    );
+
+    return {
+      wallet,
+      serializedWallet,
+      account,
+    };
+  }
+
   async generateWallet(accountIndex: number) {
     const wallet = await Secp256k1HdWallet.fromMnemonic(this.mnemonic, {
       hdPaths: [makeCosmoshubPath(accountIndex)],

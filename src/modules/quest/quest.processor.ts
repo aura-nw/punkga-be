@@ -57,6 +57,7 @@ export class QuestProcessor {
     } catch (error) {
       this.logger.error(JSON.stringify(error));
       await this.updateErrorRequest(rewardMap, error.toString());
+
     }
   }
 
@@ -171,7 +172,7 @@ export class QuestProcessor {
 
         // build execute contract msg increase user xp and mint nft
         messages.push(this.masterWalletSerivce.generateIncreaseXpMsg(
-          user.authorizer_users_user_wallet.address,
+          user.active_wallet_address,
           totalXp,
           newLevel
         ));
@@ -184,7 +185,7 @@ export class QuestProcessor {
 
         // generate mint nft msg
         value.reward.nft.forEach((nftInfo) => {
-          const msg = this.masterWalletSerivce.generateMintNftMsg(user.authorizer_users_user_wallet.address, nftInfo.tokenId, {
+          const msg = this.masterWalletSerivce.generateMintNftMsg(user.active_wallet_address, nftInfo.tokenId, {
             image: nftInfo.image,
             name: nftInfo.name || '',
           });
