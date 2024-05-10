@@ -15,12 +15,12 @@ import { GraphqlModule } from './modules/graphql/graphql.module';
 import { SysKeyModule } from './modules/keys/syskey.module';
 import { MangaModule } from './modules/manga/manga.module';
 import { QuestModule } from './modules/quest/quest.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { RequestModule } from './modules/request/request.module';
+import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/system-custodial-wallet.module';
 import { TasksModule } from './modules/task/task.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
 import { UserModule } from './modules/user/user.module';
-import { RequestModule } from './modules/request/request.module';
-import { RedisModule } from './modules/redis/redis.module';
-import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/system-custodial-wallet.module';
 
 @Module({
   imports: [
