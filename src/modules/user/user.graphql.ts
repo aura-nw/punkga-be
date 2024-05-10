@@ -31,7 +31,7 @@ export class UserGraphql {
     );
   }
 
-  async queryCustodialWaleltAsset(address: string) {
+  async queryCustodialWalletAsset(address: string) {
     const variables = {
       owner_address: address
     }

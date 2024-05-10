@@ -1,6 +1,3 @@
-import { toUtf8 } from '@cosmjs/encoding';
-import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
-
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -9,15 +6,6 @@ import { SystemCustodialWalletService } from '../system-custodial-wallet/system-
 import { UserWalletService } from '../user-wallet/user-wallet.service';
 import { ICustodialWalletAsset } from './interfaces/account-onchain.interface';
 import { UserGraphql } from './user.graphql';
-import { coin } from '@cosmjs/amino';
-import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import {
-  GasPrice,
-  QueryClient,
-  calculateFee,
-  setupFeegrantExtension,
-} from '@cosmjs/stargate';
-import { Tendermint34Client } from '@cosmjs/tendermint-rpc';
 
 interface IMigrateWalletRequest {
   requestId: number;
@@ -62,7 +50,7 @@ export class UserWalletProcessor {
     //   const granterAddress = this.systemWalletSvc.granterAddress;
 
     //   // check asset in custodial wallet
-    //   const custodialWalletAsset = await this.userGraphql.queryCustodialWaleltAsset(user.authorizer_users_user_wallet.address);
+    //   const custodialWalletAsset = await this.userGraphql.queryCustodialWalletAsset(user.authorizer_users_user_wallet.address);
     //   if (!this.isEmptyWallet(custodialWalletAsset)) {
     //     const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
 
@@ -140,47 +128,47 @@ export class UserWalletProcessor {
     // }
   }
 
-  generateTransferMsgs(
-    custodialWalletAddr,
-    personalWalletAddr,
-    walletAsset: ICustodialWalletAsset
-  ) {
-    const msgs = [];
-    if (!!walletAsset.balance && Number(walletAsset.balance.amount) > 0) {
-      msgs.push({
-        typeUrl: '/cosmos.bank.v1beta1.MsgSend',
-        value: MsgSend.fromPartial({
-          fromAddress: custodialWalletAddr,
-          toAddress: personalWalletAddr,
-          amount: [coin(walletAsset.balance.amount, walletAsset.balance.denom)],
-        }),
-      });
-    }
+  // generateTransferMsgs(
+  //   custodialWalletAddr,
+  //   personalWalletAddr,
+  //   walletAsset: ICustodialWalletAsset
+  // ) {
+  //   const msgs = [];
+  //   if (!!walletAsset.balance && Number(walletAsset.balance.amount) > 0) {
+  //     msgs.push({
+  //       typeUrl: '/cosmos.bank.v1beta1.MsgSend',
+  //       value: MsgSend.fromPartial({
+  //         fromAddress: custodialWalletAddr,
+  //         toAddress: personalWalletAddr,
+  //         amount: [coin(walletAsset.balance.amount, walletAsset.balance.denom)],
+  //       }),
+  //     });
+  //   }
 
-    if (walletAsset.cw721Tokens.length > 0) {
-      msgs.push(
-        ...walletAsset.cw721Tokens.map((cw721Token) => {
-          const msg = {
-            transfer_nft: {
-              recipient: personalWalletAddr,
-              token_id: cw721Token.tokenId,
-            },
-          };
-          return {
-            typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
-            value: {
-              msg: toUtf8(JSON.stringify(msg)),
-              sender: custodialWalletAddr,
-              contract: cw721Token.contractAddress,
-              funds: [],
-            },
-          };
-        })
-      );
-    }
+  //   if (walletAsset.cw721Tokens.length > 0) {
+  //     msgs.push(
+  //       ...walletAsset.cw721Tokens.map((cw721Token) => {
+  //         const msg = {
+  //           transfer_nft: {
+  //             recipient: personalWalletAddr,
+  //             token_id: cw721Token.tokenId,
+  //           },
+  //         };
+  //         return {
+  //           typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
+  //           value: {
+  //             msg: toUtf8(JSON.stringify(msg)),
+  //             sender: custodialWalletAddr,
+  //             contract: cw721Token.contractAddress,
+  //             funds: [],
+  //           },
+  //         };
+  //       })
+  //     );
+  //   }
 
-    return msgs;
-  }
+  //   return msgs;
+  // }
 
   isEmptyWallet(walletAsset: ICustodialWalletAsset) {
     if (walletAsset.balance && Number(walletAsset.balance.amount) > 0)
