@@ -22,46 +22,46 @@ export class AuthService {
     try {
       const { signature, signedDoc } = request;
 
-      const valid = await verifySignature(signature, signedDoc);
-      if (!valid) throw new UnauthorizedException();
+      // const valid = await verifySignature(signature, signedDoc);
+      // if (!valid) throw new UnauthorizedException();
 
-      const address = pubkeyToAddress(signature.pub_key, 'aura');
+      // const address = pubkeyToAddress(signature.pub_key, 'aura');
 
-      let userId = '';
-      // query user by wallet address
-      const result = await this.userGraphql.queryUserByWalletAddress(address);
-      if (errorOrEmpty(result, 'authorizer_users')) {
-        // TODO: insert user if not exists
-      } else {
-        userId = result.data.authorizer_users[0].id;
+      // let userId = '';
+      // // query user by wallet address
+      // const result = await this.userGraphql.queryUserByWalletAddress(address);
+      // if (errorOrEmpty(result, 'authorizer_users')) {
+      //   // TODO: insert user if not exists
+      // } else {
+      //   userId = result.data.authorizer_users[0].id;
 
-        const payload = {
-          address,
-          roles: ['user'],
-          login_method: 'wallet_auth',
-          'https://hasura.io/jwt/claims': {
-            'x-hasura-default-role': 'user',
-            'x-hasura-allowed-roles': ['user'],
-            'x-hasura-user-id': userId,
-            'x-hasura-custom': 'jwt',
-          },
-        };
+      //   const payload = {
+      //     address,
+      //     roles: ['user'],
+      //     login_method: 'wallet_auth',
+      //     'https://hasura.io/jwt/claims': {
+      //       'x-hasura-default-role': 'user',
+      //       'x-hasura-allowed-roles': ['user'],
+      //       'x-hasura-user-id': userId,
+      //       'x-hasura-custom': 'jwt',
+      //     },
+      //   };
 
-        const pkey = await readFile(
-          path.resolve(__dirname, '../../credentials/private.pem')
-        );
+      //   const pkey = await readFile(
+      //     path.resolve(__dirname, '../../credentials/private.pem')
+      //   );
 
-        // const pkey = Buffer.from(this.configService.get<string>('jwt.privateKey'));
+      //   // const pkey = Buffer.from(this.configService.get<string>('jwt.privateKey'));
 
-        const token = await this.jwtService.signAsync(payload, {
-          privateKey: pkey,
-          expiresIn: '1d',
-        });
+      //   const token = await this.jwtService.signAsync(payload, {
+      //     privateKey: pkey,
+      //     expiresIn: '1d',
+      //   });
 
-        return {
-          access_token: token,
-        };
-      }
+      // return {
+      //   access_token: token,
+      // };
+      // }
     } catch (errors) {
       return {
         errors: {
