@@ -37,6 +37,12 @@ export class UserWalletProcessor {
     const { userId, requestId } = redisData.map(
       (dataStr) => JSON.parse(dataStr) as IMigrateWalletRequest
     )[0];
+    // get user wallet
+    // check asset in custodial wallet
+    // fee grant
+    // transfer asset
+
+    // update request log
 
     // try {
     //   // get user wallet
