@@ -8,6 +8,7 @@
 - "!include public_creators.yaml"
 - "!include public_email_subscribe.yaml"
 - "!include public_languages.yaml"
+- "!include public_launchpad.yaml"
 - "!include public_likes.yaml"
 - "!include public_manga.yaml"
 - "!include public_manga_creator.yaml"
