@@ -40,8 +40,8 @@ export class LaunchpadGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation update_launchpad_by_pk($_set: launchpad_set_input = {}, $id: Int! {
-        update_launchpad_by_pk(pk_columns: {id: $id}, _set: $_set) {
+      `mutation update_launchpad_by_pk($data: launchpad_set_input = {}, $id: Int!) {
+        update_launchpad_by_pk(pk_columns: {id: $id}, _set: $data) {
           updated_at
         }
       }`,

@@ -21,6 +21,7 @@ import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/s
 import { TasksModule } from './modules/task/task.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
 import { UserModule } from './modules/user/user.module';
+import { LaunchpadModule } from './modules/launchpad/launchpad.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { UserModule } from './modules/user/user.module';
     RequestModule,
     RedisModule,
     SystemCustodialWalletModule,
+    LaunchpadModule
   ],
   controllers: [],
   providers: [
@@ -81,4 +83,4 @@ import { UserModule } from './modules/user/user.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateLaunchpadRequestDto {
   @ApiProperty()
@@ -10,7 +10,7 @@ export class CreateLaunchpadRequestDto {
   @ApiProperty()
   mint_price: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   royalties: string;
 
   @ApiProperty()
@@ -31,7 +31,7 @@ export class CreateLaunchpadRequestDto {
   @ApiProperty({ type: 'string', format: 'binary' })
   thumbnail: Express.Multer.File;
 
-  @ApiProperty({ type: 'string', format: 'binary' })
+  @ApiPropertyOptional({ type: 'string', format: 'binary' })
   logo: Express.Multer.File;
 
   @ApiProperty({ type: ['string'], format: 'binary' })
@@ -40,6 +40,6 @@ export class CreateLaunchpadRequestDto {
   @ApiProperty({ type: ['string'], format: 'binary' })
   nft_images: Express.Multer.File[];
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   creator_address: string;
 }
