@@ -21,6 +21,7 @@ import { Roles } from '../../auth/roles.decorator';
 import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { LaunchpadService } from './launchpad.service';
 import { CreateLaunchpadRequestDto } from './dto/create-launchpad-request.dto';
+import { DeployLaunchpadRequestDtoParam } from './dto/deploy-launchpad-request.dto';
 
 @Controller('launchpad')
 @ApiTags('launchpad')
@@ -38,6 +39,17 @@ export class LaunchpadController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.launchpadSvc.create(data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post(':id/deploy')
+  @UseInterceptors(AuthUserInterceptor)
+  deploy(
+    @Param() param: DeployLaunchpadRequestDtoParam,
+  ) {
+    return this.launchpadSvc.deploy(param.id);
   }
 
   // @UseGuards(AuthGuard, RolesGuard)

@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { FilesService } from './files.service';
+import { IPFSService } from './ipfs.service';
 
 @Module({
-  providers: [FilesService],
-  exports: [FilesService],
+  providers: [FilesService, IPFSService],
+  exports: [FilesService, IPFSService],
 })
-export class FilesModule {}
+export class FilesModule { }

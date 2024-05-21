@@ -51,4 +51,44 @@ export class LaunchpadGraphql {
     );
   }
 
+  queryByPk(variables: any, token: string) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `query launchpad_by_pk($id: Int!) {
+        launchpad_by_pk(id: $id) {
+          id
+          name
+          thumbnail_url
+          description
+          max_supply
+          start_date
+          end_date
+          mint_price
+          max_mint_per_address
+          nft_images
+          metadata_uri_base
+          metadata_contract_uri
+          status
+        }
+      }`,
+      'launchpad_by_pk',
+      variables
+    )
+  }
+
+  queryCreatorAddress(variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query authorizer_users_by_pk($id: bpchar = "") {
+        authorizer_users_by_pk(id: $id) {
+          wallet_address
+        }
+      }`,
+      'authorizer_users_by_pk',
+      variables
+    )
+  }
+
 }

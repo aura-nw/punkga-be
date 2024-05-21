@@ -1,3 +1,118 @@
 table:
   name: launchpad
   schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        creator_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - creator_id
+        - id
+        - featured_images
+        - nft_images
+        - creator_address
+        - description
+        - license_token_id
+        - logo_url
+        - max_mint_per_address
+        - max_supply
+        - metadata_contract_uri
+        - metadata_uri_base
+        - mint_price
+        - name
+        - royalties
+        - status
+        - thumbnail_url
+        - created_at
+        - end_date
+        - start_date
+        - updated_at
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - creator_id
+        - id
+        - featured_images
+        - nft_images
+        - creator_address
+        - description
+        - license_token_id
+        - logo_url
+        - max_mint_per_address
+        - max_supply
+        - metadata_contract_uri
+        - metadata_uri_base
+        - mint_price
+        - name
+        - royalties
+        - status
+        - thumbnail_url
+        - created_at
+        - end_date
+        - start_date
+        - updated_at
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - creator_id
+        - id
+        - featured_images
+        - nft_images
+        - creator_address
+        - description
+        - license_token_id
+        - logo_url
+        - max_mint_per_address
+        - max_supply
+        - metadata_contract_uri
+        - metadata_uri_base
+        - mint_price
+        - name
+        - royalties
+        - status
+        - thumbnail_url
+        - created_at
+        - end_date
+        - start_date
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - creator_id
+        - id
+        - featured_images
+        - nft_images
+        - creator_address
+        - description
+        - license_token_id
+        - logo_url
+        - max_mint_per_address
+        - max_supply
+        - metadata_contract_uri
+        - metadata_uri_base
+        - mint_price
+        - name
+        - royalties
+        - status
+        - thumbnail_url
+        - created_at
+        - end_date
+        - start_date
+        - updated_at
+      filter:
+        creator_id:
+          _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        creator_id:
+          _eq: X-Hasura-User-Id
