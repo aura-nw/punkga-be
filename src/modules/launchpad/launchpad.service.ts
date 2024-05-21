@@ -13,6 +13,7 @@ import { writeFile } from 'fs/promises';
 import { IPFSService } from '../files/ipfs.service';
 import { IMetadata } from './interfaces/metadata';
 import { Readable } from 'stream';
+import { EditDraftLaunchpadRequestDto } from './dto/edit-draft-launchpad-request.dto';
 
 
 @Injectable()
@@ -93,7 +94,7 @@ export class LaunchpadService {
         if (uploadResult[index]) {
           // throw error if upload failed
           if (uploadResult[index].$metadata.httpStatusCode !== 200)
-            throw new Error('Upload thumbnail fail' + JSON.stringify(result));
+            throw new Error('Upload fail' + JSON.stringify(result));
 
           // build uploaded url
           const uploadedUrl = new URL(this.getKeyName(file, launchpadId), this.configService.get<string>('aws.queryEndpoint'))
@@ -147,14 +148,7 @@ export class LaunchpadService {
     const { userId, token } = ContextProvider.getAuthUser();
 
     // Get launchpad info
-    const result = await this.launchpadGraphql.queryByPk({
-      id: launchpadId
-    },
-      token
-    )
-    if (result.errors) return result;
-    const launchpad = result.data.launchpad_by_pk;
-
+    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
     if (launchpad.status === LaunchpadStatus.Draft) {
 
       // Upload nft images to IPFS
@@ -256,14 +250,7 @@ export class LaunchpadService {
   async postDeploy(launchpadId: number, contractAddress: string) {
     const { token } = ContextProvider.getAuthUser();
 
-    const result = await this.launchpadGraphql.queryByPk({
-      id: launchpadId
-    }, token);
-    if (result.errors) return result;
-
-    const launchpad = result.data.launchpad_by_pk;
-    if (!launchpad) throw new NotFoundException('launchpad not found');
-
+    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
     if (launchpad.status != LaunchpadStatus.Draft) throw new ForbiddenException('invalid launchpad status')
 
     return this.launchpadGraphql.update({
@@ -275,11 +262,143 @@ export class LaunchpadService {
     })
   }
 
-  async publish(launchpadId: number) {
+  async unpublish(launchpadId: number) {
     // Update offchain launchpad data
+    const { token } = ContextProvider.getAuthUser();
+
+    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
+    if (launchpad.status != LaunchpadStatus.Published) throw new ForbiddenException('invalid launchpad status')
+
+    return this.launchpadGraphql.update({
+      id: launchpadId,
+      data: {
+        status: LaunchpadStatus.ReadyToMint,
+      }
+    })
   }
 
-  async edit(launchpadId: number) {
+  async publish(launchpadId: number) {
     // Update offchain launchpad data
+    const { token } = ContextProvider.getAuthUser();
+
+    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
+    if (launchpad.status != LaunchpadStatus.ReadyToMint) throw new ForbiddenException('invalid launchpad status')
+
+    return this.launchpadGraphql.update({
+      id: launchpadId,
+      data: {
+        status: LaunchpadStatus.Published,
+      }
+    })
+  }
+
+  /**
+   * Admin can edit all field
+   * @param launchpadId 
+   */
+  async editDraftLaunchpad(
+    launchpadId: number,
+    data: EditDraftLaunchpadRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
+    // Update offchain launchpad data
+    const { userId, token } = ContextProvider.getAuthUser();
+    const {
+      name,
+      license_token_id,
+      mint_price,
+      royalties,
+      max_supply,
+      max_mint_per_address,
+      start_date,
+      end_date,
+      description,
+      creator_address,
+      thumbnail_url,
+      featured_images_url,
+      nft_images_url
+    } = data;
+
+    let new_thumbnail_url = thumbnail_url;
+
+    // map files
+    const uploadPromises = files.map((file) => {
+      if (file.mimetype.includes('image')) {
+        return this.fileService.uploadToS3(this.getKeyName(file, launchpadId.toString()), file.buffer, file.mimetype);
+      }
+
+      return undefined;
+    });
+    const uploadResult = await Promise.all(uploadPromises);
+    files.forEach((file, index) => {
+      // if have upload result
+      if (uploadResult[index]) {
+        // throw error if upload failed
+        if (uploadResult[index].$metadata.httpStatusCode !== 200)
+          throw new Error('Upload fail' + JSON.stringify(result));
+
+        // build uploaded url
+        const uploadedUrl = new URL(this.getKeyName(file, launchpadId.toString()), this.configService.get<string>('aws.queryEndpoint'))
+          .href;
+
+        switch (file.fieldname) {
+          case 'thumbnail':
+            new_thumbnail_url = uploadedUrl
+            break;
+          case 'featured_images':
+            featured_images_url.push(uploadedUrl)
+            break;
+          case 'nft_images':
+            nft_images_url.push(uploadedUrl)
+            break;
+          default:
+            break;
+        }
+      }
+    });
+
+    // update db
+    const result = await this.launchpadGraphql.update({
+      id: launchpadId,
+      data: {
+        name,
+        license_token_id,
+        mint_price,
+        royalties,
+        max_supply,
+        max_mint_per_address,
+        start_date,
+        end_date,
+        description,
+        creator_address,
+        creator_id: userId,
+        thumbnail_url: new_thumbnail_url,
+        featured_images: featured_images_url,
+        nft_images: nft_images_url,
+        status: LaunchpadStatus.Draft
+      }
+    });
+
+  }
+
+  /**
+   * Admin only can edit Description and Images (Thumbnail, logo, feature) fields
+   * @param launchpadId 
+   */
+  async editPublishedLaunchpad(launchpadId: number) {
+    // Update offchain launchpad data
+
+  }
+
+  private async getExistingLaunchpad(launchpadId: number, token: string) {
+    const result = await this.launchpadGraphql.queryByPk({
+      id: launchpadId
+    }, token);
+    if (result.errors) throw new Error(JSON.stringify(result));
+
+    const launchpad = result.data.launchpad_by_pk;
+    if (!launchpad) throw new NotFoundException('launchpad not found');
+
+    return launchpad;
   }
 }

@@ -19,6 +19,8 @@ import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { LaunchpadService } from './launchpad.service';
 import { CreateLaunchpadRequestDto } from './dto/create-launchpad-request.dto';
 import { DeployLaunchpadRequestDtoBody, DeployLaunchpadRequestDtoParam } from './dto/deploy-launchpad-request.dto';
+import { PublishLaunchpadRequestDtoParam } from './dto/publish-launchpad-request.dto';
+import { UnPublishLaunchpadRequestDtoParam } from './dto/unpublish-launchpad-request.dto';
 
 @Controller('launchpad')
 @ApiTags('launchpad')
@@ -59,6 +61,28 @@ export class LaunchpadController {
     @Body() body: DeployLaunchpadRequestDtoBody
   ) {
     return this.launchpadSvc.postDeploy(param.id, body.contract_address);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post(':id/post-deploy')
+  @UseInterceptors(AuthUserInterceptor)
+  publish(
+    @Param() param: PublishLaunchpadRequestDtoParam,
+  ) {
+    return this.launchpadSvc.publish(param.id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post(':id/post-deploy')
+  @UseInterceptors(AuthUserInterceptor)
+  unpublish(
+    @Param() param: UnPublishLaunchpadRequestDtoParam,
+  ) {
+    return this.launchpadSvc.unpublish(param.id);
   }
 
   // @UseGuards(AuthGuard, RolesGuard)
