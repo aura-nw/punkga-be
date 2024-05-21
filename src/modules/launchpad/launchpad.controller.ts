@@ -1,11 +1,8 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   Controller,
-  Get,
   Param,
   Post,
-  Put,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -21,7 +18,7 @@ import { Roles } from '../../auth/roles.decorator';
 import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { LaunchpadService } from './launchpad.service';
 import { CreateLaunchpadRequestDto } from './dto/create-launchpad-request.dto';
-import { DeployLaunchpadRequestDtoParam } from './dto/deploy-launchpad-request.dto';
+import { DeployLaunchpadRequestDtoBody, DeployLaunchpadRequestDtoParam } from './dto/deploy-launchpad-request.dto';
 
 @Controller('launchpad')
 @ApiTags('launchpad')
@@ -44,12 +41,24 @@ export class LaunchpadController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.User)
-  @Post(':id/deploy')
+  @Post(':id/pre-deploy')
   @UseInterceptors(AuthUserInterceptor)
-  deploy(
+  preDeploy(
     @Param() param: DeployLaunchpadRequestDtoParam,
   ) {
-    return this.launchpadSvc.deploy(param.id);
+    return this.launchpadSvc.preDeploy(param.id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post(':id/post-deploy')
+  @UseInterceptors(AuthUserInterceptor)
+  postDeploy(
+    @Param() param: DeployLaunchpadRequestDtoParam,
+    @Body() body: DeployLaunchpadRequestDtoBody
+  ) {
+    return this.launchpadSvc.postDeploy(param.id, body.contract_address);
   }
 
   // @UseGuards(AuthGuard, RolesGuard)

@@ -1,5 +1,5 @@
 
-import { Injectable, Logger, } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException, } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { CreateLaunchpadRequestDto } from './dto/create-launchpad-request.dto';
@@ -143,7 +143,7 @@ export class LaunchpadService {
     }
   }
 
-  async deploy(launchpadId: number) {
+  async preDeploy(launchpadId: number) {
     const { userId, token } = ContextProvider.getAuthUser();
 
     // Get launchpad info
@@ -220,7 +220,6 @@ export class LaunchpadService {
         data: {
           metadata_uri_base: metadataIpfsLink,
           metadata_contract_uri: metadataContractIpfsLink,
-          status: LaunchpadStatus.ReadyToMint
         }
       })
       if (updateResult.errors) return updateResult;
@@ -252,6 +251,28 @@ export class LaunchpadService {
       metadataURIBase: launchpad.metadata_uri_base,
       metadataContractURI: launchpad.metadata_contract_uri
     }
+  }
+
+  async postDeploy(launchpadId: number, contractAddress: string) {
+    const { token } = ContextProvider.getAuthUser();
+
+    const result = await this.launchpadGraphql.queryByPk({
+      id: launchpadId
+    }, token);
+    if (result.errors) return result;
+
+    const launchpad = result.data.launchpad_by_pk;
+    if (!launchpad) throw new NotFoundException('launchpad not found');
+
+    if (launchpad.status != LaunchpadStatus.Draft) throw new ForbiddenException('invalid launchpad status')
+
+    return this.launchpadGraphql.update({
+      id: launchpadId,
+      data: {
+        status: LaunchpadStatus.ReadyToMint,
+        contract_address: contractAddress
+      }
+    })
   }
 
   async publish(launchpadId: number) {
