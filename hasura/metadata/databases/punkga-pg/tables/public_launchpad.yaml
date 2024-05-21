@@ -12,6 +12,7 @@ insert_permissions:
         - id
         - featured_images
         - nft_images
+        - contract_address
         - creator_address
         - description
         - license_token_id
@@ -33,12 +34,14 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
-        - creator_id
-        - id
-        - featured_images
-        - nft_images
+        - contract_address
+        - created_at
         - creator_address
+        - creator_id
         - description
+        - end_date
+        - featured_images
+        - id
         - license_token_id
         - logo_url
         - max_mint_per_address
@@ -47,23 +50,24 @@ select_permissions:
         - metadata_uri_base
         - mint_price
         - name
+        - nft_images
         - royalties
+        - start_date
         - status
         - thumbnail_url
-        - created_at
-        - end_date
-        - start_date
         - updated_at
       filter: {}
   - role: user
     permission:
       columns:
-        - creator_id
-        - id
-        - featured_images
-        - nft_images
+        - contract_address
+        - created_at
         - creator_address
+        - creator_id
         - description
+        - end_date
+        - featured_images
+        - id
         - license_token_id
         - logo_url
         - max_mint_per_address
@@ -72,12 +76,11 @@ select_permissions:
         - metadata_uri_base
         - mint_price
         - name
+        - nft_images
         - royalties
+        - start_date
         - status
         - thumbnail_url
-        - created_at
-        - end_date
-        - start_date
         - updated_at
       filter: {}
       allow_aggregations: true
@@ -85,12 +88,14 @@ update_permissions:
   - role: user
     permission:
       columns:
-        - creator_id
-        - id
-        - featured_images
-        - nft_images
+        - contract_address
+        - created_at
         - creator_address
+        - creator_id
         - description
+        - end_date
+        - featured_images
+        - id
         - license_token_id
         - logo_url
         - max_mint_per_address
@@ -99,12 +104,11 @@ update_permissions:
         - metadata_uri_base
         - mint_price
         - name
+        - nft_images
         - royalties
+        - start_date
         - status
         - thumbnail_url
-        - created_at
-        - end_date
-        - start_date
         - updated_at
       filter:
         creator_id:
