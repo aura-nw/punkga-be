@@ -15,7 +15,7 @@ async function bootstrap() {
       transform: true,
       skipNullProperties: true,
       skipMissingProperties: true,
-    }),
+    })
   );
   app.enableCors();
 
@@ -28,6 +28,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('documentation', app, document);
 
-  await app.listen(3002);
+  await app.listen(3000);
 }
 bootstrap();
