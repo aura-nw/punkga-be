@@ -7,6 +7,7 @@
 - "!include public_chapters.yaml"
 - "!include public_creators.yaml"
 - "!include public_email_subscribe.yaml"
+- "!include public_ip_asset.yaml"
 - "!include public_languages.yaml"
 - "!include public_launchpad.yaml"
 - "!include public_likes.yaml"

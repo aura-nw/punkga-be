@@ -1126,3 +1126,27 @@
               }
             }
           }
+      - name: User - Create IP Asset
+        query: |
+          mutation insert_ip_asset_one ($object: ip_asset_insert_input = {}) {
+            insert_ip_asset_one(object: $object) {
+              id
+              ip_asset_id
+              nft_contract_address
+              nft_token_id
+              user_id
+              created_at
+              updated_at
+            }
+          }
+      - name: Public - Query IP Assets
+        query: |
+          query ip_asset ($user_id: bpchar!) {
+            ip_asset(where: {user_id:{_eq:$user_id}}, order_by: {created_at:desc}) {
+              ip_asset_id
+              nft_token_id
+              nft_contract_address
+              user_id
+              created_at
+            }
+          }
