@@ -8,6 +8,8 @@ import { errorOrEmpty } from '../graphql/utils';
 import { RedisService } from '../redis/redis.service';
 import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
 import { UserWalletGraphql } from './user-wallet.graphql';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { errorOrEmpty } from '../graphql/utils';
 
 @Injectable()
 export class UserWalletService {
