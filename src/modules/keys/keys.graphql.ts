@@ -9,7 +9,7 @@ export class KeysGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
 
   async queryEncryptedSeed() {
     const headers = {
@@ -85,7 +85,7 @@ export class KeysGraphql {
       'update_system_key_by_pk',
       {
         id,
-        encrypted_mnemonic: encryptedMnemonic
+        encrypted_mnemonic: encryptedMnemonic,
       },
       headers
     );
@@ -108,7 +108,7 @@ export class KeysGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation insert_system_key($encrypted_seed: String!, $encrypted_mnemonic!) {
+      `mutation insert_system_key($encrypted_seed: String!, $encrypted_mnemonic: String!) {
         insert_system_key(objects: {encrypted_seed: $encrypted_seed, encrypted_mnemonic: $encrypted_mnemonic}) {
           affected_rows
         }
@@ -116,7 +116,7 @@ export class KeysGraphql {
       'insert_system_key',
       {
         encrypted_seed: encryptedSeed,
-        encrypted_mnemonic: encryptedMnemonic
+        encrypted_mnemonic: encryptedMnemonic,
       },
       headers
     );
