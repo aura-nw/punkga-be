@@ -1,5 +1,9 @@
-
-import { ForbiddenException, Injectable, Logger, NotFoundException, } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { CreateLaunchpadRequestDto } from './dto/create-launchpad-request.dto';
@@ -15,7 +19,6 @@ import { IMetadata } from './interfaces/metadata';
 import { Readable } from 'stream';
 import { EditDraftLaunchpadRequestDto } from './dto/edit-draft-launchpad-request.dto';
 
-
 @Injectable()
 export class LaunchpadService {
   private readonly logger = new Logger(LaunchpadService.name);
@@ -24,14 +27,14 @@ export class LaunchpadService {
     private configService: ConfigService,
     private launchpadGraphql: LaunchpadGraphql,
     private fileService: FilesService,
-    private ipfsService: IPFSService,
-  ) { }
+    private ipfsService: IPFSService
+  ) {}
 
   private getKeyName = (file: Express.Multer.File, launchpadId: string) => {
     const s3SubFolder =
       this.configService.get<string>('aws.s3SubFolder') || 'images';
     return `${s3SubFolder}/launchpad-${launchpadId}/${file.fieldname}-${file.originalname}`;
-  }
+  };
 
   async create(
     data: CreateLaunchpadRequestDto,
@@ -39,6 +42,7 @@ export class LaunchpadService {
   ) {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
+
       const {
         name,
         license_token_id,
@@ -49,7 +53,7 @@ export class LaunchpadService {
         start_date,
         end_date,
         description,
-        creator_address
+        // creator_address
       } = data;
 
       // insert db
@@ -64,10 +68,10 @@ export class LaunchpadService {
           start_date,
           end_date,
           description,
-          creator_address,
+          // creator_address,
           creator_id: userId,
-          status: LaunchpadStatus.Draft
-        }
+          status: LaunchpadStatus.Draft,
+        },
       });
 
       if (result.errors) return result;
@@ -75,14 +79,18 @@ export class LaunchpadService {
       const launchpadId = result.data.insert_launchpad_one.id;
 
       let thumbnail_url = '';
-      let logo_url = '';
+      // let logo_url = '';
       const featured_images = [];
       const nft_images = [];
 
       // map files
       const uploadPromises = files.map((file) => {
         if (file.mimetype.includes('image')) {
-          return this.fileService.uploadToS3(this.getKeyName(file, launchpadId), file.buffer, file.mimetype);
+          return this.fileService.uploadToS3(
+            this.getKeyName(file, launchpadId),
+            file.buffer,
+            file.mimetype
+          );
         }
 
         return undefined;
@@ -97,21 +105,23 @@ export class LaunchpadService {
             throw new Error('Upload fail' + JSON.stringify(result));
 
           // build uploaded url
-          const uploadedUrl = new URL(this.getKeyName(file, launchpadId), this.configService.get<string>('aws.queryEndpoint'))
-            .href;
+          const uploadedUrl = new URL(
+            this.getKeyName(file, launchpadId),
+            this.configService.get<string>('aws.queryEndpoint')
+          ).href;
 
           switch (file.fieldname) {
             case 'thumbnail':
-              thumbnail_url = uploadedUrl
+              thumbnail_url = uploadedUrl;
               break;
-            case 'logo':
-              logo_url = uploadedUrl;
-              break;
+            // case 'logo':
+            //   logo_url = uploadedUrl;
+            //   break;
             case 'featured_images':
-              featured_images.push(uploadedUrl)
+              featured_images.push(uploadedUrl);
               break;
             case 'nft_images':
-              nft_images.push(uploadedUrl)
+              nft_images.push(uploadedUrl);
               break;
             default:
               break;
@@ -120,24 +130,20 @@ export class LaunchpadService {
       });
 
       // update
-      const updateResult = await this.launchpadGraphql.update(
-        {
-          id: launchpadId,
-          data: {
-            thumbnail_url,
-            logo_url,
-            featured_images,
-            nft_images,
-          }
-        }
-      );
+      const updateResult = await this.launchpadGraphql.update({
+        id: launchpadId,
+        data: {
+          thumbnail_url,
+          // logo_url,
+          featured_images,
+          nft_images,
+        },
+      });
 
-      if (updateResult.errors)
-        return updateResult;
+      if (updateResult.errors) return updateResult;
 
       return result;
-    }
-    catch (error) {
+    } catch (error) {
       return {
         errors: [error],
       };
@@ -150,56 +156,70 @@ export class LaunchpadService {
     // Get launchpad info
     const launchpad = await this.getExistingLaunchpad(launchpadId, token);
     if (launchpad.status === LaunchpadStatus.Draft) {
-
       // Upload nft images to IPFS
       //   - fetch nft images from s3
       const nftImages = launchpad.nft_images;
-      if (nftImages.length === 0) throw new Error('NFT images empty!')
+      if (nftImages.length === 0) throw new Error('NFT images empty!');
 
-      const filePromises: Promise<GetObjectCommandOutput>[] = nftImages.map((nftImageUrl: string) => {
-        // remove / from pathname
-        const keyName = new URL(nftImageUrl).pathname.substring(1);
-        return this.fileService.downloadFromS3(keyName)
-      })
+      const filePromises: Promise<GetObjectCommandOutput>[] = nftImages.map(
+        (nftImageUrl: string) => {
+          // remove / from pathname
+          const keyName = new URL(nftImageUrl).pathname.substring(1);
+          return this.fileService.downloadFromS3(keyName);
+        }
+      );
 
       const files = await Promise.all(filePromises);
-      const convertedDataFiles = await Promise.all(files.map((file) => (file.Body as Readable)));
+      const convertedDataFiles = await Promise.all(
+        files.map((file) => file.Body as Readable)
+      );
       //    - write files to folder
-      const folderPath = `./uploads/launchpad-${launchpadId}`
+      const folderPath = `./uploads/launchpad-${launchpadId}`;
       mkdirp(folderPath);
       convertedDataFiles.map(async (data, index) => {
         const localFilePath = `${folderPath}/${index}`;
-        return writeFile(localFilePath, data)
-      })
+        return writeFile(localFilePath, data);
+      });
       //   - upload nft images folder to ipfs
-      const ipfsImageFolder = `/punkga-launchpad-${launchpadId}/images`
-      const { cid, filenames } = await this.ipfsService.uploadLocalFolderToIpfs(folderPath, ipfsImageFolder);
+      const ipfsImageFolder = `/punkga-launchpad-${launchpadId}/images`;
+      const { cid, filenames } = await this.ipfsService.uploadLocalFolderToIpfs(
+        folderPath,
+        ipfsImageFolder
+      );
 
       //   - make & upload nft metadata
-      const ipfsMetadataFolder = `/punkga-launchpad-${launchpadId}/metadata`
-      const metadataObjects: IMetadata[] = filenames.map((filename, index: number) => ({
-        token_id: index,
-        name: index.toString(),
-        description: 'punkga nft',
-        attributes: [],
-        image: `https://ipfs-gw.dev.aura.network/ipfs/${cid}/${index}`
-      }))
-      const medatadaFolderCid = await this.ipfsService.uploadMetadataObjectsToIpfs(metadataObjects, ipfsMetadataFolder)
-      const metadataIpfsLink = `https://ipfs-gw.dev.aura.network/ipfs/${medatadaFolderCid}`;
-      console.log(
-        `\n\nUploaded metadata. Link: ${metadataIpfsLink}`
+      const ipfsMetadataFolder = `/punkga-launchpad-${launchpadId}/metadata`;
+      const metadataObjects: IMetadata[] = filenames.map(
+        (filename, index: number) => ({
+          token_id: index,
+          name: index.toString(),
+          description: 'punkga nft',
+          attributes: [],
+          image: `https://ipfs-gw.dev.aura.network/ipfs/${cid}/${index}`,
+        })
       );
+      const medatadaFolderCid =
+        await this.ipfsService.uploadMetadataObjectsToIpfs(
+          metadataObjects,
+          ipfsMetadataFolder
+        );
+      const metadataIpfsLink = `https://ipfs-gw.dev.aura.network/ipfs/${medatadaFolderCid}`;
+      console.log(`\n\nUploaded metadata. Link: ${metadataIpfsLink}`);
 
       //   - upload metadata contract uri
       const metadataContract = {
-        "name": launchpad.name,
-        "image_url": launchpad.thumbnail_url,
-        "banner_image_url": launchpad.thumbnail_url,
-        "description": launchpad.description,
-        "website": "https://punkga.me"
-      }
+        name: launchpad.name,
+        image_url: launchpad.thumbnail_url,
+        banner_image_url: launchpad.thumbnail_url,
+        description: launchpad.description,
+        website: 'https://punkga.me',
+      };
       const metadataContractFolderPath = `/punkga-launchpad-${launchpadId}`;
-      const metadataContractCid = await this.ipfsService.uploadMetadataContractToIpfs(metadataContract, metadataContractFolderPath)
+      const metadataContractCid =
+        await this.ipfsService.uploadMetadataContractToIpfs(
+          metadataContract,
+          metadataContractFolderPath
+        );
       const metadataContractIpfsLink = `https://ipfs-gw.dev.aura.network/ipfs/${metadataContractCid}`;
       launchpad.metadata_uri_base = metadataIpfsLink;
       launchpad.metadata_contract_uri = metadataContractIpfsLink;
@@ -214,17 +234,18 @@ export class LaunchpadService {
         data: {
           metadata_uri_base: metadataIpfsLink,
           metadata_contract_uri: metadataContractIpfsLink,
-        }
-      })
+        },
+      });
       if (updateResult.errors) return updateResult;
     }
 
     // query creator address
     const queryUserResult = await this.launchpadGraphql.queryCreatorAddress({
-      id: userId
+      id: userId,
     });
     if (queryUserResult.errors) return queryUserResult;
-    const creatorAddress = queryUserResult.data.authorizer_users_by_pk.wallet_address;
+    const creatorAddress =
+      queryUserResult.data.authorizer_users_by_pk.wallet_address;
 
     // return
     return {
@@ -239,27 +260,28 @@ export class LaunchpadService {
           startTime: new Date(launchpad.start_date).getTime(),
           endTime: new Date(launchpad.end_date).getTime(),
           publicSalePrice: launchpad.mint_price,
-          maxSalePurchasePerAddress: launchpad.max_mint_per_address
-        }
+          maxSalePurchasePerAddress: launchpad.max_mint_per_address,
+        },
       },
       metadataURIBase: launchpad.metadata_uri_base,
-      metadataContractURI: launchpad.metadata_contract_uri
-    }
+      metadataContractURI: launchpad.metadata_contract_uri,
+    };
   }
 
   async postDeploy(launchpadId: number, contractAddress: string) {
     const { token } = ContextProvider.getAuthUser();
 
     const launchpad = await this.getExistingLaunchpad(launchpadId, token);
-    if (launchpad.status != LaunchpadStatus.Draft) throw new ForbiddenException('invalid launchpad status')
+    if (launchpad.status != LaunchpadStatus.Draft)
+      throw new ForbiddenException('invalid launchpad status');
 
     return this.launchpadGraphql.update({
       id: launchpadId,
       data: {
         status: LaunchpadStatus.ReadyToMint,
-        contract_address: contractAddress
-      }
-    })
+        contract_address: contractAddress,
+      },
+    });
   }
 
   async unpublish(launchpadId: number) {
@@ -267,14 +289,15 @@ export class LaunchpadService {
     const { token } = ContextProvider.getAuthUser();
 
     const launchpad = await this.getExistingLaunchpad(launchpadId, token);
-    if (launchpad.status != LaunchpadStatus.Published) throw new ForbiddenException('invalid launchpad status')
+    if (launchpad.status != LaunchpadStatus.Published)
+      throw new ForbiddenException('invalid launchpad status');
 
     return this.launchpadGraphql.update({
       id: launchpadId,
       data: {
         status: LaunchpadStatus.ReadyToMint,
-      }
-    })
+      },
+    });
   }
 
   async publish(launchpadId: number) {
@@ -282,19 +305,20 @@ export class LaunchpadService {
     const { token } = ContextProvider.getAuthUser();
 
     const launchpad = await this.getExistingLaunchpad(launchpadId, token);
-    if (launchpad.status != LaunchpadStatus.ReadyToMint) throw new ForbiddenException('invalid launchpad status')
+    if (launchpad.status != LaunchpadStatus.ReadyToMint)
+      throw new ForbiddenException('invalid launchpad status');
 
     return this.launchpadGraphql.update({
       id: launchpadId,
       data: {
         status: LaunchpadStatus.Published,
-      }
-    })
+      },
+    });
   }
 
   /**
    * Admin can edit all field
-   * @param launchpadId 
+   * @param launchpadId
    */
   async editDraftLaunchpad(
     launchpadId: number,
@@ -316,7 +340,7 @@ export class LaunchpadService {
       creator_address,
       thumbnail_url,
       featured_images_url,
-      nft_images_url
+      nft_images_url,
     } = data;
 
     let new_thumbnail_url = thumbnail_url;
@@ -324,7 +348,11 @@ export class LaunchpadService {
     // map files
     const uploadPromises = files.map((file) => {
       if (file.mimetype.includes('image')) {
-        return this.fileService.uploadToS3(this.getKeyName(file, launchpadId.toString()), file.buffer, file.mimetype);
+        return this.fileService.uploadToS3(
+          this.getKeyName(file, launchpadId.toString()),
+          file.buffer,
+          file.mimetype
+        );
       }
 
       return undefined;
@@ -338,18 +366,20 @@ export class LaunchpadService {
           throw new Error('Upload fail' + JSON.stringify(result));
 
         // build uploaded url
-        const uploadedUrl = new URL(this.getKeyName(file, launchpadId.toString()), this.configService.get<string>('aws.queryEndpoint'))
-          .href;
+        const uploadedUrl = new URL(
+          this.getKeyName(file, launchpadId.toString()),
+          this.configService.get<string>('aws.queryEndpoint')
+        ).href;
 
         switch (file.fieldname) {
           case 'thumbnail':
-            new_thumbnail_url = uploadedUrl
+            new_thumbnail_url = uploadedUrl;
             break;
           case 'featured_images':
-            featured_images_url.push(uploadedUrl)
+            featured_images_url.push(uploadedUrl);
             break;
           case 'nft_images':
-            nft_images_url.push(uploadedUrl)
+            nft_images_url.push(uploadedUrl);
             break;
           default:
             break;
@@ -375,25 +405,26 @@ export class LaunchpadService {
         thumbnail_url: new_thumbnail_url,
         featured_images: featured_images_url,
         nft_images: nft_images_url,
-        status: LaunchpadStatus.Draft
-      }
+        status: LaunchpadStatus.Draft,
+      },
     });
-
   }
 
   /**
    * Admin only can edit Description and Images (Thumbnail, logo, feature) fields
-   * @param launchpadId 
+   * @param launchpadId
    */
   async editPublishedLaunchpad(launchpadId: number) {
     // Update offchain launchpad data
-
   }
 
   private async getExistingLaunchpad(launchpadId: number, token: string) {
-    const result = await this.launchpadGraphql.queryByPk({
-      id: launchpadId
-    }, token);
+    const result = await this.launchpadGraphql.queryByPk(
+      {
+        id: launchpadId,
+      },
+      token
+    );
     if (result.errors) throw new Error(JSON.stringify(result));
 
     const launchpad = result.data.launchpad_by_pk;

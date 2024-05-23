@@ -31,8 +31,8 @@ export class CreateLaunchpadRequestDto {
   @ApiProperty({ type: 'string', format: 'binary' })
   thumbnail: Express.Multer.File;
 
-  @ApiPropertyOptional({ type: 'string', format: 'binary' })
-  logo: Express.Multer.File;
+  // @ApiPropertyOptional({ type: 'string', format: 'binary' })
+  // logo: Express.Multer.File;
 
   @ApiProperty({ type: ['string'], format: 'binary' })
   featured_images: Express.Multer.File[];
@@ -40,6 +40,6 @@ export class CreateLaunchpadRequestDto {
   @ApiProperty({ type: ['string'], format: 'binary' })
   nft_images: Express.Multer.File[];
 
-  @ApiPropertyOptional()
-  creator_address: string;
+  // @ApiPropertyOptional()
+  // creator_address: string;
 }
