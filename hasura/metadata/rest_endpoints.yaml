@@ -290,6 +290,24 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - List published launchpad
+  methods:
+    - GET
+  name: Public - List published launchpad
+  url: public/launchpad
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Pubic - Published launchpad detail
+  methods:
+    - GET
+  name: Pubic - Published launchpad detail
+  url: public/launchpad/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Get manga list by list id
   methods:
     - POST

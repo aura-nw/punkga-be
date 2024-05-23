@@ -1150,3 +1150,59 @@
               created_at
             }
           }
+      - name: Public - List published launchpad
+        query: |
+          query launchpad {
+            launchpad(where: {status:{_eq:"PUBLISHED"}}) {
+              contract_address
+              created_at
+              creator_address
+              creator_id
+              description
+              end_date
+              featured_images
+              license_token_id
+              id
+              logo_url
+              max_mint_per_address
+              max_supply
+              metadata_contract_uri
+              metadata_uri_base
+              mint_price
+              name
+              nft_images
+              royalties
+              start_date
+              status
+              thumbnail_url
+              updated_at
+            }
+          }
+      - name: Pubic - Published launchpad detail
+        query: |
+          query launchpad ($id: Int!) {
+            launchpad(where: {id:{_eq:$id},status:{_eq:"PUBLISHED"}}) {
+              contract_address
+              created_at
+              creator_address
+              creator_id
+              description
+              end_date
+              featured_images
+              license_token_id
+              id
+              logo_url
+              max_mint_per_address
+              max_supply
+              metadata_contract_uri
+              metadata_uri_base
+              mint_price
+              name
+              nft_images
+              royalties
+              start_date
+              status
+              thumbnail_url
+              updated_at
+            }
+          }
