@@ -15,21 +15,24 @@ import { ConfigService } from '@nestjs/config';
 
 import { IFileInfo } from '../chapter/interfaces';
 import _ from 'lodash';
+import { IPFSService } from './ipfs.service';
 
 @Injectable()
 export class FilesService implements OnModuleInit {
   private readonly logger = new Logger(FilesService.name);
-  private ipfsClient: IPFSHTTPClient;
+  // private ipfsClient: IPFSHTTPClient;
 
-  constructor(private configService: ConfigService) { }
+  constructor(
+    private configService: ConfigService,
+    private ipfsService: IPFSService
+  ) {}
 
   onModuleInit() {
-    const ipfsUrl = this.configService.get<string>('network.ipfsUrl');
-
-    this.ipfsClient = create({
-      url: ipfsUrl,
-      timeout: 60000,
-    });
+    // const ipfsUrl = this.configService.get<string>('network.ipfsUrl');
+    // this.ipfsClient = create({
+    //   url: ipfsUrl,
+    //   timeout: 60000,
+    // });
   }
 
   unzipFile(file: string, outputPath: string): Promise<boolean> {
@@ -91,21 +94,7 @@ export class FilesService implements OnModuleInit {
   }
 
   async uploadImageToIpfs(file: Express.Multer.File) {
-    if (!file.mimetype.includes('image')) {
-      throw Error('file type is not valid');
-    }
-
-    const response = await this.ipfsClient.add(
-      {
-        path: file.originalname,
-        content: file.buffer,
-      },
-      {
-        wrapWithDirectory: true,
-      }
-    );
-
-    return `/ipfs/${response.cid.toString()}/${file.originalname}`;
+    return this.ipfsService.uploadImageToIpfs(file);
   }
 
   async uploadImageToS3(key: string, f: Express.Multer.File): Promise<string> {
@@ -167,8 +156,8 @@ export class FilesService implements OnModuleInit {
     this.logger.debug(`Download key: ${keyName} to bucket ${bucketName}`);
 
     const input = {
-      "Bucket": bucketName,
-      "Key": keyName,
+      Bucket: bucketName,
+      Key: keyName,
     };
 
     // Create a promise on S3 service object

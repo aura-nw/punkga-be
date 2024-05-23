@@ -18,14 +18,17 @@ import { Roles } from '../../auth/roles.decorator';
 import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { LaunchpadService } from './launchpad.service';
 import { CreateLaunchpadRequestDto } from './dto/create-launchpad-request.dto';
-import { DeployLaunchpadRequestDtoBody, DeployLaunchpadRequestDtoParam } from './dto/deploy-launchpad-request.dto';
+import {
+  DeployLaunchpadRequestDtoBody,
+  DeployLaunchpadRequestDtoParam,
+} from './dto/deploy-launchpad-request.dto';
 import { PublishLaunchpadRequestDtoParam } from './dto/publish-launchpad-request.dto';
 import { UnPublishLaunchpadRequestDtoParam } from './dto/unpublish-launchpad-request.dto';
 
 @Controller('launchpad')
 @ApiTags('launchpad')
 export class LaunchpadController {
-  constructor(private readonly launchpadSvc: LaunchpadService) { }
+  constructor(private readonly launchpadSvc: LaunchpadService) {}
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -45,9 +48,7 @@ export class LaunchpadController {
   @Roles(Role.User)
   @Post(':id/pre-deploy')
   @UseInterceptors(AuthUserInterceptor)
-  preDeploy(
-    @Param() param: DeployLaunchpadRequestDtoParam,
-  ) {
+  preDeploy(@Param() param: DeployLaunchpadRequestDtoParam) {
     return this.launchpadSvc.preDeploy(param.id);
   }
 
@@ -66,22 +67,18 @@ export class LaunchpadController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.User)
-  @Post(':id/post-deploy')
+  @Post(':id/publish')
   @UseInterceptors(AuthUserInterceptor)
-  publish(
-    @Param() param: PublishLaunchpadRequestDtoParam,
-  ) {
+  publish(@Param() param: PublishLaunchpadRequestDtoParam) {
     return this.launchpadSvc.publish(param.id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.User)
-  @Post(':id/post-deploy')
+  @Post(':id/unpublish')
   @UseInterceptors(AuthUserInterceptor)
-  unpublish(
-    @Param() param: UnPublishLaunchpadRequestDtoParam,
-  ) {
+  unpublish(@Param() param: UnPublishLaunchpadRequestDtoParam) {
     return this.launchpadSvc.unpublish(param.id);
   }
 
