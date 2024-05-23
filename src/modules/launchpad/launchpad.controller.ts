@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   Post,
   UploadedFiles,
@@ -24,6 +25,7 @@ import {
 } from './dto/deploy-launchpad-request.dto';
 import { PublishLaunchpadRequestDtoParam } from './dto/publish-launchpad-request.dto';
 import { UnPublishLaunchpadRequestDtoParam } from './dto/unpublish-launchpad-request.dto';
+import { DetailOwnedLaunchpadRequestDtoParam } from './dto/detail-owned-launchpad-request.dto';
 
 @Controller('launchpad')
 @ApiTags('launchpad')
@@ -80,6 +82,24 @@ export class LaunchpadController {
   @UseInterceptors(AuthUserInterceptor)
   unpublish(@Param() param: UnPublishLaunchpadRequestDtoParam) {
     return this.launchpadSvc.unpublish(param.id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Get('onwed')
+  @UseInterceptors(AuthUserInterceptor)
+  listOwnedLaunchpad() {
+    return this.launchpadSvc.listOwnedLanchpad();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Get('owned/:id')
+  @UseInterceptors(AuthUserInterceptor)
+  onwedLaunchpadDetail(@Param() param: DetailOwnedLaunchpadRequestDtoParam) {
+    return this.launchpadSvc.launchpadDetail(param.id);
   }
 
   // @UseGuards(AuthGuard, RolesGuard)

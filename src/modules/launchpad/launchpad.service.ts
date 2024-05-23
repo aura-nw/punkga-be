@@ -316,6 +316,24 @@ export class LaunchpadService {
     });
   }
 
+  async listOwnedLanchpad() {
+    const { userId } = ContextProvider.getAuthUser();
+
+    return this.launchpadGraphql.listOwnedLaunchpad({
+      user_id: userId,
+    });
+  }
+
+  async launchpadDetail(id: number) {
+    const { token } = ContextProvider.getAuthUser();
+    return this.launchpadGraphql.getOwnedLaunchpadDetail(
+      {
+        id,
+      },
+      token
+    );
+  }
+
   /**
    * Admin can edit all field
    * @param launchpadId

@@ -7,7 +7,72 @@ export class LaunchpadGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
+
+  getOwnedLaunchpadDetail(variables: any, token) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `query launchpad_by_pk($id: Int!) {
+        launchpad_by_pk(id: $id) {
+          contract_address
+          created_at
+          creator_address
+          creator_id
+          description
+          end_date
+          featured_images
+          license_token_id
+          id
+          logo_url
+          max_mint_per_address
+          max_supply
+          metadata_contract_uri
+          metadata_uri_base
+          mint_price
+          name
+          nft_images
+          royalties
+          start_date
+          status
+          thumbnail_url
+          updated_at
+        }
+      }
+      `,
+      'launchpad_by_pk',
+      variables
+    );
+  }
+
+  listOwnedLaunchpad(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query launchpad($user_id: bpchar!) {
+        launchpad(where: {creator_id: {_eq: $user_id}}) {
+          id
+          name
+          license_token_id
+          status
+          start_date
+          end_date
+          created_at
+          updated_at
+        }
+      }
+      `,
+      'launchpad',
+      variables,
+      headers
+    );
+  }
 
   insert(variables: any) {
     const headers = {
@@ -74,7 +139,7 @@ export class LaunchpadGraphql {
       }`,
       'launchpad_by_pk',
       variables
-    )
+    );
   }
 
   queryCreatorAddress(variables: any) {
@@ -88,7 +153,6 @@ export class LaunchpadGraphql {
       }`,
       'authorizer_users_by_pk',
       variables
-    )
+    );
   }
-
 }
