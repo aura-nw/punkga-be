@@ -23,6 +23,7 @@ export class LaunchpadGraphql {
           end_date
           featured_images
           license_token_id
+          license_token_address
           id
           logo_url
           max_mint_per_address
