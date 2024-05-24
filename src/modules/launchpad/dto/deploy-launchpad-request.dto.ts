@@ -7,5 +7,5 @@ export class DeployLaunchpadRequestDtoParam {
 
 export class DeployLaunchpadRequestDtoBody {
   @ApiProperty()
-  contract_address: string;
+  tx_hash: string;
 }

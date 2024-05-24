@@ -1177,10 +1177,10 @@
               updated_at
             }
           }
-      - name: Public - Get launchpad
+      - name: Public - Launchpad by id
         query: |
-          query launchpad {
-            launchpad {
+          query launchpad ($id: Int!) {
+            launchpad_by_pk(id: $id) {
               id
               creator_address
               creator_id
@@ -1206,10 +1206,10 @@
               updated_at
             }
           }
-      - name: Public - Launchpad by id
+      - name: Public - Get launchpad
         query: |
-          query launchpad ($id: Int!) {
-            launchpad_by_pk(id: $id) {
+          query launchpad {
+            launchpad(where: {status:{_eq:"PUBLISHED"}}) {
               id
               creator_address
               creator_id

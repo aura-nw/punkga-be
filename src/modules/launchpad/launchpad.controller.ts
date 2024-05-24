@@ -72,7 +72,7 @@ export class LaunchpadController {
     @Param() param: DeployLaunchpadRequestDtoParam,
     @Body() body: DeployLaunchpadRequestDtoBody
   ) {
-    return this.launchpadSvc.postDeploy(param.id, body.contract_address);
+    return this.launchpadSvc.postDeploy(param.id, body.tx_hash);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

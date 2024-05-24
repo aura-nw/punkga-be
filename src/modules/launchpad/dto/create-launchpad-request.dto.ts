@@ -43,6 +43,6 @@ export class CreateLaunchpadRequestDto {
   @ApiProperty({ type: ['string'], format: 'binary' })
   nft_images: Express.Multer.File[];
 
-  // @ApiPropertyOptional()
-  // creator_address: string;
+  @ApiPropertyOptional()
+  creator_address: string;
 }

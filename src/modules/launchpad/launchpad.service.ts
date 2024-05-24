@@ -56,7 +56,7 @@ export class LaunchpadService {
         start_date,
         end_date,
         description,
-        // creator_address
+        creator_address,
       } = data;
 
       // insert db
@@ -72,7 +72,7 @@ export class LaunchpadService {
           start_date,
           end_date,
           description,
-          // creator_address,
+          creator_address,
           creator_id: userId,
           status: LaunchpadStatus.Draft,
         },
@@ -275,7 +275,7 @@ export class LaunchpadService {
     };
   }
 
-  async postDeploy(launchpadId: number, contractAddress: string) {
+  async postDeploy(launchpadId: number, txHash: string) {
     const { token } = ContextProvider.getAuthUser();
 
     const launchpad = await this.getExistingLaunchpad(launchpadId, token);
@@ -286,7 +286,7 @@ export class LaunchpadService {
       id: launchpadId,
       data: {
         status: LaunchpadStatus.ReadyToMint,
-        contract_address: contractAddress,
+        tx_hash: txHash,
       },
     });
   }
