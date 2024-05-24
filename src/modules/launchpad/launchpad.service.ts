@@ -181,7 +181,8 @@ export class LaunchpadService {
       const folderPath = `./uploads/launchpad-${launchpadId}`;
       mkdirp(folderPath);
       convertedDataFiles.map(async (data, index) => {
-        const localFilePath = `${folderPath}/${index}`;
+        const tokenId = 1370000000000 + index;
+        const localFilePath = `${folderPath}/${tokenId}`;
         return writeFile(localFilePath, data);
       });
       //   - upload nft images folder to ipfs
@@ -195,11 +196,13 @@ export class LaunchpadService {
       const ipfsMetadataFolder = `/punkga-launchpad-${launchpadId}/metadata`;
       const metadataObjects: IMetadata[] = filenames.map(
         (filename, index: number) => ({
-          token_id: index,
-          name: index.toString(),
+          token_id: 1370000000000 + index,
+          name: (1370000000000 + index).toString(),
           description: 'punkga nft',
           attributes: [],
-          image: `https://ipfs-gw.dev.aura.network/ipfs/${cid}/${index}`,
+          image: `https://ipfs-gw.dev.aura.network/ipfs/${cid}/${
+            1370000000000 + index
+          }`,
         })
       );
       const medatadaFolderCid =
