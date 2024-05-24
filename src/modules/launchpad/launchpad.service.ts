@@ -374,6 +374,7 @@ export class LaunchpadService {
       thumbnail_url,
       featured_images_url,
       nft_images_url,
+      license_token_address,
     } = data;
 
     let new_thumbnail_url = thumbnail_url;
@@ -437,6 +438,7 @@ export class LaunchpadService {
         description,
         creator_address,
         // creator_id: userId,
+        license_token_address,
         thumbnail_url: new_thumbnail_url,
         featured_images: featured_images_url_arr,
         nft_images: nft_images_url_arr,

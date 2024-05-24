@@ -48,6 +48,9 @@ export class EditDraftLaunchpadRequestDto {
   @ApiProperty()
   thumbnail_url: string;
 
+  @ApiProperty()
+  license_token_address: string;
+
   @ApiProperty({ type: [String] })
   featured_images_url: string;
 
