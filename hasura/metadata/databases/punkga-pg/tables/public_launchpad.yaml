@@ -12,6 +12,7 @@ insert_permissions:
         - id
         - featured_images
         - nft_images
+        - onchain_info
         - contract_address
         - creator_address
         - description
@@ -35,13 +36,14 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
-        - creator_id
-        - id
-        - featured_images
-        - nft_images
         - contract_address
+        - created_at
         - creator_address
+        - creator_id
         - description
+        - end_date
+        - featured_images
+        - id
         - license_token_address
         - license_token_id
         - logo_url
@@ -51,24 +53,25 @@ select_permissions:
         - metadata_uri_base
         - mint_price
         - name
+        - nft_images
+        - onchain_info
         - royalties
+        - start_date
         - status
         - thumbnail_url
-        - created_at
-        - end_date
-        - start_date
         - updated_at
       filter: {}
   - role: user
     permission:
       columns:
-        - creator_id
-        - id
-        - featured_images
-        - nft_images
         - contract_address
+        - created_at
         - creator_address
+        - creator_id
         - description
+        - end_date
+        - featured_images
+        - id
         - license_token_address
         - license_token_id
         - logo_url
@@ -78,12 +81,12 @@ select_permissions:
         - metadata_uri_base
         - mint_price
         - name
+        - nft_images
+        - onchain_info
         - royalties
+        - start_date
         - status
         - thumbnail_url
-        - created_at
-        - end_date
-        - start_date
         - updated_at
       filter: {}
       allow_aggregations: true
@@ -109,6 +112,7 @@ update_permissions:
         - mint_price
         - name
         - nft_images
+        - onchain_info
         - royalties
         - start_date
         - status

@@ -290,6 +290,24 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Get launchpad
+  methods:
+    - GET
+  name: Public - Get launchpad
+  url: public/launchpad
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Launchpad by id
+  methods:
+    - GET
+  name: Public - Launchpad by id
+  url: public/launchpad/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Get license tokens by ip asset id
   methods:
     - GET

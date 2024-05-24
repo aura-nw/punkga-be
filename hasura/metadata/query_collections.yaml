@@ -1177,3 +1177,61 @@
               updated_at
             }
           }
+      - name: Public - Get launchpad
+        query: |
+          query launchpad {
+            launchpad {
+              id
+              creator_address
+              creator_id
+              description
+              end_date
+              featured_images
+              license_token_address
+              license_token_id
+              logo_url
+              max_mint_per_address
+              metadata_contract_uri
+              max_supply
+              metadata_uri_base
+              mint_price
+              name
+              nft_images
+              onchain_info
+              royalties
+              start_date
+              status
+              thumbnail_url
+              created_at
+              updated_at
+            }
+          }
+      - name: Public - Launchpad by id
+        query: |
+          query launchpad ($id: Int!) {
+            launchpad_by_pk(id: $id) {
+              id
+              creator_address
+              creator_id
+              description
+              end_date
+              featured_images
+              license_token_address
+              license_token_id
+              logo_url
+              max_mint_per_address
+              metadata_contract_uri
+              max_supply
+              metadata_uri_base
+              mint_price
+              name
+              nft_images
+              onchain_info
+              royalties
+              start_date
+              status
+              thumbnail_url
+              created_at
+              updated_at
+            }
+          }
