@@ -1,5 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class EditDraftLaunchpadParamDto {
+  @ApiProperty()
+  id: number;
+}
+
 export class EditDraftLaunchpadRequestDto {
   @ApiProperty()
   name: string;
@@ -44,8 +49,8 @@ export class EditDraftLaunchpadRequestDto {
   thumbnail_url: string;
 
   @ApiProperty({ type: [String] })
-  featured_images_url: string[];
+  featured_images_url: string;
 
   @ApiProperty({ type: [String] })
-  nft_images_url: string[];
+  nft_images_url: string;
 }

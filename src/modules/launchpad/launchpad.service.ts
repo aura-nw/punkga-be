@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -18,6 +19,7 @@ import { IPFSService } from '../files/ipfs.service';
 import { IMetadata } from './interfaces/metadata';
 import { Readable } from 'stream';
 import { EditDraftLaunchpadRequestDto } from './dto/edit-draft-launchpad-request.dto';
+import { EditUnPublishLaunchpadRequestDto } from './dto/edit-unpublish-launchpad-request.dto';
 
 @Injectable()
 export class LaunchpadService {
@@ -345,11 +347,19 @@ export class LaunchpadService {
   ) {
     // Update offchain launchpad data
     const { userId, token } = ContextProvider.getAuthUser();
+
+    // check launchpad
+    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
+    if (launchpad.status !== LaunchpadStatus.Draft)
+      throw new BadRequestException('launchpad status invalid');
+    if (launchpad.creator_id !== userId)
+      throw new ForbiddenException('invalid creator');
+
     const {
       name,
       license_token_id,
       mint_price,
-      royalties,
+      // royalties,
       max_supply,
       max_mint_per_address,
       start_date,
@@ -362,6 +372,8 @@ export class LaunchpadService {
     } = data;
 
     let new_thumbnail_url = thumbnail_url;
+    const featured_images_url_arr = featured_images_url.split(',').map(String);
+    const nft_images_url_arr = nft_images_url.split(',').map(String);
 
     // map files
     const uploadPromises = files.map((file) => {
@@ -394,10 +406,10 @@ export class LaunchpadService {
             new_thumbnail_url = uploadedUrl;
             break;
           case 'featured_images':
-            featured_images_url.push(uploadedUrl);
+            featured_images_url_arr.push(uploadedUrl);
             break;
           case 'nft_images':
-            nft_images_url.push(uploadedUrl);
+            nft_images_url_arr.push(uploadedUrl);
             break;
           default:
             break;
@@ -412,28 +424,97 @@ export class LaunchpadService {
         name,
         license_token_id,
         mint_price,
-        royalties,
+        // royalties,
         max_supply,
         max_mint_per_address,
         start_date,
         end_date,
         description,
         creator_address,
-        creator_id: userId,
+        // creator_id: userId,
         thumbnail_url: new_thumbnail_url,
-        featured_images: featured_images_url,
-        nft_images: nft_images_url,
-        status: LaunchpadStatus.Draft,
+        featured_images: featured_images_url_arr,
+        nft_images: nft_images_url_arr,
       },
     });
+
+    return result;
   }
 
   /**
    * Admin only can edit Description and Images (Thumbnail, logo, feature) fields
    * @param launchpadId
    */
-  async editPublishedLaunchpad(launchpadId: number) {
+  async editUnPublishLaunchpad(
+    launchpadId: number,
+    data: EditUnPublishLaunchpadRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
     // Update offchain launchpad data
+    const { userId, token } = ContextProvider.getAuthUser();
+
+    // check launchpad
+    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
+    if (launchpad.status !== LaunchpadStatus.ReadyToMint)
+      throw new BadRequestException('launchpad status invalid');
+    if (launchpad.creator_id !== userId)
+      throw new ForbiddenException('invalid creator');
+
+    const { description, thumbnail_url, featured_images_url } = data;
+
+    let new_thumbnail_url = thumbnail_url;
+    const featured_images_url_arr = featured_images_url.split(',').map(String);
+
+    // map files
+    const uploadPromises = files.map((file) => {
+      if (file.mimetype.includes('image')) {
+        return this.fileService.uploadToS3(
+          this.getKeyName(file, launchpadId.toString()),
+          file.buffer,
+          file.mimetype
+        );
+      }
+
+      return undefined;
+    });
+    const uploadResult = await Promise.all(uploadPromises);
+    files.forEach((file, index) => {
+      // if have upload result
+      if (uploadResult[index]) {
+        // throw error if upload failed
+        if (uploadResult[index].$metadata.httpStatusCode !== 200)
+          throw new Error('Upload fail' + JSON.stringify(result));
+
+        // build uploaded url
+        const uploadedUrl = new URL(
+          this.getKeyName(file, launchpadId.toString()),
+          this.configService.get<string>('aws.queryEndpoint')
+        ).href;
+
+        switch (file.fieldname) {
+          case 'thumbnail':
+            new_thumbnail_url = uploadedUrl;
+            break;
+          case 'featured_images':
+            featured_images_url_arr.push(uploadedUrl);
+            break;
+          default:
+            break;
+        }
+      }
+    });
+
+    // update db
+    const result = await this.launchpadGraphql.update({
+      id: launchpadId,
+      data: {
+        description,
+        thumbnail_url: new_thumbnail_url,
+        featured_images: featured_images_url_arr,
+      },
+    });
+
+    return result;
   }
 
   private async getExistingLaunchpad(launchpadId: number, token: string) {

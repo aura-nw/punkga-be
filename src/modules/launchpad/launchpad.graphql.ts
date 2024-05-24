@@ -135,6 +135,7 @@ export class LaunchpadGraphql {
           metadata_uri_base
           metadata_contract_uri
           status
+          creator_id
         }
       }`,
       'launchpad_by_pk',

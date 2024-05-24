@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -26,6 +27,14 @@ import {
 import { PublishLaunchpadRequestDtoParam } from './dto/publish-launchpad-request.dto';
 import { UnPublishLaunchpadRequestDtoParam } from './dto/unpublish-launchpad-request.dto';
 import { DetailOwnedLaunchpadRequestDtoParam } from './dto/detail-owned-launchpad-request.dto';
+import {
+  EditDraftLaunchpadParamDto,
+  EditDraftLaunchpadRequestDto,
+} from './dto/edit-draft-launchpad-request.dto';
+import {
+  EditUnPublishLaunchpadParamDto,
+  EditUnPublishLaunchpadRequestDto,
+} from './dto/edit-unpublish-launchpad-request.dto';
 
 @Controller('launchpad')
 @ApiTags('launchpad')
@@ -102,22 +111,33 @@ export class LaunchpadController {
     return this.launchpadSvc.launchpadDetail(param.id);
   }
 
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @ApiBearerAuth()
-  // @Roles(Role.Admin)
-  // @Put(':creatorId')
-  // @ApiConsumes('multipart/form-data')
-  // @UseInterceptors(
-  //   AuthUserInterceptor,
-  //   ClassSerializerInterceptor,
-  //   AnyFilesInterceptor()
-  // )
-  // update(
-  //   @Param() param: UpdateCreatorParamDto,
-  //   @Body() data: UpdateCreatorRequestDto,
-  //   @UploadedFiles() files: Array<Express.Multer.File>
-  // ) {
-  //   const { creatorId } = param;
-  //   return this.creatorSvc.update(creatorId, data, files);
-  // }
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Put(':id/edit-draft')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  updateDraft(
+    @Param() param: EditDraftLaunchpadParamDto,
+    @Body() data: EditDraftLaunchpadRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    const { id } = param;
+    return this.launchpadSvc.editDraftLaunchpad(id, data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Put(':id/edit-unpublish')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  updateUnpublish(
+    @Param() param: EditUnPublishLaunchpadParamDto,
+    @Body() data: EditUnPublishLaunchpadRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    const { id } = param;
+    return this.launchpadSvc.editUnPublishLaunchpad(id, data, files);
+  }
 }
