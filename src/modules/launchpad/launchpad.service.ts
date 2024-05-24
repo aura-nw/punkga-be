@@ -48,6 +48,7 @@ export class LaunchpadService {
       const {
         name,
         license_token_id,
+        license_token_address,
         mint_price,
         royalties,
         max_supply,
@@ -63,6 +64,7 @@ export class LaunchpadService {
         data: {
           name,
           license_token_id,
+          license_token_address,
           mint_price,
           royalties,
           max_supply,

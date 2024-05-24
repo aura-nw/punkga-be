@@ -8,6 +8,9 @@ export class CreateLaunchpadRequestDto {
   license_token_id: string;
 
   @ApiProperty()
+  license_token_address: string;
+
+  @ApiProperty()
   mint_price: string;
 
   @ApiPropertyOptional()
