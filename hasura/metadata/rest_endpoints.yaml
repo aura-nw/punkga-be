@@ -290,6 +290,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Get license tokens by ip asset id
+  methods:
+    - GET
+  name: Public - Get license tokens by ip asset id
+  url: public/license-token
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Get manga list by list id
   methods:
     - POST
@@ -439,6 +448,15 @@
     - POST
   name: User - Like chapter
   url: user/chapters/:chapter_id/likes
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Insert license token
+  methods:
+    - POST
+  name: User - Insert license token
+  url: user/license-token
 - comment: ""
   definition:
     query:
