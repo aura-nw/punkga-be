@@ -153,7 +153,7 @@ export class FilesService implements OnModuleInit {
     });
 
     const bucketName = this.configService.get<string>('aws.bucketName');
-    this.logger.debug(`Download key: ${keyName} to bucket ${bucketName}`);
+    this.logger.debug(`Download key: ${keyName} from bucket ${bucketName}`);
 
     const input = {
       Bucket: bucketName,

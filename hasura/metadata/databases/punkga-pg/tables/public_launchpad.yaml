@@ -1,6 +1,17 @@
 table:
   name: launchpad
   schema: public
+object_relationships:
+  - name: license
+    using:
+      manual_configuration:
+        column_mapping:
+          license_token_address: license_template_address
+          license_token_id: license_id
+        insertion_order: null
+        remote_table:
+          name: license_tokens
+          schema: public
 insert_permissions:
   - role: user
     permission:
