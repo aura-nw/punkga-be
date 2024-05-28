@@ -1244,3 +1244,10 @@
               }
             }
           }
+      - name: User - Delete launchpad
+        query: |
+          mutation delete_launchpad ($id: Int!) {
+            delete_launchpad(where: {id:{_eq:$id},status:{_eq:"DRAFT"}}) {
+              affected_rows
+            }
+          }

@@ -520,3 +520,12 @@
     - POST
   name: User - Create IP Asset
   url: users/ip-assets
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Delete launchpad
+  methods:
+    - DELETE
+  name: User - Delete launchpad
+  url: users/launchpad/:id
