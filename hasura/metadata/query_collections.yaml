@@ -1150,19 +1150,6 @@
               created_at
             }
           }
-      - name: User - Insert license token
-        query: |
-          mutation insert_license_tokens_one ($object: license_tokens_insert_input = {}) {
-            insert_license_tokens_one(object: $object) {
-              id
-              license_id
-              ip_asset_id
-              license_template_address
-              owner
-              term_id
-              created_at
-            }
-          }
       - name: Public - Get license tokens by ip asset id
         query: |
           query license_tokens ($ip_asset_id: String!) {
@@ -1249,5 +1236,21 @@
           mutation delete_launchpad ($id: Int!) {
             delete_launchpad(where: {id:{_eq:$id},status:{_eq:"DRAFT"}}) {
               affected_rows
+            }
+          }
+      - name: User - Insert license token
+        query: |
+          mutation insert_license_tokens ($objects: [license_tokens_insert_input!] = {}) {
+            insert_license_tokens(objects: $objects) {
+              affected_rows
+              returning {
+                id
+                license_id
+                ip_asset_id
+                license_template_address
+                owner
+                term_id
+                created_at
+              }
             }
           }
