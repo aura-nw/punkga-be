@@ -98,12 +98,26 @@ export class QuestService {
     try {
       const url = await this.filesService.uploadImageToS3(`nft`, file);
 
-      const ipfs = await this.filesService.uploadImageToIpfs(file);
+      const { cid, originalname } = await this.filesService.uploadImageToIpfs(
+        file
+      );
+
+      // upload metadata to ipfs
+      const metadata = {
+        name: `PunkgaReward NFT`,
+        description: 'Punkga Reward',
+        attributes: [],
+        image: `ipfs://${cid}/${originalname}`,
+      };
+      const { cid: metadataCID } = await this.filesService.uploadMetadataToIpfs(
+        metadata,
+        `/metadata-${new Date().getTime()}`
+      );
 
       this.logger.debug(`uploading nft image ${file.originalname} success`);
       return {
         url,
-        ipfs,
+        ipfs: `ipfs://${metadataCID}`,
       };
     } catch (errors) {
       return {

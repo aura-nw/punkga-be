@@ -18,7 +18,7 @@ export class FilesService implements OnModuleInit {
   private readonly logger = new Logger(FilesService.name);
   private ipfsClient: IPFSHTTPClient;
 
-  constructor(private configService: ConfigService) { }
+  constructor(private configService: ConfigService) {}
 
   onModuleInit() {
     const ipfsUrl = this.configService.get<string>('network.ipfsUrl');
@@ -102,7 +102,24 @@ export class FilesService implements OnModuleInit {
       }
     );
 
-    return `/ipfs/${response.cid.toString()}/${file.originalname}`;
+    return {
+      cid: response.cid.toString(),
+      originalname: file.originalname,
+    };
+
+    // return `/ipfs/${response.cid.toString()}/${file.originalname}`;
+  }
+
+  async uploadMetadataToIpfs(object: any, path: string) {
+    const content = JSON.stringify(object);
+    await this.ipfsClient.files.write(path, content, { create: true });
+    const metadataContractCid = (
+      await this.ipfsClient.files.stat(path)
+    ).cid.toString();
+
+    return {
+      cid: metadataContractCid,
+    };
   }
 
   async uploadImageToS3(key: string, f: Express.Multer.File): Promise<string> {

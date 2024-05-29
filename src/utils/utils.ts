@@ -1,13 +1,13 @@
-import {
-  decodeSignature,
-  serializeSignDoc,
-  StdSignature,
-  StdSignDoc,
-} from '@cosmjs/amino';
-import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
+// import {
+//   decodeSignature,
+//   serializeSignDoc,
+//   StdSignature,
+//   StdSignDoc,
+// } from '@cosmjs/amino';
+// import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
 
 import { ISlugId } from './utils.interface';
-import { SiweMessage } from 'siwe';
+// import { SiweMessage } from 'siwe';
 
 export function detectSlugOrId(text: any): ISlugId {
   let id = 0;

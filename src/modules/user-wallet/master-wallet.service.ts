@@ -1,6 +1,6 @@
-import { StdFee } from '@cosmjs/amino';
-import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import { toUtf8 } from '@cosmjs/encoding';
+// import { StdFee } from '@cosmjs/amino';
+// import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
+// import { toUtf8 } from '@cosmjs/encoding';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -15,8 +15,8 @@ export class MasterWalletService implements OnModuleInit {
   private masterWallet = null;
   private masterWalletAddress = '';
   private contractAddress: string;
-  private executeFee: StdFee;
-  private client: SigningCosmWasmClient;
+  // private executeFee: StdFee;
+  // private client: SigningCosmWasmClient;
 
   constructor(
     private configService: ConfigService,

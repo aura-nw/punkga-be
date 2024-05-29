@@ -15,13 +15,12 @@ import { GraphqlModule } from './modules/graphql/graphql.module';
 import { SysKeyModule } from './modules/keys/syskey.module';
 import { MangaModule } from './modules/manga/manga.module';
 import { QuestModule } from './modules/quest/quest.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { RequestModule } from './modules/request/request.module';
+import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/system-custodial-wallet.module';
 import { TasksModule } from './modules/task/task.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
 import { UserModule } from './modules/user/user.module';
-import { RequestModule } from './modules/request/request.module';
-import { RedisModule } from './modules/redis/redis.module';
-import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/system-custodial-wallet.module';
-import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -36,8 +35,8 @@ import { AuthModule } from './auth/auth.module';
         prefix: 'punkga',
         defaultJobOptions: {
           removeOnComplete: true,
-          removeOnFail: 10
-        }
+          removeOnFail: 10,
+        },
       }),
       inject: [ConfigService],
     }),
@@ -46,7 +45,7 @@ import { AuthModule } from './auth/auth.module';
     CacheModule.register({
       isGlobal: true,
       ttl: 5,
-      max: 20
+      max: 20,
     }),
     ChapterModule,
     MangaModule,
@@ -66,7 +65,6 @@ import { AuthModule } from './auth/auth.module';
     RequestModule,
     RedisModule,
     SystemCustodialWalletModule,
-    AuthModule
   ],
   controllers: [],
   providers: [
@@ -83,4 +81,4 @@ import { AuthModule } from './auth/auth.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}
