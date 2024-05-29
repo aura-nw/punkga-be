@@ -86,19 +86,19 @@ export class SystemCustodialWalletService implements OnModuleInit {
       this.logger.debug(`Insert granter wallet: ${JSON.stringify(result)}`);
     }
 
-    const defaultSigningClientOptions: SigningStargateClientOptions = {
-      broadcastPollIntervalMs: 300,
-      broadcastTimeoutMs: 8_000,
-      gasPrice: GasPrice.fromString(this.configService.get<string>('network.gasPrice')),
-    };
+    // const defaultSigningClientOptions: SigningStargateClientOptions = {
+    //   broadcastPollIntervalMs: 300,
+    //   broadcastTimeoutMs: 8_000,
+    //   gasPrice: GasPrice.fromString(this.configService.get<string>('network.gasPrice')),
+    // };
 
     // build client
-    const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
-    this.client = await SigningStargateClient.connectWithSigner(
-      rpcEndpoint,
-      this.granterWallet,
-      defaultSigningClientOptions
-    );
+    // const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
+    // this.client = await SigningStargateClient.connectWithSigner(
+    //   rpcEndpoint,
+    //   this.granterWallet,
+    //   defaultSigningClientOptions
+    // );
   }
 
   get granterAddress() {

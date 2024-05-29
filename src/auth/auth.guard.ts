@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
     if (!token) {
       throw new UnauthorizedException();
     }
-    const pubkey = await readFile(path.resolve(__dirname, '../../credentials/public.pem'));
+    const pubkey = await readFile(path.resolve(__dirname, '../../public.pem'));
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         publicKey: pubkey,
