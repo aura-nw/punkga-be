@@ -55,14 +55,13 @@ export class MasterWalletService implements OnModuleInit {
   }
 
   async broadcastTx(messages: any) {
-    const result = await this.client.signAndBroadcast(
-      this.masterWalletAddress,
-      messages,
-      'auto',
-      'punkga'
-    );
-
+    // const result = await this.client.signAndBroadcast(
+    //   this.masterWalletAddress,
+    //   messages,
+    //   'auto',
+    //   'punkga'
+    // );
     // this.logger.debug(result);
-    return result;
+    // return result;
   }
 }
