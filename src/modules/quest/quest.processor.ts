@@ -46,6 +46,7 @@ export class QuestProcessor {
 
   @Process({ name: 'claim-reward', concurrency: 1 })
   async claimQuestReward() {
+    console.log('claimQuestReward');
     if (!this.contractWithMasterWallet) {
       this.contractWithMasterWallet = await this._getContract();
       if (!this.contractWithMasterWallet) {
@@ -309,12 +310,16 @@ export class QuestProcessor {
       this.CONTRACT_ABI = JSON.parse(files.toString()).abi;
     }
 
+    console.log('CONTRACT_ABI',this.CONTRACT_ABI);
+    console.log('contractLevelingProxy',this.contractLevelingProxy);
+    console.log('PROVIDER',this.PROVIDER);
     // Connecting to smart contract
     const contract = new Contract(
       this.contractLevelingProxy,
       this.CONTRACT_ABI,
       this.PROVIDER
     );
+
     const rs = contract.connect(masterWalletData.wallet);
     return rs;
   }
