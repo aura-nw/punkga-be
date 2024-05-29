@@ -301,11 +301,13 @@ export class QuestProcessor {
   }
 
   async _getContract() {
+    try{
     const masterWalletData = await this.masterWalletSerivce.getMasterWallet();
     if (!masterWalletData) return null;
 
     if (this.CONTRACT_ABI.length == 0) {
       const abiFilePath = path.resolve(__dirname, './files/PunkgaReward.json');
+      console.log('abiFilePath',abiFilePath);
       const files = fs.readFileSync(abiFilePath);
       this.CONTRACT_ABI = JSON.parse(files.toString()).abi;
     }
@@ -322,5 +324,9 @@ export class QuestProcessor {
 
     const rs = contract.connect(masterWalletData.wallet);
     return rs;
+  }catch(error){
+    this.logger.error('_getContract err', error)
+    throw error;
+  }
   }
 }
