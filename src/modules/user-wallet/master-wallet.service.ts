@@ -30,141 +30,39 @@ export class MasterWalletService implements OnModuleInit {
   }
 
   async initMasterWallet() {
-    // get from db
-    const masterWalletData = await this.userWalletGraphql.getMasterWallet();
-
-    const providerUrl = this.configService.get<string>('network.jsonrpc');
+    const masterWalletPK = this.configService.get<string>('masterPK');
+    const providerUrl = this.configService.get<string>('network.rpcEndpoint');
     const provider = new JsonRpcProvider(providerUrl);
+    this.masterWallet = new Wallet(masterWalletPK, provider);
+    this.masterWalletAddress = this.masterWallet.address;
+    // console.log('this.masterWallet', this.masterWallet);
+    // console.log('this.masterWalletAddress', this.masterWalletAddress);
+  }
 
-    if (masterWalletData) {
-      const phrase = this.decryptPhrase(masterWalletData.data);
-      const wallet = Wallet.fromPhrase(phrase, provider);
-
-      this.masterWallet = wallet;
-      this.masterWalletAddress = wallet.address;
+  async getMasterWallet() {
+    if (this.masterWallet && this.masterWalletAddress) {
+      return {
+        wallet: this.masterWallet,
+        address: this.masterWalletAddress,
+      };
     } else {
-      const { wallet, address, cipherPhrase } =
-        await this.sysKeyService.randomWallet(provider);
-
-      this.masterWallet = wallet;
-      this.masterWalletAddress = address;
-
-      // store db
-      const result = await this.userWalletGraphql.insertManyUserWallet({
-        objects: [
-          {
-            address,
-            data: cipherPhrase,
-            is_master_wallet: true,
-          },
-        ],
-      });
-      this.logger.debug(`Insert master wallet: ${JSON.stringify(result)}`);
+      return null;
     }
-
-    // const gasPrice = GasPrice.fromString(
-    //   this.configService.get<string>('network.gasPrice')
-    // );
-    // this.executeFee = calculateFee(300_000, gasPrice);
-    // this.contractAddress = this.configService.get<string>(
-    //   'network.contractAddress.leveling'
-    // );
-
-    // build client
-    // const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
-    // this.client = await SigningCosmWasmClient.connectWithSigner(
-    //   rpcEndpoint,
-    //   this.masterWallet,
-    //   {
-    //     gasPrice,
-    //   }
-    // );
   }
 
   decryptPhrase(data: any) {
     return Crypter.decrypt(data, this.sysKeyService.originalSeed);
   }
 
-  // async broadcastTx(messages: any) {
-  //   const result = await this.client.signAndBroadcast(
-  //     this.masterWalletAddress,
-  //     messages,
-  //     'auto',
-  //     'punkga'
-  //   );
+  async broadcastTx(messages: any) {
+    const result = await this.client.signAndBroadcast(
+      this.masterWalletAddress,
+      messages,
+      'auto',
+      'punkga'
+    );
 
-  //   // this.logger.debug(result);
-  //   return result;
-  // }
-
-  // async mintNft(userAddress: string, tokenId: string, extension: any) {
-  //   const result = await this.client.execute(
-  //     this.masterWalletAddress,
-  //     this.contractAddress,
-  //     {
-  //       mint_reward: {
-  //         user_addr: userAddress,
-  //         token_id: tokenId,
-  //         extension,
-  //       },
-  //     },
-  //     this.executeFee
-  //   );
-
-  //   this.logger.debug(result);
-  //   return result;
-  // }
-
-  // async updateUserLevel(userAddress: string, xp: number, level: number) {
-  //   const result = await this.client.execute(
-  //     this.masterWalletAddress,
-  //     this.contractAddress,
-  //     {
-  //       update_user_info: {
-  //         address: userAddress,
-  //         level,
-  //         total_xp: xp,
-  //       },
-  //     },
-  //     this.executeFee
-  //   );
-
-  //   this.logger.debug(result);
-  //   return result;
-  // }
-
-  // generateIncreaseXpMsg(userAddress: string, xp: number, level: number) {
-  //   return this.generateExecuteContractMsg(
-  //     this.masterWalletAddress,
-  //     this.contractAddress,
-  //     {
-  //       update_user_info: {
-  //         address: userAddress,
-  //         level,
-  //         total_xp: xp,
-  //       },
-  //     }
-  //   );
-  // }
-
-  // generateMintNftMsg(userAddress: string, tokenId: string, extension: any) {
-  //   return this.generateExecuteContractMsg(
-  //     this.masterWalletAddress,
-  //     this.contractAddress,
-  //     {
-  //       mint_reward: {
-  //         user_addr: userAddress,
-  //         token_id: tokenId,
-  //         extension,
-  //       },
-  //     }
-  //   );
-  // }
-
-  // generateExecuteContractMsg(sender: string, contract: string, msg) {
-  //   return {
-  //     typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
-  //     value: { msg: toUtf8(JSON.stringify(msg)), sender, contract, funds: [] },
-  //   };
-  // }
+    // this.logger.debug(result);
+    return result;
+  }
 }

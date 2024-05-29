@@ -34,19 +34,20 @@ export class QuestService {
     private readonly questQueue: Queue
   ) {}
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async triggerClaimReward() {
     const activeJobCount = await this.questQueue.getActiveCount();
     if (activeJobCount > 0) {
       this.logger.debug(`Busy Queue Execute Onchain`);
       return true;
     }
-
+    
     const data = {
       redisKey: 'punkga:job:claim-reward',
       time: new Date().toUTCString(),
     };
-
+    
+    this.logger.debug(`create job to claim reward`);
     // create job to claim reward
     await this.questQueue.add('claim-reward', data, {
       removeOnComplete: true,
