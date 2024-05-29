@@ -54,6 +54,7 @@ export class QuestProcessor {
         throw new Error(errMsg);
       }
     }
+    console.log('this.contractWithMasterWallet',this.contractWithMasterWallet);
     const env = this.configService.get<string>('app.env') || 'prod';
     const redisData = await this.redisClientService.popListRedis(
       `punkga-${env}:reward-users`
@@ -63,6 +64,7 @@ export class QuestProcessor {
       (dataStr) => JSON.parse(dataStr) as IRewardInfo
     );
     const rewardMap = await this.mapUserReward(listRewards);
+    console.log('rewardMap',rewardMap);
     try {
       // create msg and execute contract
       // const messages = await this.buildMessages(rewardMap);
