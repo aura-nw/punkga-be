@@ -54,15 +54,14 @@ export class MasterWalletService implements OnModuleInit {
     return Crypter.decrypt(data, this.sysKeyService.originalSeed);
   }
 
-  // async broadcastTx(messages: any) {
-  //   const result = await this.client.signAndBroadcast(
-  //     this.masterWalletAddress,
-  //     messages,
-  //     'auto',
-  //     'punkga'
-  //   );
-
-  //   // this.logger.debug(result);
-  //   return result;
-  // }
+  async broadcastTx(messages: any) {
+    // const result = await this.client.signAndBroadcast(
+    //   this.masterWalletAddress,
+    //   messages,
+    //   'auto',
+    //   'punkga'
+    // );
+    // this.logger.debug(result);
+    // return result;
+  }
 }
