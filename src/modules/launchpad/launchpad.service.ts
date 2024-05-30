@@ -175,7 +175,9 @@ export class LaunchpadService {
 
       const files = await Promise.all(filePromises);
       const convertedDataFiles = await Promise.all(
-        files.map((file) => file.Body as Readable)
+        files.map((file) => ({
+          body: file.Body as Readable,
+        }))
       );
       //    - write files to folder
       const folderPath = `./uploads/launchpad-${launchpadId}`;
@@ -183,7 +185,7 @@ export class LaunchpadService {
       convertedDataFiles.map(async (data, index) => {
         const tokenId = 1370000000000 + index;
         const localFilePath = `${folderPath}/${tokenId}`;
-        return writeFile(localFilePath, data);
+        return writeFile(localFilePath, data.body);
       });
       //   - upload nft images folder to ipfs
       const ipfsImageFolder = `/punkga-launchpad-${launchpadId}/images`;
@@ -378,8 +380,14 @@ export class LaunchpadService {
     } = data;
 
     let new_thumbnail_url = thumbnail_url;
-    const featured_images_url_arr = featured_images_url.split(',').map(String);
-    const nft_images_url_arr = nft_images_url.split(',').map(String);
+    const featured_images_url_arr = featured_images_url
+      .split(',')
+      .map(String)
+      .filter((url) => url !== '');
+    const nft_images_url_arr = nft_images_url
+      .split(',')
+      .map(String)
+      .filter((url) => url !== '');
 
     // map files
     const uploadPromises = files.map((file) => {
@@ -412,12 +420,10 @@ export class LaunchpadService {
             new_thumbnail_url = uploadedUrl;
             break;
           case 'featured_images':
-            featured_images_url_arr
-              .filter((url) => url !== '')
-              .push(uploadedUrl);
+            featured_images_url_arr.push(uploadedUrl);
             break;
           case 'nft_images':
-            nft_images_url_arr.filter((url) => url !== '').push(uploadedUrl);
+            nft_images_url_arr.push(uploadedUrl);
             break;
           default:
             break;
