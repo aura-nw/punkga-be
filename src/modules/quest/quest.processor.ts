@@ -11,15 +11,16 @@ import { LevelingService } from '../leveling/leveling.service';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
 import { ConfigService } from '@nestjs/config';
+import * as ABI from './files/PunkgaReward.json';
 import {
   Contract,
   JsonRpcProvider,
-  Wallet,
-  formatEther,
-  parseEther,
+  // Wallet,
+  // formatEther,
+  // parseEther,
 } from 'ethers';
-import * as fs from 'fs';
-import path from 'path';
+// import * as fs from 'fs';
+// import path from 'path';
 
 @Processor('quest')
 export class QuestProcessor {
@@ -55,7 +56,7 @@ export class QuestProcessor {
         throw new Error(errMsg);
       }
     }
-    console.log('this.contractWithMasterWallet',this.contractWithMasterWallet);
+    // console.log('this.contractWithMasterWallet', this.contractWithMasterWallet);
     const env = this.configService.get<string>('app.env') || 'prod';
     const redisData = await this.redisClientService.popListRedis(
       `punkga-${env}:reward-users`
@@ -65,7 +66,7 @@ export class QuestProcessor {
       (dataStr) => JSON.parse(dataStr) as IRewardInfo
     );
     const rewardMap = await this.mapUserReward(listRewards);
-    console.log('rewardMap',rewardMap);
+    // console.log('rewardMap', rewardMap);
     try {
       // create msg and execute contract
       // const messages = await this.buildMessages(rewardMap);
@@ -301,32 +302,26 @@ export class QuestProcessor {
   }
 
   async _getContract() {
-    try{
-    const masterWalletData = await this.masterWalletSerivce.getMasterWallet();
-    if (!masterWalletData) return null;
+    try {
+      const masterWalletData = await this.masterWalletSerivce.getMasterWallet();
+      if (!masterWalletData) return null;
+      this.CONTRACT_ABI = ABI.abi;
 
-    if (this.CONTRACT_ABI.length == 0) {
-      const abiFilePath = path.resolve(__dirname, './files/PunkgaReward.json');
-      console.log('abiFilePath',abiFilePath);
-      const files = fs.readFileSync(abiFilePath);
-      this.CONTRACT_ABI = JSON.parse(files.toString()).abi;
+      // console.log('CONTRACT_ABI', this.CONTRACT_ABI);
+      // console.log('contractLevelingProxy', this.contractLevelingProxy);
+      // console.log('PROVIDER', this.PROVIDER);
+      // Connecting to smart contract
+      const contract = new Contract(
+        this.contractLevelingProxy,
+        this.CONTRACT_ABI,
+        this.PROVIDER
+      );
+
+      const rs = contract.connect(masterWalletData.wallet);
+      return rs;
+    } catch (error) {
+      this.logger.error('_getContract err', error);
+      throw error;
     }
-
-    console.log('CONTRACT_ABI',this.CONTRACT_ABI);
-    console.log('contractLevelingProxy',this.contractLevelingProxy);
-    console.log('PROVIDER',this.PROVIDER);
-    // Connecting to smart contract
-    const contract = new Contract(
-      this.contractLevelingProxy,
-      this.CONTRACT_ABI,
-      this.PROVIDER
-    );
-
-    const rs = contract.connect(masterWalletData.wallet);
-    return rs;
-  }catch(error){
-    this.logger.error('_getContract err', error)
-    throw error;
-  }
   }
 }
