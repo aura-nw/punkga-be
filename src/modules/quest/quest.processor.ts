@@ -222,7 +222,7 @@ export class QuestProcessor {
           })
         );
 
-        await this.updateOffchainData(value, JSON.stringify(txs).toString());
+        await this.updateOffchainData(updatedValue, JSON.stringify(txs).toString());
       }
     } catch (error) {
       console.log('Transaction is error', error);
