@@ -412,10 +412,12 @@ export class LaunchpadService {
             new_thumbnail_url = uploadedUrl;
             break;
           case 'featured_images':
-            featured_images_url_arr.push(uploadedUrl);
+            featured_images_url_arr
+              .filter((url) => url !== '')
+              .push(uploadedUrl);
             break;
           case 'nft_images':
-            nft_images_url_arr.push(uploadedUrl);
+            nft_images_url_arr.filter((url) => url !== '').push(uploadedUrl);
             break;
           default:
             break;
