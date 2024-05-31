@@ -11,10 +11,28 @@ import { LevelingService } from '../leveling/leveling.service';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
 import { ConfigService } from '@nestjs/config';
+import * as ABI from './files/PunkgaReward.json';
+import {
+  Contract,
+  JsonRpcProvider,
+  // Wallet,
+  // formatEther,
+  // parseEther,
+} from 'ethers';
+// import * as fs from 'fs';
+// import path from 'path';
 
 @Processor('quest')
 export class QuestProcessor {
   private readonly logger = new Logger(QuestProcessor.name);
+  private PROVIDER_URL = this.configService.get<string>('network.rpcEndpoint');
+  // Connecting to provider
+  private PROVIDER = new JsonRpcProvider(this.PROVIDER_URL);
+  private contractLevelingProxy: string = this.configService.get<string>(
+    'network.contractAddress.leveling'
+  );
+  private CONTRACT_ABI = [];
+  private contractWithMasterWallet = null;
 
   constructor(
     private configService: ConfigService,
@@ -24,40 +42,46 @@ export class QuestProcessor {
     private redisClientService: RedisService,
     private levelingService: LevelingService,
     private masterWalletSerivce: MasterWalletService,
-    private userLevelGraphql: UserLevelGraphql,
-  ) { }
-
+    private userLevelGraphql: UserLevelGraphql
+  ) {}
 
   @Process({ name: 'claim-reward', concurrency: 1 })
   async claimQuestReward() {
-    const env = this.configService.get<string>('app.env') || 'prod';
-    const redisData = await this.redisClientService.popListRedis(`punkga-${env}:reward-users`);
-    if (redisData.length === 0) return true;
-
-    const listRewards = redisData.map((dataStr) => JSON.parse(dataStr) as IRewardInfo)
-
-    const rewardMap = await this.mapUserReward(listRewards);
-
-    // create msg and execute contract
-    const messages = await this.buildMessages(rewardMap);
-
-    // execute contract
-    try {
-      if (messages.length === 0) {
-        const errMsg = `Request ${listRewards.map((reward) => reward.requestId).toString()}: 0 message`;
+    console.log('claimQuestReward');
+    if (!this.contractWithMasterWallet) {
+      this.contractWithMasterWallet = await this._getContract();
+      if (!this.contractWithMasterWallet) {
+        const errMsg = `can not get contract With Master Wallet`;
         this.logger.error(errMsg);
         throw new Error(errMsg);
       }
-      const tx = await this.masterWalletSerivce.broadcastTx(messages);
-
-      // update offchain db info
-      await this.updateOffchainData(rewardMap, tx.transactionHash);
-      this.logger.debug(`${rewardMap.size} users XP updated!!!`)
-
+    }
+    // console.log('this.contractWithMasterWallet', this.contractWithMasterWallet);
+    const env = this.configService.get<string>('app.env') || 'prod';
+    const redisData = await this.redisClientService.popListRedis(
+      `punkga-${env}:reward-users`
+    );
+    if (redisData.length === 0) return true;
+    const listRewards = redisData.map(
+      (dataStr) => JSON.parse(dataStr) as IRewardInfo
+    );
+    const rewardMap = await this.mapUserReward(listRewards);
+    // console.log('rewardMap', rewardMap);
+    try {
+      // create msg and execute contract
+      // const messages = await this.buildMessages(rewardMap);
+      const txs = await this.mintRewards(rewardMap);
+      // execute contract
+      if (txs.length === 0) {
+        const errMsg = `Request ${listRewards
+          .map((reward) => reward.requestId)
+          .toString()}: 0 message`;
+        this.logger.error(errMsg);
+        throw new Error(errMsg);
+      }
     } catch (error) {
       this.logger.error(JSON.stringify(error));
       await this.updateErrorRequest(rewardMap, error.toString());
-
     }
   }
 
@@ -66,31 +90,34 @@ export class QuestProcessor {
 
     for (let i = 0; i < listRewards.length; i += 1) {
       try {
-        const { userId, questId, campaignId, requestId, userCampaignId } = listRewards[i];
+        const { userId, questId, campaignId, requestId, userCampaignId } =
+          listRewards[i];
         const userReward = rewardMap.get(userId) ?? new UserRewardInfo(userId);
 
         if (campaignId) {
-
-          const userCampaign = await this.questGraphql.getUserCampaignReward(campaignId);
+          const userCampaign = await this.questGraphql.getUserCampaignReward(
+            campaignId
+          );
           const reward = userCampaign.user_campaign_campaign.reward;
           if (reward.xp) {
-            userReward.reward.xp += reward.xp
+            userReward.reward.xp += reward.xp;
           }
 
-          if (reward.nft && reward.nft.ipfs !== "") {
+          if (reward.nft && reward.nft.ipfs !== '') {
             const nftInfo = {
               name: reward.nft.nft_name || '',
               image: reward.nft.ipfs,
-              tokenId: userId + Number(new Date()).toString()
-            }
+              tokenId: userId + Number(new Date()).toString(),
+            };
             userReward.reward.nft.push(nftInfo);
           }
 
           // danh dau campaign nay da co 1 luot claim
-          const userCampaignRewardId = await this.questRewardService.saveUserCampaignReward(
-            campaignId,
-            userCampaign.id,
-          );
+          const userCampaignRewardId =
+            await this.questRewardService.saveUserCampaignReward(
+              campaignId,
+              userCampaign.id
+            );
           userReward.userCampaignRewardIds.push(userCampaignRewardId);
           userReward.requestIds.push(requestId);
         }
@@ -100,28 +127,26 @@ export class QuestProcessor {
             id: questId,
           });
 
-          const rewardStatus = await this.checkRewardService.getClaimRewardStatus(
-            quest,
-            userId
-          );
+          const rewardStatus =
+            await this.checkRewardService.getClaimRewardStatus(quest, userId);
 
           if (rewardStatus !== RewardStatus.CanClaimReward)
             throw new ForbiddenException();
 
           if (quest.reward?.xp) {
-            userReward.reward.xp += quest.reward?.xp
+            userReward.reward.xp += quest.reward?.xp;
             userReward.userCampaignXp.push({
               userCampaignId,
-              xp: quest.reward?.xp
-            })
+              xp: quest.reward?.xp,
+            });
           }
 
-          if (quest.reward?.nft && quest.reward?.nft.ipfs !== "") {
+          if (quest.reward?.nft && quest.reward?.nft.ipfs !== '') {
             const nftInfo = {
               name: quest.reward.nft.nft_name || '',
               image: quest.reward.nft.ipfs,
-              tokenId: userId + Number(new Date()).toString()
-            }
+              tokenId: userId + Number(new Date()).toString(),
+            };
             userReward.reward.nft.push(nftInfo);
           }
 
@@ -133,35 +158,33 @@ export class QuestProcessor {
           );
           userReward.userQuestIds.push(userQuestId);
           userReward.requestIds.push(requestId);
-
         }
 
-        rewardMap.set(userId, userReward)
-
+        rewardMap.set(userId, userReward);
       } catch (error) {
         await this.questGraphql.updateRequestLogs({
           ids: listRewards[i].requestId,
           log: error.toString(),
-          status: 'FAILED'
-        })
-        this.logger.error(error.toString())
+          status: 'FAILED',
+        });
+        this.logger.error(error.toString());
       }
     }
 
     return rewardMap;
   }
 
-  async buildMessages(rewardMap: Map<string, UserRewardInfo>) {
-    const messages = []
+  async mintRewards(rewardMap: Map<string, UserRewardInfo>) {
+    const txsTotal = [];
 
     try {
-      for (const [key, value] of rewardMap.entries()) {
+      for await (const [key, value] of rewardMap.entries()) {
+        const txs = [];
+
         // get user info by map key
-        const user = await this.questGraphql.queryPublicUserWalletData(
-          {
-            id: key,
-          },
-        );
+        const user = await this.questGraphql.queryPublicUserWalletData({
+          id: key,
+        });
 
         // calculate total xp and level
         const currentXp = user.levels[0] ? user.levels[0].xp : 0;
@@ -170,12 +193,14 @@ export class QuestProcessor {
         // calculate level from xp
         const newLevel = this.levelingService.xpToLevel(totalXp);
 
-        // build execute contract msg increase user xp and mint nft
-        messages.push(this.masterWalletSerivce.generateIncreaseXpMsg(
+        const tx = await this.contractWithMasterWallet.updateUserInfo(
           user.active_wallet_address,
-          totalXp,
-          newLevel
-        ));
+          newLevel,
+          totalXp
+        );
+        await tx.wait();
+        txs.push(tx.hash);
+        txsTotal.push(tx.hash);
 
         // update total xp to map value
         const updatedValue = { ...value };
@@ -184,22 +209,31 @@ export class QuestProcessor {
         rewardMap.set(key, updatedValue);
 
         // generate mint nft msg
-        value.reward.nft.forEach((nftInfo) => {
-          const msg = this.masterWalletSerivce.generateMintNftMsg(user.active_wallet_address, nftInfo.tokenId, {
-            image: nftInfo.image,
-            name: nftInfo.name || '',
-          });
-          messages.push(msg);
-        })
+        const rewardNFT = value.reward.nft;
+        await Promise.all(
+          rewardNFT.map(async (nftInfo) => {
+            const tx = await this.contractWithMasterWallet.mintReward(
+              user.active_wallet_address,
+              nftInfo.image
+            );
+            await tx.wait();
+            txs.push(tx.hash);
+            txsTotal.push(tx.hash);
+          })
+        );
+
+        await this.updateOffchainData(value, JSON.stringify(txs).toString());
       }
     } catch (error) {
-      this.logger.error(error)
+      console.log('Transaction is error', error);
+      this.logger.error(error);
     }
 
-    return messages;
+    console.log('Transaction is mined', txsTotal);
+    return txsTotal;
   }
 
-  async updateOffchainData(rewardMap: Map<string, UserRewardInfo>, txHash: string) {
+  async updateOffchainData(value: UserRewardInfo, txHash: string) {
     const promises = [];
     const userQuestIds = [];
     const userCampaignRewardIds = [];
@@ -208,22 +242,22 @@ export class QuestProcessor {
     // userCampaignIds: used for increase total xp of user in campaign
     const userCampaignXpIds: UserCampaignXp[] = [];
 
-    for (const [, value] of rewardMap.entries()) {
-      if (value.userXp > 0) {
-        promises.push(this.userLevelGraphql.insertUserLevel(
-          {
-            user_id: value.userId,
-            xp: value.userXp,
-            level: value.userLevel,
-          },
-        ));
-      }
-
-      userCampaignXpIds.push(...value.userCampaignXp);
-      userQuestIds.push(...value.userQuestIds);
-      userCampaignRewardIds.push(...value.userCampaignRewardIds);
-      requestLogIds.push(...value.requestIds);
+    // for (const [, value] of rewardMap.entries()) {
+    if (value.userXp > 0) {
+      promises.push(
+        this.userLevelGraphql.insertUserLevel({
+          user_id: value.userId,
+          xp: value.userXp,
+          level: value.userLevel,
+        })
+      );
     }
+
+    userCampaignXpIds.push(...value.userCampaignXp);
+    userQuestIds.push(...value.userQuestIds);
+    userCampaignRewardIds.push(...value.userCampaignRewardIds);
+    requestLogIds.push(...value.requestIds);
+    // }
 
     // save reward history & request status
     await Promise.all(promises);
@@ -232,31 +266,62 @@ export class QuestProcessor {
       await this.questRewardService.updateUserQuestReward(userQuestIds, txHash);
 
     if (userCampaignRewardIds.length > 0)
-      await this.questRewardService.updateUserCampaignReward(userCampaignRewardIds, txHash);
+      await this.questRewardService.updateUserCampaignReward(
+        userCampaignRewardIds,
+        txHash
+      );
 
     if (requestLogIds.length > 0)
       await this.questGraphql.updateRequestLogs({
         ids: requestLogIds,
         log: txHash,
-        status: 'SUCCEEDED'
-      })
+        status: 'SUCCEEDED',
+      });
 
-    await Promise.all(userCampaignXpIds.map((userCampaignXp) =>
-      this.questGraphql.increaseUserCampaignXp({
-        user_campaign_id: userCampaignXp.userCampaignId,
-        reward_xp: userCampaignXp.xp
-      })
-    ));
+    await Promise.all(
+      userCampaignXpIds.map((userCampaignXp) =>
+        this.questGraphql.increaseUserCampaignXp({
+          user_campaign_id: userCampaignXp.userCampaignId,
+          reward_xp: userCampaignXp.xp,
+        })
+      )
+    );
   }
 
-  async updateErrorRequest(rewardMap: Map<string, UserRewardInfo>, errorDetail: string) {
+  async updateErrorRequest(
+    rewardMap: Map<string, UserRewardInfo>,
+    errorDetail: string
+  ) {
     for (const [, value] of rewardMap.entries()) {
       await this.questGraphql.updateRequestLogs({
         ids: value.requestIds,
         log: errorDetail,
-        status: 'FAILED'
-      })
+        status: 'FAILED',
+      });
     }
   }
 
+  async _getContract() {
+    try {
+      const masterWalletData = await this.masterWalletSerivce.getMasterWallet();
+      if (!masterWalletData) return null;
+      this.CONTRACT_ABI = ABI.abi;
+
+      // console.log('CONTRACT_ABI', this.CONTRACT_ABI);
+      // console.log('contractLevelingProxy', this.contractLevelingProxy);
+      // console.log('PROVIDER', this.PROVIDER);
+      // Connecting to smart contract
+      const contract = new Contract(
+        this.contractLevelingProxy,
+        this.CONTRACT_ABI,
+        this.PROVIDER
+      );
+
+      const rs = contract.connect(masterWalletData.wallet);
+      return rs;
+    } catch (error) {
+      this.logger.error('_getContract err', error);
+      throw error;
+    }
+  }
 }

@@ -1,23 +1,28 @@
-import { Authorizer } from '@authorizerdev/authorizer-js';
-import { BadRequestException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Queue } from 'bull';
+import { SiweMessage } from 'siwe';
 
-import { FilesService } from '../files/files.service';
+import { Authorizer } from '@authorizerdev/authorizer-js';
+import { InjectQueue } from '@nestjs/bull';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
+
 import { ContextProvider } from '../../providers/contex.provider';
-import { DeleteUserRequest } from './dto/delete-user-request.dto';
-import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
-import { IUpdateProfile } from './interfaces/update-profile.interface';
-import { UserGraphql } from './user.graphql';
+import { FilesService } from '../files/files.service';
 import { MangaService } from '../manga/manga.service';
 import { CheckConditionService } from '../quest/check-condition.service';
 import { CheckRewardService } from '../quest/check-reward.service';
 import { RedisService } from '../redis/redis.service';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 import { ConnectWalletRequestDto } from './dto/connect-wallet-request.dto';
-import { decodeSignature, pubkeyToAddress, serializeSignDoc } from '@cosmjs/amino';
-import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
+import { DeleteUserRequest } from './dto/delete-user-request.dto';
+import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
+import { IUpdateProfile } from './interfaces/update-profile.interface';
+import { UserGraphql } from './user.graphql';
 
 @Injectable()
 export class UserService {
@@ -32,13 +37,13 @@ export class UserService {
     private redisClientService: RedisService,
     @InjectQueue('userWallet')
     private readonly userWalletQueue: Queue
-  ) { }
+  ) {}
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async triggerMigrateWallet() {
     const activeJobCount = await this.userWalletQueue.getActiveCount();
     if (activeJobCount > 0) {
-      this.logger.debug(`Busy Queue Execute Onchain`);
+      // Busy Queue Execute Onchain
       return true;
     }
 
@@ -52,7 +57,7 @@ export class UserService {
       removeOnComplete: true,
       removeOnFail: 10,
       attempts: 5,
-      backoff: 5000
+      backoff: 5000,
     });
   }
 
@@ -60,58 +65,63 @@ export class UserService {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
 
-      const { signature, signedDoc } = request;
+      const { signature, message } = request;
 
-      const { pubkey, signature: decodedSignature } = decodeSignature(signature);
-      const valid = await Secp256k1.verifySignature(
-        Secp256k1Signature.fromFixedLength(decodedSignature),
-        sha256(serializeSignDoc(signedDoc)),
-        pubkey,
+      const SIWEObject = new SiweMessage(message);
+
+      const { data } = await SIWEObject.verify({
+        signature,
+        nonce: SIWEObject.nonce,
+      });
+
+      const address = data.address;
+
+      const result = await this.userGraphql.setPersonalAddress(
+        {
+          wallet_address: address,
+        },
+        token
       );
-      if (!valid) {
-        throw new BadRequestException('Invalid signature!');
-      }
-
-      const address = pubkeyToAddress(signature.pub_key, 'aura');
-
-      const result = await this.userGraphql.setPersonalAddress({
-        wallet_address: address
-      }, token)
 
       if (result.errors && result.errors.length > 0) return result;
-      if (result.data.update_authorizer_users.affected_rows === 0) throw new ForbiddenException('already link wallet');
+      if (result.data.update_authorizer_users.affected_rows === 0)
+        throw new ForbiddenException('already link wallet');
 
       // request migrate
-      const uniqueKey = `mw-${userId}`
+      const uniqueKey = `mw-${userId}`;
       const insertRequestResult = await this.userGraphql.insertRequestLog({
         data: {
-          userId
+          userId,
         },
-        unique_key: uniqueKey
-      })
+        unique_key: uniqueKey,
+      });
 
       if (insertRequestResult.errors) return result;
-      this.logger.debug(`insert request success ${JSON.stringify(result)}`)
+      this.logger.debug(`insert request success ${JSON.stringify(result)}`);
 
       const requestId = insertRequestResult.data.insert_request_log_one.id;
       const migrateWalletData = {
         requestId,
-        userId
+        userId,
       };
 
       const env = this.configService.get<string>('app.env') || 'prod';
-      this.redisClientService.client.rPush(`punkga-${env}:migrate-user-wallet`, JSON.stringify(migrateWalletData))
+      this.redisClientService.client.rPush(
+        `punkga-${env}:migrate-user-wallet`,
+        JSON.stringify(migrateWalletData)
+      );
 
       return {
         requestId,
-      }
-
+      };
     } catch (errors) {
+      this.logger.error(errors);
       return {
-        errors,
+        errors: {
+          message: errors.toString(),
+        },
       };
     }
-
   }
 
   async readChapter(chapterId: number) {
@@ -148,22 +158,27 @@ export class UserService {
       // check condition
       const checkConditionPromises = [];
       quests.forEach((quest) => {
-        checkConditionPromises.push(this.checkConditionService.verify(quest.condition, user));
+        checkConditionPromises.push(
+          this.checkConditionService.verify(quest.condition, user)
+        );
       });
 
       const checkConditionResult = await Promise.all(checkConditionPromises);
 
       const availableQuests = [];
       checkConditionResult.forEach((valid, index) => {
-
         const quest = quests[index];
         // frontend need unlock field
         quest.unlock = true;
 
-        if (valid) availableQuests.push(quest)
+        if (valid) availableQuests.push(quest);
       });
 
-      const checkRequirementResult = await Promise.all(availableQuests.map((quest) => this.checkRewardService.getClaimRewardStatus(quest, userId)));
+      const checkRequirementResult = await Promise.all(
+        availableQuests.map((quest) =>
+          this.checkRewardService.getClaimRewardStatus(quest, userId)
+        )
+      );
       const finalResult = availableQuests.map((quest, index) => {
         quest.reward_status = checkRequirementResult[index];
         return quest;
