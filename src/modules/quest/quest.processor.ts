@@ -209,7 +209,10 @@ export class QuestProcessor {
         const txs = result.map((tx) => tx.hash);
 
         // update offchain data
-        await this.updateOffchainData(value, JSON.stringify(txs).toString());
+        await this.updateOffchainData(
+          updatedValue,
+          JSON.stringify(txs).toString()
+        );
 
         // append to txs of all users
         txsTotal.push(...txs);
