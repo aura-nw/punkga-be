@@ -1,4 +1,4 @@
-import { Contract, JsonRpcProvider } from 'ethers';
+// import { Contract, JsonRpcProvider } from 'ethers';
 
 import { Process, Processor } from '@nestjs/bull';
 import { ForbiddenException, Logger } from '@nestjs/common';
@@ -10,7 +10,7 @@ import { RedisService } from '../redis/redis.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { CheckRewardService } from './check-reward.service';
-import * as ABI from './files/PunkgaReward.json';
+// import * as ABI from './files/PunkgaReward.json';
 import { IRewardInfo } from './interface/ireward-info';
 import { QuestGraphql } from './quest.graphql';
 import { QuestRewardService } from './reward.service';
@@ -19,14 +19,14 @@ import { UserCampaignXp, UserRewardInfo } from './user-reward';
 @Processor('quest')
 export class QuestProcessor {
   private readonly logger = new Logger(QuestProcessor.name);
-  private PROVIDER_URL = this.configService.get<string>('network.rpcEndpoint');
+  // private PROVIDER_URL = this.configService.get<string>('network.rpcEndpoint');
   // Connecting to provider
-  private PROVIDER = new JsonRpcProvider(this.PROVIDER_URL);
-  private contractLevelingProxy: string = this.configService.get<string>(
-    'network.contractAddress.leveling'
-  );
-  private CONTRACT_ABI = [];
-  private contractWithMasterWallet = null;
+  // private PROVIDER = new JsonRpcProvider(this.PROVIDER_URL);
+  // private contractLevelingProxy: string = this.configService.get<string>(
+  //   'network.contractAddress.leveling'
+  // );
+  // private CONTRACT_ABI = [];
+  // private contractWithMasterWallet = null;
 
   constructor(
     private configService: ConfigService,
@@ -41,15 +41,6 @@ export class QuestProcessor {
 
   @Process({ name: 'claim-reward', concurrency: 1 })
   async claimQuestReward() {
-    if (!this.contractWithMasterWallet) {
-      this.contractWithMasterWallet = await this._getContract();
-      if (!this.contractWithMasterWallet) {
-        const errMsg = `can not get contract With Master Wallet`;
-        this.logger.error(errMsg);
-        throw new Error(errMsg);
-      }
-    }
-
     const env = this.configService.get<string>('app.env') || 'prod';
     const redisData = await this.redisClientService.popListRedis(
       `punkga-${env}:reward-users`
@@ -170,8 +161,11 @@ export class QuestProcessor {
     const txsTotal = [];
 
     try {
+      const contractWithMasterWallet =
+        this.masterWalletSerivce.getLevelingContract();
       for await (const [key, value] of rewardMap.entries()) {
-        const txs = [];
+        // const txs = [];
+        const txsPromise = [];
 
         // get user info by map key
         const user = await this.questGraphql.queryPublicUserWalletData({
@@ -185,14 +179,12 @@ export class QuestProcessor {
         // calculate level from xp
         const newLevel = this.levelingService.xpToLevel(totalXp);
 
-        const tx = await this.contractWithMasterWallet.updateUserInfo(
+        const tx = await contractWithMasterWallet.updateUserInfo(
           user.active_wallet_address,
           newLevel,
           totalXp
         );
-        await tx.wait();
-        txs.push(tx.hash);
-        txsTotal.push(tx.hash);
+        txsPromise.push(tx.wait());
 
         // update total xp to map value
         const updatedValue = { ...value };
@@ -202,19 +194,25 @@ export class QuestProcessor {
 
         // generate mint nft msg
         const rewardNFT = value.reward.nft;
-        await Promise.all(
-          rewardNFT.map(async (nftInfo) => {
-            const tx = await this.contractWithMasterWallet.mintReward(
+        txsPromise.push(
+          ...rewardNFT.map(async (nftInfo) => {
+            const tx = await contractWithMasterWallet.mintReward(
               user.active_wallet_address,
               nftInfo.image
             );
-            await tx.wait();
-            txs.push(tx.hash);
-            txsTotal.push(tx.hash);
+            return tx.wait();
           })
         );
 
+        // get result txs of user
+        const result = await Promise.all(txsPromise);
+        const txs = result.map((tx) => tx.hash);
+
+        // update offchain data
         await this.updateOffchainData(value, JSON.stringify(txs).toString());
+
+        // append to txs of all users
+        txsTotal.push(...txs);
       }
     } catch (error) {
       console.log('Transaction is error', error);
@@ -234,7 +232,6 @@ export class QuestProcessor {
     // userCampaignIds: used for increase total xp of user in campaign
     const userCampaignXpIds: UserCampaignXp[] = [];
 
-    // for (const [, value] of rewardMap.entries()) {
     if (value.userXp > 0) {
       promises.push(
         this.userLevelGraphql.insertUserLevel({
@@ -290,30 +287,6 @@ export class QuestProcessor {
         log: errorDetail,
         status: 'FAILED',
       });
-    }
-  }
-
-  async _getContract() {
-    try {
-      const masterWalletData = await this.masterWalletSerivce.getMasterWallet();
-      if (!masterWalletData) return null;
-      this.CONTRACT_ABI = ABI.abi;
-
-      // console.log('CONTRACT_ABI', this.CONTRACT_ABI);
-      // console.log('contractLevelingProxy', this.contractLevelingProxy);
-      // console.log('PROVIDER', this.PROVIDER);
-      // Connecting to smart contract
-      const contract = new Contract(
-        this.contractLevelingProxy,
-        this.CONTRACT_ABI,
-        this.PROVIDER
-      );
-
-      const rs = contract.connect(masterWalletData.wallet);
-      return rs;
-    } catch (error) {
-      this.logger.error('_getContract err', error);
-      throw error;
     }
   }
 }
