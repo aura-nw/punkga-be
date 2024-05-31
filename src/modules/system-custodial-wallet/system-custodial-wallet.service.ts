@@ -38,16 +38,16 @@ export class SystemCustodialWalletService implements OnModuleInit {
   //   return this.broadcastTx([grantMsg], 'fee-grant-migrate-wallet');
   // }
 
-  async broadcastTx(messages: any, memo = 'punkga') {
-    // const result = await this.client.signAndBroadcast(
-    //   this.granterWalletAddress,
-    //   messages,
-    //   1.5,
-    //   memo
-    // );
-    // // this.logger.debug(result);
-    // return result;
-  }
+  // async broadcastTx(messages: any, memo = 'punkga') {
+  //   // const result = await this.client.signAndBroadcast(
+  //   //   this.granterWalletAddress,
+  //   //   messages,
+  //   //   1.5,
+  //   //   memo
+  //   // );
+  //   // // this.logger.debug(result);
+  //   // return result;
+  // }
 
   get granterAddress() {
     return this.granterWalletAddress;

@@ -7,10 +7,10 @@ import { UserWalletService } from '../user-wallet/user-wallet.service';
 import { ICustodialWalletAsset } from './interfaces/account-onchain.interface';
 import { UserGraphql } from './user.graphql';
 
-interface IMigrateWalletRequest {
-  requestId: number;
-  userId: string;
-}
+// interface IMigrateWalletRequest {
+//   requestId: number;
+//   userId: string;
+// }
 
 @Processor('userWallet')
 export class UserWalletProcessor {
@@ -34,9 +34,9 @@ export class UserWalletProcessor {
     if (redisData.length === 0) return true;
 
     // const redisData = ['{"userId": "c4d15562-4b80-425f-a933-2658b264f6d7" }']
-    const { userId, requestId } = redisData.map(
-      (dataStr) => JSON.parse(dataStr) as IMigrateWalletRequest
-    )[0];
+    // const { userId, requestId } = redisData.map(
+    //   (dataStr) => JSON.parse(dataStr) as IMigrateWalletRequest
+    // )[0];
     // get user wallet
     // check asset in custodial wallet
     // fee grant

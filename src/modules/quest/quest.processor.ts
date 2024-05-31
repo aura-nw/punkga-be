@@ -1,26 +1,20 @@
+import { Contract, JsonRpcProvider } from 'ethers';
+
 import { Process, Processor } from '@nestjs/bull';
 import { ForbiddenException, Logger } from '@nestjs/common';
-import { QuestGraphql } from './quest.graphql';
-import { CheckRewardService } from './check-reward.service';
-import { RewardStatus } from '../../common/enum';
-import { QuestRewardService } from './reward.service';
-import { RedisService } from '../redis/redis.service';
-import { IRewardInfo } from './interface/ireward-info';
-import { UserCampaignXp, UserRewardInfo } from './user-reward';
-import { LevelingService } from '../leveling/leveling.service';
-import { MasterWalletService } from '../user-wallet/master-wallet.service';
-import { UserLevelGraphql } from '../user-level/user-level.graphql';
 import { ConfigService } from '@nestjs/config';
+
+import { RewardStatus } from '../../common/enum';
+import { LevelingService } from '../leveling/leveling.service';
+import { RedisService } from '../redis/redis.service';
+import { UserLevelGraphql } from '../user-level/user-level.graphql';
+import { MasterWalletService } from '../user-wallet/master-wallet.service';
+import { CheckRewardService } from './check-reward.service';
 import * as ABI from './files/PunkgaReward.json';
-import {
-  Contract,
-  JsonRpcProvider,
-  // Wallet,
-  // formatEther,
-  // parseEther,
-} from 'ethers';
-// import * as fs from 'fs';
-// import path from 'path';
+import { IRewardInfo } from './interface/ireward-info';
+import { QuestGraphql } from './quest.graphql';
+import { QuestRewardService } from './reward.service';
+import { UserCampaignXp, UserRewardInfo } from './user-reward';
 
 @Processor('quest')
 export class QuestProcessor {
@@ -47,7 +41,6 @@ export class QuestProcessor {
 
   @Process({ name: 'claim-reward', concurrency: 1 })
   async claimQuestReward() {
-    console.log('claimQuestReward');
     if (!this.contractWithMasterWallet) {
       this.contractWithMasterWallet = await this._getContract();
       if (!this.contractWithMasterWallet) {
@@ -56,7 +49,7 @@ export class QuestProcessor {
         throw new Error(errMsg);
       }
     }
-    // console.log('this.contractWithMasterWallet', this.contractWithMasterWallet);
+
     const env = this.configService.get<string>('app.env') || 'prod';
     const redisData = await this.redisClientService.popListRedis(
       `punkga-${env}:reward-users`
@@ -66,7 +59,6 @@ export class QuestProcessor {
       (dataStr) => JSON.parse(dataStr) as IRewardInfo
     );
     const rewardMap = await this.mapUserReward(listRewards);
-    // console.log('rewardMap', rewardMap);
     try {
       // create msg and execute contract
       // const messages = await this.buildMessages(rewardMap);
