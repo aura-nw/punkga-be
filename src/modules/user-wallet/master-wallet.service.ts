@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { Crypter } from '../../utils/crypto';
 import { SysKeyService } from '../keys/syskey.service';
-import { abi as levelingAbi } from './../../../abi/PunkgaReward.json';
+import { abi as levelingAbi } from './../../abi/PunkgaReward.json';
 
 @Injectable()
 export class MasterWalletService {
