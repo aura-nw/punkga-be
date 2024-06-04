@@ -66,4 +66,47 @@ export class UserWalletService {
       success: true,
     };
   }
+
+  async insertAllUserWallet() {
+    let count = 0;
+    let offset = 0;
+
+    do {
+      const users = await this.userWalletGraphql.queryAllUser(offset);
+      console.log(`user length: ${users.length}`);
+      count = users.length;
+      offset += count;
+      const filtedUsers = users.filter(
+        (user) =>
+          user.authorizer_users_user_wallet === null ||
+          user.authorizer_users_user_wallet.address === null
+      );
+      console.log(`filter length: ${filtedUsers.length}`);
+      const results = await Promise.all(
+        filtedUsers.map((user) => {
+          const variables = {
+            objects: [
+              {
+                user_id: user.id,
+              },
+            ],
+          };
+          return this.userWalletGraphql.insertManyUserWallet(variables);
+        })
+      );
+
+      results.forEach((result, index) => {
+        const userWalletId = result.data.insert_user_wallet.returning[0].id;
+        const redisData = {
+          id: userWalletId,
+          userId: users[index].id,
+        };
+        const env = this.configService.get<string>('app.env') || 'prod';
+        this.redisClientService.client.rPush(
+          `punkga-${env}:generate-user-wallet`,
+          JSON.stringify(redisData)
+        );
+      });
+    } while (count > 0);
+  }
 }

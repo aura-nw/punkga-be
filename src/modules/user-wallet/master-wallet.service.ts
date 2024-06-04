@@ -1,42 +1,36 @@
-// import { StdFee } from '@cosmjs/amino';
-// import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-// import { toUtf8 } from '@cosmjs/encoding';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { BaseContract, Contract, JsonRpcProvider, Wallet } from 'ethers';
+
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { SysKeyService } from '../keys/syskey.service';
-import { UserWalletGraphql } from './user-wallet.graphql';
 import { Crypter } from '../../utils/crypto';
-import { JsonRpcProvider, Wallet } from 'ethers';
+import { SysKeyService } from '../keys/syskey.service';
+import { abi as levelingAbi } from './../../abi/PunkgaReward.json';
 
 @Injectable()
-export class MasterWalletService implements OnModuleInit {
+export class MasterWalletService {
   private readonly logger = new Logger(MasterWalletService.name);
-  private masterWallet = null;
+  private masterWallet: Wallet = null;
   private masterWalletAddress = '';
-  private contractAddress: string;
-  // private executeFee: StdFee;
-  // private client: SigningCosmWasmClient;
+  private levelingProxyContractAddress = '';
+  private provider: JsonRpcProvider = null;
+  private levelingContract: BaseContract = null;
 
   constructor(
     private configService: ConfigService,
-    private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService
-  ) {}
+  ) {
+    this.levelingProxyContractAddress = this.configService.get<string>(
+      'network.contractAddress.leveling'
+    );
 
-  // init master wallet
-  async onModuleInit() {
-    await this.initMasterWallet();
-  }
-
-  async initMasterWallet() {
     const masterWalletPK = this.configService.get<string>('masterPK');
     const providerUrl = this.configService.get<string>('network.rpcEndpoint');
-    const provider = new JsonRpcProvider(providerUrl);
-    this.masterWallet = new Wallet(masterWalletPK, provider);
+    this.provider = new JsonRpcProvider(providerUrl);
+
+    // Connecting to provider
+    this.masterWallet = new Wallet(masterWalletPK, this.provider);
     this.masterWalletAddress = this.masterWallet.address;
-    // console.log('this.masterWallet', this.masterWallet);
-    // console.log('this.masterWalletAddress', this.masterWalletAddress);
   }
 
   async getMasterWallet() {
@@ -54,14 +48,22 @@ export class MasterWalletService implements OnModuleInit {
     return Crypter.decrypt(data, this.sysKeyService.originalSeed);
   }
 
-  async broadcastTx(messages: any) {
-    // const result = await this.client.signAndBroadcast(
-    //   this.masterWalletAddress,
-    //   messages,
-    //   'auto',
-    //   'punkga'
-    // );
-    // this.logger.debug(result);
-    // return result;
+  getLevelingContract(): any {
+    if (this.levelingContract !== null) return this.levelingContract;
+
+    try {
+      // Connecting to smart contract
+      const contract = new Contract(
+        this.levelingProxyContractAddress,
+        levelingAbi,
+        this.provider
+      );
+
+      this.levelingContract = contract.connect(this.masterWallet);
+      return this.levelingContract;
+    } catch (error) {
+      this.logger.error('get leveling contract err', error);
+      throw error;
+    }
   }
 }

@@ -3,12 +3,7 @@ import { SiweMessage } from 'siwe';
 
 import { Authorizer } from '@authorizerdev/authorizer-js';
 import { InjectQueue } from '@nestjs/bull';
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 

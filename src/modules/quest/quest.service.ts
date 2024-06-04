@@ -41,13 +41,13 @@ export class QuestService {
     //   this.logger.debug(`Busy Queue Execute Onchain`);
     //   return true;
     // }
-    
+
     const data = {
       redisKey: 'punkga:job:claim-reward',
       time: new Date().toUTCString(),
     };
-    
-    this.logger.debug(`create job to claim reward`);
+
+    // this.logger.debug(`create job to claim reward`);
     // create job to claim reward
     await this.questQueue.add('claim-reward', data, {
       removeOnComplete: true,
