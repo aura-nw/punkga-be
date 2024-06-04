@@ -1,16 +1,23 @@
-import { BaseContract, Contract, JsonRpcProvider, Wallet } from 'ethers';
+import {
+  BaseContract,
+  Contract,
+  HDNodeWallet,
+  JsonRpcProvider,
+  Wallet,
+} from 'ethers';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { Crypter } from '../../utils/crypto';
 import { SysKeyService } from '../keys/syskey.service';
 import { abi as levelingAbi } from './../../abi/PunkgaReward.json';
+import { UserWalletGraphql } from './user-wallet.graphql';
 
 @Injectable()
-export class MasterWalletService {
+export class MasterWalletService implements OnModuleInit {
   private readonly logger = new Logger(MasterWalletService.name);
-  private masterWallet: Wallet = null;
+  private masterHDWallet: HDNodeWallet = null;
   private masterWalletAddress = '';
   private levelingProxyContractAddress = '';
   private provider: JsonRpcProvider = null;
@@ -18,25 +25,55 @@ export class MasterWalletService {
 
   constructor(
     private configService: ConfigService,
+    private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService
   ) {
     this.levelingProxyContractAddress = this.configService.get<string>(
       'network.contractAddress.leveling'
     );
+  }
 
-    const masterWalletPK = this.configService.get<string>('masterPK');
+  async onModuleInit() {
+    await this.initMasterWallet();
+  }
+
+  async initMasterWallet() {
+    // get from db
+    const masterWalletData = await this.userWalletGraphql.getMasterWallet();
     const providerUrl = this.configService.get<string>('network.rpcEndpoint');
     this.provider = new JsonRpcProvider(providerUrl);
 
-    // Connecting to provider
-    this.masterWallet = new Wallet(masterWalletPK, this.provider);
-    this.masterWalletAddress = this.masterWallet.address;
+    if (masterWalletData) {
+      const phrase = this.decryptPhrase(masterWalletData.data);
+      const wallet = Wallet.fromPhrase(phrase, this.provider);
+
+      this.masterHDWallet = wallet;
+      this.masterWalletAddress = wallet.address;
+    } else {
+      const { wallet, address, cipherPhrase } =
+        await this.sysKeyService.randomWallet(this.provider);
+
+      this.masterHDWallet = wallet;
+      this.masterWalletAddress = address;
+
+      // store db
+      const result = await this.userWalletGraphql.insertManyUserWallet({
+        objects: [
+          {
+            address,
+            data: cipherPhrase,
+            is_master_wallet: true,
+          },
+        ],
+      });
+      this.logger.debug(`Insert master wallet: ${JSON.stringify(result)}`);
+    }
   }
 
   async getMasterWallet() {
-    if (this.masterWallet && this.masterWalletAddress) {
+    if (this.masterHDWallet && this.masterWalletAddress) {
       return {
-        wallet: this.masterWallet,
+        wallet: this.masterHDWallet,
         address: this.masterWalletAddress,
       };
     } else {
@@ -59,7 +96,7 @@ export class MasterWalletService {
         this.provider
       );
 
-      this.levelingContract = contract.connect(this.masterWallet);
+      this.levelingContract = contract.connect(this.masterHDWallet);
       return this.levelingContract;
     } catch (error) {
       this.logger.error('get leveling contract err', error);
