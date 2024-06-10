@@ -3,8 +3,11 @@ import { ConfigService } from '@nestjs/config';
 
 import { GraphqlService } from '../graphql/graphql.service';
 import { errorOrEmpty } from '../graphql/utils';
-import { IAccountBalance, ICustodialWalletAsset, ICw721Token } from './interfaces/account-onchain.interface';
-
+import {
+  IAccountBalance,
+  ICustodialWalletAsset,
+  ICw721Token,
+} from './interfaces/account-onchain.interface';
 
 @Injectable()
 export class UserGraphql {
@@ -12,7 +15,7 @@ export class UserGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
 
   async queryUserByWalletAddress(walletAddress: string) {
     return this.graphqlSvc.query(
@@ -26,32 +29,33 @@ export class UserGraphql {
       `,
       'authorizer_users',
       {
-        wallet_address: walletAddress
-      },
+        wallet_address: walletAddress,
+      }
     );
   }
 
   async queryCustodialWalletAsset(address: string) {
     const variables = {
-      owner_address: address
-    }
+      owner_address: address.toLowerCase(),
+    };
     const network = this.configSvc.get<string>('horosope.network');
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('horosope.endpoint'),
       '',
       `query queryAsset($owner_address: String!) {
         ${network} {
-          account(where: {address: {_eq: $owner_address}}) {
+          account(where: {evm_address: {_eq: $owner_address}}) {
             balances
           }
-          cw721_token(where: {owner: {_eq: $owner_address}}, order_by: {created_at: desc}) {
+          erc721_token(
+            where: {owner: {_eq: $owner_address}}
+            order_by: {created_at: desc}
+          ) {
             id
             token_id
             created_at
-            cw721_contract {
-              smart_contract {
-                address
-              }
+            erc721_contract {
+              address
             }
           }
         }
@@ -66,18 +70,25 @@ export class UserGraphql {
     // } as ICustodialWalletAsset;
 
     const nativeDenom = this.configSvc.get<string>('network.denom');
-    const balance = result.data[network].account.length === 0 ? undefined : result.data[network].account[0].balances.filter((balance) => balance.denom === nativeDenom)[0] as IAccountBalance;
-    const cw721Tokens: ICw721Token[] = result.data[network].cw721_token.map((token) => {
-      return {
-        tokenId: token.token_id,
-        contractAddress: token.cw721_contract.smart_contract.address
-      } as ICw721Token
-    })
+    const balance =
+      result.data[network].account.length === 0
+        ? undefined
+        : (result.data[network].account[0].balances.filter(
+            (balance) => balance.denom === nativeDenom
+          )[0] as IAccountBalance);
+    const cw721Tokens: ICw721Token[] = result.data[network].erc721_token.map(
+      (token) => {
+        return {
+          tokenId: token.token_id,
+          contractAddress: token.erc721_contract.address,
+        } as ICw721Token;
+      }
+    );
 
     return {
       balance,
-      cw721Tokens
-    } as ICustodialWalletAsset
+      cw721Tokens,
+    } as ICustodialWalletAsset;
   }
 
   async updateRequestLogs(variables: any) {
@@ -102,7 +113,6 @@ export class UserGraphql {
     );
 
     return result;
-
   }
 
   async adminGetUserAddress(variables: any) {
@@ -130,7 +140,7 @@ export class UserGraphql {
     );
 
     if (result.data?.authorizer_users_by_pk) {
-      return result.data.authorizer_users_by_pk
+      return result.data.authorizer_users_by_pk;
     }
 
     throw new NotFoundException();
@@ -177,7 +187,6 @@ export class UserGraphql {
       'SetUserWalletAddress',
       variables
     );
-
   }
 
   async getChapterDetail(variables: any) {
@@ -234,7 +243,7 @@ export class UserGraphql {
       'queryAvailableQuests',
       {
         now: new Date(),
-        user_id: userId
+        user_id: userId,
       }
     );
 
@@ -245,13 +254,11 @@ export class UserGraphql {
 
     const quests = [];
     result.data.user_campaign.forEach((userCampaign) => {
-      quests.push(...userCampaign.user_campaign_campaign.campaign_quests)
-    })
+      quests.push(...userCampaign.user_campaign_campaign.campaign_quests);
+    });
 
     return quests;
   }
-
-
 
   async queryUserLevel(variables) {
     const result = await this.graphqlSvc.query(

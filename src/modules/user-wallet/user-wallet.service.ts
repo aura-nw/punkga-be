@@ -1,22 +1,48 @@
-// import { Secp256k1HdWallet } from '@cosmjs/amino';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  BaseContract,
+  Contract,
+  HDNodeWallet,
+  JsonRpcProvider,
+  Wallet,
+} from 'ethers';
+
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+// import { Secp256k1HdWallet } from '@cosmjs/amino';
+import { abi as levelingAbi } from '../../abi/PunkgaReward.json';
 import { errorOrEmpty } from '../graphql/utils';
 // import { SysKeyService } from '../keys/syskey.service';
 import { RedisService } from '../redis/redis.service';
 import { GenerateWalletRequestDto } from './dto/generate-wallet-request.dto';
+import { MasterWalletService } from './master-wallet.service';
 import { UserWalletGraphql } from './user-wallet.graphql';
 
 @Injectable()
 export class UserWalletService {
   private readonly logger = new Logger(UserWalletService.name);
+  private provider: JsonRpcProvider = null;
+  private levelingProxyContractAddress = '';
+
   constructor(
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
-    private redisClientService: RedisService
-  ) {}
+    private redisClientService: RedisService,
+    private masterWalletService: MasterWalletService
+  ) {
+    const providerUrl = this.configService.get<string>('network.rpcEndpoint');
+    this.provider = new JsonRpcProvider(providerUrl);
+    this.levelingProxyContractAddress = this.configService.get<string>(
+      'network.contractAddress.leveling'
+    );
+  }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
   async handleEmptyUserWallet() {
@@ -108,5 +134,40 @@ export class UserWalletService {
         );
       });
     } while (count > 0);
+  }
+
+  async deserialize(userId: string) {
+    const custodialUserWallet =
+      await this.userWalletGraphql.getCustodialUserWallet(userId);
+    if (!custodialUserWallet)
+      throw new NotFoundException('Cannot find custodial wallet');
+
+    const phrase = this.masterWalletService.decryptPhrase(
+      custodialUserWallet.data
+    );
+    const wallet = Wallet.fromPhrase(phrase, this.provider);
+
+    // const account = await wallet.getAccounts();
+    return {
+      wallet,
+      address: wallet.address,
+    };
+  }
+
+  getLevelingContract(wallet: HDNodeWallet): any {
+    try {
+      // Connecting to smart contract
+      const contract = new Contract(
+        this.levelingProxyContractAddress,
+        levelingAbi,
+        this.provider
+      );
+
+      const levelingContract = contract.connect(wallet);
+      return levelingContract;
+    } catch (error) {
+      this.logger.error('get leveling contract err', error);
+      throw error;
+    }
   }
 }

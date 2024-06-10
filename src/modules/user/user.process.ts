@@ -4,13 +4,16 @@ import { ConfigService } from '@nestjs/config';
 import { RedisService } from '../redis/redis.service';
 import { SystemCustodialWalletService } from '../system-custodial-wallet/system-custodial-wallet.service';
 import { UserWalletService } from '../user-wallet/user-wallet.service';
-import { ICustodialWalletAsset } from './interfaces/account-onchain.interface';
+import {
+  ICustodialWalletAsset,
+  ICw721Token,
+} from './interfaces/account-onchain.interface';
 import { UserGraphql } from './user.graphql';
 
-// interface IMigrateWalletRequest {
-//   requestId: number;
-//   userId: string;
-// }
+type MigrateWalletType = {
+  requestId: number;
+  userId: string;
+};
 
 @Processor('userWallet')
 export class UserWalletProcessor {
@@ -33,148 +36,112 @@ export class UserWalletProcessor {
     );
     if (redisData.length === 0) return true;
 
-    // const redisData = ['{"userId": "c4d15562-4b80-425f-a933-2658b264f6d7" }']
-    // const { userId, requestId } = redisData.map(
-    //   (dataStr) => JSON.parse(dataStr) as IMigrateWalletRequest
-    // )[0];
-    // get user wallet
-    // check asset in custodial wallet
-    // fee grant
-    // transfer asset
+    // const redisData = [
+    //   '{"userId": "9861ab99-66b4-4320-8a52-c0b0762261f2", "requestId": 10 }',
+    // ];
+    const { userId, requestId } = redisData.map(
+      (dataStr) => JSON.parse(dataStr) as MigrateWalletType
+    )[0];
 
-    // update request log
+    try {
+      // get user wallet
+      const user = await this.userGraphql.adminGetUserAddress({
+        id: userId,
+      });
 
-    // try {
-    //   // get user wallet
-    //   const user = await this.userGraphql.adminGetUserAddress({
-    //     id: userId
-    //   })
+      if (!user.wallet_address || user.wallet_address === '')
+        throw new Error('User address is empty');
+      if (
+        !user.authorizer_users_user_wallet.address ||
+        user.authorizer_users_user_wallet.address === ''
+      )
+        throw new Error('User custodial address is empty');
+      const custodialWalletAddress = user.authorizer_users_user_wallet.address;
+      // const granterAddress = this.systemWalletSvc.granterAddress;
 
-    //   if (!user.wallet_address || user.wallet_address === '') throw new Error('User address is empty')
-    //   if (!user.authorizer_users_user_wallet.address || user.authorizer_users_user_wallet.address === '') throw new Error('User custodial address is empty')
-    //   const custodialWalletAddress = user.authorizer_users_user_wallet.address;
-    //   const granterAddress = this.systemWalletSvc.granterAddress;
+      // check asset in custodial wallet
+      const custodialWalletAsset =
+        await this.userGraphql.queryCustodialWalletAsset(
+          custodialWalletAddress
+        );
+      if (!this.isEmptyWallet(custodialWalletAsset)) {
+        // fee grant
+        // transfer token from granter wallet to user custodial wallet
+        // check wallet balance
+        const fee = 0.1 * 10 ** 6;
+        const availableBalance =
+          Number(custodialWalletAsset.balance.amount) - fee;
 
-    //   // check asset in custodial wallet
-    //   const custodialWalletAsset = await this.userGraphql.queryCustodialWalletAsset(user.authorizer_users_user_wallet.address);
-    //   if (!this.isEmptyWallet(custodialWalletAsset)) {
-    //     const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
+        if (availableBalance <= 0)
+          await this.systemWalletSvc.faucet(custodialWalletAddress);
 
-    //     // fee grant
-    //     const cometClient = await Tendermint34Client.connect(rpcEndpoint);
-    //     const queryClient = QueryClient.withExtensions(cometClient, setupFeegrantExtension);
-    //     let allowanceExists: boolean;
-    //     try {
-    //       await queryClient.feegrant.allowance(granterAddress, custodialWalletAddress);
-    //       allowanceExists = true;
-    //     } catch {
-    //       allowanceExists = false;
-    //     }
+        // transfer asset
+        const txsPromise = [];
+        const { wallet } = await this.userWalletService.deserialize(userId);
 
-    //     if (!allowanceExists) {
-    //       const tx = await this.systemWalletSvc.grantFee(user.authorizer_users_user_wallet.address);
-    //       this.logger.debug(`Feegrant success ${tx.transactionHash}`)
-    //     }
+        // send native token
+        if (
+          !!custodialWalletAsset.balance &&
+          Number(custodialWalletAsset.balance.amount) > 0
+        ) {
+          const evmAvailableBalance = (availableBalance * 10 ** 12).toString();
+          const nonce = await wallet.getNonce();
+          const tx = await wallet.sendTransaction({
+            nonce,
+            to: user.wallet_address,
+            value: evmAvailableBalance,
+          });
 
-    //     // transfer asset
-    //     // generate msg
-    //     const { wallet, address } = await this.userWalletService.deserialize(userId);
-    //     const transferMsgs = this.generateTransferMsgs(address, user.wallet_address, custodialWalletAsset);
+          txsPromise.push(tx.wait());
+        }
 
-    //     const gasPrice = GasPrice.fromString(
-    //       this.configService.get<string>('network.gasPrice')
-    //     );
+        // send nft
+        if (custodialWalletAsset.cw721Tokens.length > 0) {
+          const contract = this.userWalletService.getLevelingContract(wallet);
+          txsPromise.push(
+            ...custodialWalletAsset.cw721Tokens.map((token: ICw721Token) => {
+              const tx = contract.safeTransferFrom(
+                custodialWalletAddress,
+                user.wallet_address,
+                token.tokenId
+              );
+              return tx.wait();
+            })
+          );
+        }
 
-    //     const client = await SigningCosmWasmClient.connectWithSigner(
-    //       rpcEndpoint,
-    //       wallet,
-    //       {
-    //         gasPrice,
-    //       }
-    //     );
+        // get result txs
+        const result = await Promise.all(txsPromise);
+        const txs = result.map((tx) => tx.hash);
 
-    //     const gasEstimation = await client.simulate(address, transferMsgs, 'punkga-migrate-asset');
-    //     const fee = calculateFee(Math.round(gasEstimation * 1.8), gasPrice);
+        // update request
+        await this.userGraphql.updateRequestLogs({
+          ids: [requestId],
+          log: JSON.stringify(txs),
+          status: 'SUCCEEDED',
+        });
 
-    //     const transferTx = await client.signAndBroadcast(
-    //       address,
-    //       transferMsgs,
-    //       {
-    //         amount: fee.amount,
-    //         gas: fee.gas,
-    //         granter: granterAddress
-    //       },
-    //       'punkga-migrate-asset'
-    //     )
-
-    //     // update request
-    //     await this.userGraphql.updateRequestLogs({
-    //       ids: [requestId],
-    //       log: transferTx.transactionHash,
-    //       status: 'SUCCEEDED'
-    //     })
-
-    //     this.logger.debug(`Migrate wallet success!!!`)
-    //   } else {
-    //     this.logger.debug(`Wallet ${user.authorizer_users_user_wallet.address} empty`)
-    //     // update request
-    //     await this.userGraphql.updateRequestLogs({
-    //       ids: [requestId],
-    //       log: 'Wallet empty',
-    //       status: 'SUCCEEDED'
-    //     })
-    //   }
-    // } catch (error) {
-    //   this.logger.error(error.toString());
-    //   await this.userGraphql.updateRequestLogs({
-    //     ids: [requestId],
-    //     log: error.toString(),
-    //     status: 'FAILED'
-    //   })
-    // }
+        this.logger.debug(`Migrate wallet success!!!`);
+      } else {
+        this.logger.debug(
+          `Wallet ${user.authorizer_users_user_wallet.address} empty`
+        );
+        // update request
+        await this.userGraphql.updateRequestLogs({
+          ids: [requestId],
+          log: 'Wallet empty',
+          status: 'SUCCEEDED',
+        });
+      }
+    } catch (error) {
+      this.logger.error(error.toString());
+      await this.userGraphql.updateRequestLogs({
+        ids: [requestId],
+        log: error.toString(),
+        status: 'FAILED',
+      });
+    }
   }
-
-  // generateTransferMsgs(
-  //   custodialWalletAddr,
-  //   personalWalletAddr,
-  //   walletAsset: ICustodialWalletAsset
-  // ) {
-  //   const msgs = [];
-  //   if (!!walletAsset.balance && Number(walletAsset.balance.amount) > 0) {
-  //     msgs.push({
-  //       typeUrl: '/cosmos.bank.v1beta1.MsgSend',
-  //       value: MsgSend.fromPartial({
-  //         fromAddress: custodialWalletAddr,
-  //         toAddress: personalWalletAddr,
-  //         amount: [coin(walletAsset.balance.amount, walletAsset.balance.denom)],
-  //       }),
-  //     });
-  //   }
-
-  //   if (walletAsset.cw721Tokens.length > 0) {
-  //     msgs.push(
-  //       ...walletAsset.cw721Tokens.map((cw721Token) => {
-  //         const msg = {
-  //           transfer_nft: {
-  //             recipient: personalWalletAddr,
-  //             token_id: cw721Token.tokenId,
-  //           },
-  //         };
-  //         return {
-  //           typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
-  //           value: {
-  //             msg: toUtf8(JSON.stringify(msg)),
-  //             sender: custodialWalletAddr,
-  //             contract: cw721Token.contractAddress,
-  //             funds: [],
-  //           },
-  //         };
-  //       })
-  //     );
-  //   }
-
-  //   return msgs;
-  // }
 
   isEmptyWallet(walletAsset: ICustodialWalletAsset) {
     if (walletAsset.balance && Number(walletAsset.balance.amount) > 0)
