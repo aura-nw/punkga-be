@@ -16,9 +16,7 @@ export class UserWalletService {
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
     private redisClientService: RedisService
-  ) {
-    this.insertAllUserWallet();
-  }
+  ) {}
 
   @Cron(CronExpression.EVERY_30_MINUTES)
   async handleEmptyUserWallet() {
