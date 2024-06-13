@@ -9,7 +9,6 @@ import {
 } from './dto/create-manga-request.dto';
 import { ContextProvider } from '../../providers/contex.provider';
 import { FilesService } from '../files/files.service';
-import { GraphqlService } from '../graphql/graphql.service';
 import { UpdateMangaRequestDto } from './dto/update-manga-request.dto';
 import { generateSlug } from './util';
 import { detectSlugOrId } from '../../utils/utils';
@@ -25,7 +24,7 @@ export class MangaService {
     private configSvc: ConfigService,
     private filesService: FilesService,
     private mangaGraphql: MangaGraphql
-  ) { }
+  ) {}
 
   async get(slug: string, user_id = '') {
     try {
@@ -191,7 +190,10 @@ export class MangaService {
         release_date,
         contract_addresses: JSON.parse(contract_addresses),
         manga_tags: plainToInstance(MangaTag, JSON.parse(manga_tags)),
-        manga_creators: plainToInstance(MangaCreator, JSON.parse(manga_creators)),
+        manga_creators: plainToInstance(
+          MangaCreator,
+          JSON.parse(manga_creators)
+        ),
         manga_languages: plainToInstance(
           MangaLanguage,
           JSON.parse(manga_languages)

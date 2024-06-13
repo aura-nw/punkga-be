@@ -1,7 +1,13 @@
 import { Queue } from 'bull';
 
 import { InjectQueue } from '@nestjs/bull';
-import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { RewardStatus } from '../../common/enum';
@@ -26,27 +32,28 @@ export class QuestService {
     private redisClientService: RedisService,
     @InjectQueue('quest')
     private readonly questQueue: Queue
-  ) { }
+  ) {}
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async triggerClaimReward() {
-    const activeJobCount = await this.questQueue.getActiveCount();
-    if (activeJobCount > 0) {
-      this.logger.debug(`Busy Queue Execute Onchain`);
-      return true;
-    }
+    // const activeJobCount = await this.questQueue.getActiveCount();
+    // if (activeJobCount > 0) {
+    //   this.logger.debug(`Busy Queue Execute Onchain`);
+    //   return true;
+    // }
 
     const data = {
       redisKey: 'punkga:job:claim-reward',
       time: new Date().toUTCString(),
     };
 
+    // this.logger.debug(`create job to claim reward`);
     // create job to claim reward
     await this.questQueue.add('claim-reward', data, {
       removeOnComplete: true,
       removeOnFail: 10,
       attempts: 5,
-      backoff: 5000
+      backoff: 5000,
     });
   }
 
@@ -91,12 +98,26 @@ export class QuestService {
     try {
       const url = await this.filesService.uploadImageToS3(`nft`, file);
 
-      const ipfs = await this.filesService.uploadImageToIpfs(file);
+      const { cid, originalname } = await this.filesService.uploadImageToIpfs(
+        file
+      );
+
+      // upload metadata to ipfs
+      const metadata = {
+        name: `PunkgaReward NFT`,
+        description: 'Punkga Reward',
+        attributes: [],
+        image: `ipfs://${cid}/${originalname}`,
+      };
+      const { cid: metadataCID } = await this.filesService.uploadMetadataToIpfs(
+        metadata,
+        `/metadata-${new Date().getTime()}`
+      );
 
       this.logger.debug(`uploading nft image ${file.originalname} success`);
       return {
         url,
-        ipfs,
+        ipfs: `ipfs://${metadataCID}`,
       };
     } catch (errors) {
       return {
@@ -130,18 +151,16 @@ export class QuestService {
     try {
       const { userId } = ContextProvider.getAuthUser();
 
-      const user = await this.questGraphql.queryPublicUserWalletData(
-        {
-          id: userId,
-        },
-      );
+      const user = await this.questGraphql.queryPublicUserWalletData({
+        id: userId,
+      });
       if (!user.authorizer_users_user_wallet?.address) {
-        throw new BadRequestException('User wallet address not found')
+        throw new BadRequestException('User wallet address not found');
       }
 
       const quest = await this.questGraphql.getQuestDetailWithUserCampaign({
         id: questId,
-        user_id: userId
+        user_id: userId,
       });
 
       const userCampaignId = quest.quests_campaign.campaign_user[0].id;
@@ -154,20 +173,21 @@ export class QuestService {
         throw new ForbiddenException();
 
       // add unique key to db (duplicate item protection)
-      let uniqueKey = `q-${userId}-${questId}`
-      if (quest.repeat === 'Daily' && quest.repeat_quests?.length > 0) uniqueKey = `q-${userId}-${questId}-${quest.repeat_quests[0].id}`
+      let uniqueKey = `q-${userId}-${questId}`;
+      if (quest.repeat === 'Daily' && quest.repeat_quests?.length > 0)
+        uniqueKey = `q-${userId}-${questId}-${quest.repeat_quests[0].id}`;
 
       // insert new request
       const result = await this.questGraphql.insertRequestLog({
         data: {
           userId,
-          questId
+          questId,
         },
-        unique_key: uniqueKey
-      })
+        unique_key: uniqueKey,
+      });
 
       if (errorOrEmpty(result, 'insert_request_log_one')) return result;
-      this.logger.debug(`insert request success ${JSON.stringify(result)}`)
+      this.logger.debug(`insert request success ${JSON.stringify(result)}`);
 
       const requestId = result.data.insert_request_log_one.id;
 
@@ -175,16 +195,18 @@ export class QuestService {
         requestId,
         userId,
         questId,
-        userCampaignId
-      }
+        userCampaignId,
+      };
 
       const env = this.configService.get<string>('app.env') || 'prod';
-      this.redisClientService.client.rPush(`punkga-${env}:reward-users`, JSON.stringify(rewardInfo))
+      this.redisClientService.client.rPush(
+        `punkga-${env}:reward-users`,
+        JSON.stringify(rewardInfo)
+      );
 
       return {
         requestId,
-      }
-
+      };
     } catch (errors) {
       return {
         errors,

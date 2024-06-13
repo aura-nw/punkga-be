@@ -15,12 +15,12 @@ import { GraphqlModule } from './modules/graphql/graphql.module';
 import { SysKeyModule } from './modules/keys/syskey.module';
 import { MangaModule } from './modules/manga/manga.module';
 import { QuestModule } from './modules/quest/quest.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { RequestModule } from './modules/request/request.module';
+import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/system-custodial-wallet.module';
 import { TasksModule } from './modules/task/task.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
 import { UserModule } from './modules/user/user.module';
-import { RequestModule } from './modules/request/request.module';
-import { RedisModule } from './modules/redis/redis.module';
-import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/system-custodial-wallet.module';
 
 @Module({
   imports: [
@@ -35,8 +35,8 @@ import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/s
         prefix: 'punkga',
         defaultJobOptions: {
           removeOnComplete: true,
-          removeOnFail: 10
-        }
+          removeOnFail: 10,
+        },
       }),
       inject: [ConfigService],
     }),
@@ -45,7 +45,7 @@ import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/s
     CacheModule.register({
       isGlobal: true,
       ttl: 5,
-      max: 20
+      max: 20,
     }),
     ChapterModule,
     MangaModule,
@@ -64,7 +64,7 @@ import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/s
     CampaignModule,
     RequestModule,
     RedisModule,
-    SystemCustodialWalletModule
+    SystemCustodialWalletModule,
   ],
   controllers: [],
   providers: [
@@ -81,4 +81,4 @@ import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/s
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

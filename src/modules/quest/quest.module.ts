@@ -44,9 +44,9 @@ import { RedisModule } from '../redis/redis.module';
     CheckRewardService,
     QuestRewardService,
     QuestGraphql,
-    QuestProcessor
+    QuestProcessor,
   ],
   controllers: [QuestController],
   exports: [QuestGraphql, CheckConditionService, CheckRewardService],
 })
-export class QuestModule { }
+export class QuestModule {}

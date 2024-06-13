@@ -30,11 +30,16 @@ import {
   AnswerQuestRequestDto,
 } from './dto/answer-quest.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+// import { QuestEVMProcessor } from './quest-evm.processor';
 
 @Controller('quest')
 @ApiTags('quest')
 export class QuestController {
-  constructor(private readonly questSvc: QuestService) { }
+  constructor(
+    private readonly questSvc: QuestService,
+    // private readonly questEVMSvc: QuestEVMProcessor
+
+  ) { }
 
   // @Get()
   // getAllCampaignQuest(@Query() query: GetAllCampaignQuestRequestDto) {
@@ -92,4 +97,13 @@ export class QuestController {
   delete(@Param() data: DeleteQuestParamDto) {
     return this.questSvc.deleteQuest(data.quest_id);
   }
+
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @ApiBearerAuth()
+  // @Roles(Role.Admin)
+  // @Post('mint')
+  // @UseInterceptors(AuthUserInterceptor)
+  // mint() {
+  //   return this.questEVMSvc._mintReward();
+  // }
 }

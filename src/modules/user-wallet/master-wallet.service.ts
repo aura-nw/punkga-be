@@ -1,30 +1,38 @@
-import { Secp256k1HdWallet, StdFee } from '@cosmjs/amino';
-import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate';
-import { toUtf8 } from '@cosmjs/encoding';
-import { calculateFee, GasPrice } from '@cosmjs/stargate';
+import {
+  BaseContract,
+  Contract,
+  HDNodeWallet,
+  JsonRpcProvider,
+  Wallet,
+} from 'ethers';
+
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { Crypter } from '../../utils/crypto';
 import { SysKeyService } from '../keys/syskey.service';
+import { abi as levelingAbi } from './../../abi/PunkgaReward.json';
 import { UserWalletGraphql } from './user-wallet.graphql';
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 @Injectable()
 export class MasterWalletService implements OnModuleInit {
   private readonly logger = new Logger(MasterWalletService.name);
-  private masterWallet = null;
+  private masterHDWallet: HDNodeWallet = null;
   private masterWalletAddress = '';
-  private contractAddress: string;
-  private executeFee: StdFee;
-  private client: SigningCosmWasmClient;
+  private levelingProxyContractAddress = '';
+  private provider: JsonRpcProvider = null;
+  private levelingContract: BaseContract = null;
 
   constructor(
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
-    private sysKeyService: SysKeyService,
-  ) { }
+    private sysKeyService: SysKeyService
+  ) {
+    this.levelingProxyContractAddress = this.configService.get<string>(
+      'network.contractAddress.leveling'
+    );
+  }
 
-  // init master wallet
   async onModuleInit() {
     await this.initMasterWallet();
   }
@@ -32,156 +40,67 @@ export class MasterWalletService implements OnModuleInit {
   async initMasterWallet() {
     // get from db
     const masterWalletData = await this.userWalletGraphql.getMasterWallet();
+    const providerUrl = this.configService.get<string>('network.rpcEndpoint');
+    this.provider = new JsonRpcProvider(providerUrl);
+
     if (masterWalletData) {
-      const serialization = JSON.stringify({
-        type: 'secp256k1wallet-v1',
-        kdf: {
-          algorithm: 'argon2id',
-          params: { outputLength: 32, opsLimit: 24, memLimitKib: 12288 },
-        },
-        encryption: { algorithm: 'xchacha20poly1305-ietf' },
-        data: masterWalletData.data,
-      });
-      const wallet = await Secp256k1HdWallet.deserialize(
-        serialization,
-        this.sysKeyService.originalSeed
-      );
-      const account = await wallet.getAccounts();
+      const phrase = this.decryptPhrase(masterWalletData.data);
+      const wallet = Wallet.fromPhrase(phrase, this.provider);
 
-      this.masterWallet = wallet;
-      this.masterWalletAddress = account[0].address;
+      this.masterHDWallet = wallet;
+      this.masterWalletAddress = wallet.address;
     } else {
-      const { wallet, account, serializedWallet } =
-        await this.sysKeyService.randomWallet();
+      const { wallet, address, cipherPhrase } =
+        await this.sysKeyService.randomWallet(this.provider);
 
-      this.masterWallet = wallet;
-      this.masterWalletAddress = account[0].address;
+      this.masterHDWallet = wallet;
+      this.masterWalletAddress = address;
 
       // store db
       const result = await this.userWalletGraphql.insertManyUserWallet({
         objects: [
           {
-            address: account[0].address,
-            data: JSON.parse(serializedWallet).data,
+            address,
+            data: cipherPhrase,
             is_master_wallet: true,
           },
         ],
       });
       this.logger.debug(`Insert master wallet: ${JSON.stringify(result)}`);
     }
-
-    const gasPrice = GasPrice.fromString(
-      this.configService.get<string>('network.gasPrice')
-    );
-    this.executeFee = calculateFee(300_000, gasPrice);
-    this.contractAddress = this.configService.get<string>(
-      'network.contractAddress.leveling'
-    );
-
-    // build client
-    const rpcEndpoint = this.configService.get<string>('network.rpcEndpoint');
-    this.client = await SigningCosmWasmClient.connectWithSigner(
-      rpcEndpoint,
-      this.masterWallet,
-      {
-        gasPrice,
-      }
-    );
   }
 
-  async deserializeWallet(data: any) {
-    const serialization = JSON.stringify({
-      type: 'secp256k1wallet-v1',
-      kdf: {
-        algorithm: 'argon2id',
-        params: { outputLength: 32, opsLimit: 24, memLimitKib: 12288 },
-      },
-      encryption: { algorithm: 'xchacha20poly1305-ietf' },
-      data: data,
-    });
-    const wallet = await DirectSecp256k1HdWallet.deserialize(
-      serialization,
-      this.sysKeyService.originalSeed
-    );
-    const account = await wallet.getAccounts();
-    return {
-      wallet,
-      account
+  async getMasterWallet() {
+    if (this.masterHDWallet && this.masterWalletAddress) {
+      return {
+        wallet: this.masterHDWallet,
+        address: this.masterWalletAddress,
+      };
+    } else {
+      return null;
     }
   }
 
-  async broadcastTx(messages: any) {
-    const result = await this.client.signAndBroadcast(
-      this.masterWalletAddress,
-      messages,
-      'auto',
-      'punkga'
-    )
-
-    // this.logger.debug(result);
-    return result;
+  decryptPhrase(data: any) {
+    return Crypter.decrypt(data, this.sysKeyService.originalSeed);
   }
 
-  async mintNft(userAddress: string, tokenId: string, extension: any) {
-    const result = await this.client.execute(
-      this.masterWalletAddress,
-      this.contractAddress,
-      {
-        mint_reward: {
-          user_addr: userAddress,
-          token_id: tokenId,
-          extension,
-        },
-      },
-      this.executeFee
-    );
+  getLevelingContract(): any {
+    if (this.levelingContract !== null) return this.levelingContract;
 
-    this.logger.debug(result);
-    return result;
-  }
+    try {
+      // Connecting to smart contract
+      const contract = new Contract(
+        this.levelingProxyContractAddress,
+        levelingAbi,
+        this.provider
+      );
 
-  async updateUserLevel(userAddress: string, xp: number, level: number) {
-    const result = await this.client.execute(
-      this.masterWalletAddress,
-      this.contractAddress,
-      {
-        update_user_info: {
-          address: userAddress,
-          level,
-          total_xp: xp,
-        },
-      },
-      this.executeFee
-    );
-
-    this.logger.debug(result);
-    return result;
-  }
-
-  generateIncreaseXpMsg(userAddress: string, xp: number, level: number) {
-    return this.generateExecuteContractMsg(this.masterWalletAddress, this.contractAddress, {
-      update_user_info: {
-        address: userAddress,
-        level,
-        total_xp: xp,
-      },
-    })
-  }
-
-  generateMintNftMsg(userAddress: string, tokenId: string, extension: any) {
-    return this.generateExecuteContractMsg(this.masterWalletAddress, this.contractAddress, {
-      mint_reward: {
-        user_addr: userAddress,
-        token_id: tokenId,
-        extension,
-      },
-    })
-  }
-
-  generateExecuteContractMsg(sender: string, contract: string, msg) {
-    return {
-      typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
-      value: { msg: toUtf8(JSON.stringify(msg)), sender, contract, funds: [] },
-    };
+      this.levelingContract = contract.connect(this.masterHDWallet);
+      return this.levelingContract;
+    } catch (error) {
+      this.logger.error('get leveling contract err', error);
+      throw error;
+    }
   }
 }
