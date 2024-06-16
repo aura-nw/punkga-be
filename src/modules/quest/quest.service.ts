@@ -175,7 +175,7 @@ export class QuestService {
       // add unique key to db (duplicate item protection)
       let uniqueKey = `q-${userId}-${questId}`;
       if (quest.repeat === 'Daily' && quest.repeat_quests?.length > 0)
-        uniqueKey = `q-${userId}-${questId}-${quest.repeat_quests[0].id}`;
+        uniqueKey = `q-${userId}-${questId}-r${quest.repeat_quests[0].id}`;
 
       // insert new request
       const result = await this.questGraphql.insertRequestLog({
