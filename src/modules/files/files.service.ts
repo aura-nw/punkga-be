@@ -147,7 +147,7 @@ export class FilesService implements OnModuleInit {
 
     const client = new S3Client({
       endpoint:
-        this.configService.get<string>('aws.endpoint') ||
+        this.configService.get<string>('aws.s3endpoint') ||
         'https://s3.ap-southeast-1.amazonaws.com',
       region: this.configService.get<string>('aws.region'),
       credentials: {
