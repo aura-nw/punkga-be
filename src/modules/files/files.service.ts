@@ -146,6 +146,9 @@ export class FilesService implements OnModuleInit {
       typeof filePath === 'string' ? readFileSync(filePath) : filePath;
 
     const client = new S3Client({
+      endpoint:
+        this.configService.get<string>('aws.endpoint') ||
+        'https://s3.ap-southeast-1.amazonaws.com',
       region: this.configService.get<string>('aws.region'),
       credentials: {
         accessKeyId: this.configService.get<string>('aws.keyid'),
