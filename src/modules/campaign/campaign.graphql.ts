@@ -77,6 +77,18 @@ export class CampaignGraphql {
               count
             }
           }
+          campaign_i18n {
+            language_id
+            data
+            created_at
+            i18n_language {
+              id
+              is_main
+              symbol
+              icon
+              description
+            }
+          }
         }
       }
       `,
@@ -158,9 +170,7 @@ export class CampaignGraphql {
       `query campaign($user_id: bpchar = "") {
         campaign(where: {status: {_eq: "Published"}}, order_by: {created_at: desc}) {
           id
-          name
           slug
-          description
           start_date
           end_date
           status
@@ -170,8 +180,20 @@ export class CampaignGraphql {
             id
             created_at
           }
+          campaign_i18n {
+            language_id
+            data
+            created_at
+            i18n_language {
+              id
+              is_main
+              symbol
+              icon
+              description
+            }
+          }
         }
-      }
+      }      
       `,
       'campaign',
       {
