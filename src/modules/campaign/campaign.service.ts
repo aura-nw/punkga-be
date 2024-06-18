@@ -11,11 +11,16 @@ import { CheckConditionService } from '../quest/check-condition.service';
 import { CheckRewardService } from '../quest/check-reward.service';
 import { UserGraphql } from '../user/user.graphql';
 import { CampaignGraphql } from './campaign.graphql';
-import { CreateCampaignDto } from './dto/create-campaign.dto';
+import {
+  CampaignLanguageDto,
+  CampaignLanguagesDto,
+  CreateCampaignDto,
+} from './dto/create-campaign.dto';
 import { QuestGraphql } from '../quest/quest.graphql';
 import { IRewardInfo } from '../quest/interface/ireward-info';
 import { RedisService } from '../redis/redis.service';
 import { ConfigService } from '@nestjs/config';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class CampaignService {
@@ -34,19 +39,22 @@ export class CampaignService {
   async create(data: CreateCampaignDto) {
     const { token } = ContextProvider.getAuthUser();
     // TODO: get vn language id from db/ default 2
-    const defaultLanguageData = data.campaign_languages.find(
+    const campaignLanguages = JSON.parse(data.i18n) as CampaignLanguagesDto;
+    const defaultLanguageData = campaignLanguages.campaign_languages.find(
       (item) => item.language_id === 2
     );
 
-    const slug = generateSlug(defaultLanguageData.name, new Date().valueOf());
+    const slug = generateSlug(defaultLanguageData.name);
 
-    const campaignLanguagesData = data.campaign_languages.map((item) => ({
-      language_id: item.language_id,
-      data: {
-        name: item.name,
-        description: item.description,
-      },
-    }));
+    const campaignLanguagesData = campaignLanguages.campaign_languages.map(
+      (item) => ({
+        language_id: item.language_id,
+        data: {
+          name: item.name,
+          description: item.description,
+        },
+      })
+    );
 
     const insertData = {
       objects: [

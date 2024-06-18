@@ -13,10 +13,12 @@ export class CampaignLanguageDto {
   description: string;
 }
 
-export class CreateCampaignDto {
-  // @ApiProperty()
-  // name: string;
+export class CampaignLanguagesDto {
+  @ApiProperty({ type: [CampaignLanguageDto] })
+  campaign_languages: CampaignLanguageDto[];
+}
 
+export class CreateCampaignDto {
   @ApiProperty()
   status: string;
 
@@ -29,9 +31,6 @@ export class CreateCampaignDto {
   @ApiProperty()
   reward: any;
 
-  // @ApiProperty()
-  // description: string;
-
-  @ApiProperty({ type: [CampaignLanguageDto] })
-  campaign_languages: CampaignLanguageDto[];
+  @ApiProperty({ type: CampaignLanguagesDto })
+  i18n: string;
 }

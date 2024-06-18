@@ -11,7 +11,7 @@ export class CampaignGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
-  async createCampaign(objects: any, token: string) {
+  async createCampaign(variables: any, token: string) {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       token,
@@ -30,9 +30,7 @@ export class CampaignGraphql {
       }
       `,
       'insert_campaign',
-      {
-        objects,
-      }
+      variables
     );
   }
 

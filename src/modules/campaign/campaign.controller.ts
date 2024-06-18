@@ -8,7 +8,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
 import { AuthGuard } from '../../auth/auth.guard';
 import { Role } from '../../auth/role.enum';
@@ -22,19 +22,21 @@ import { GetCampaignDetailDto } from './dto/get-campaign-detail.dto';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { GetUserCampaignRankDto } from './dto/get-user-campaign-rank.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('campaign')
 @ApiTags('campaign')
 export class CampaignController {
-  constructor(private readonly campaignSvc: CampaignService) { }
+  constructor(private readonly campaignSvc: CampaignService) {}
 
-  @Post()
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Post()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, FileInterceptor('file'))
   @Roles(Role.Admin)
-  @UseInterceptors(AuthUserInterceptor)
-  create(@Body() data: CreateCampaignDto) {
-    return this.campaignSvc.create(data);
+  create(@Body() body: CreateCampaignDto) {
+    return this.campaignSvc.create(body);
   }
 
   @Get()
