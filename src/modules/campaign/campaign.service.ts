@@ -197,7 +197,7 @@ export class CampaignService {
           campaign_id: campaignId,
           language_id: 1,
           data: {
-            ...campaignLanguagesData.find((item) => item.language_id === 2)
+            ...campaignLanguagesData.find((item) => item.language_id === 1)
               .data,
             thumbnail_url: enthumbnailUrl,
           },
