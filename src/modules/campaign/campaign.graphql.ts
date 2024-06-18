@@ -11,6 +11,20 @@ export class CampaignGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  async updateCampaign(variables: any, token: string) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `mutation update_campaign_by_pk($id: Int!, $data: campaign_set_input = {}) {
+        update_campaign_by_pk(pk_columns: {id: $id}, _set: $data) {
+          updated_at
+        }
+      }`,
+      'update_campaign_by_pk',
+      variables
+    );
+  }
+
   async createCampaign(variables: any, token: string) {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
@@ -111,6 +125,18 @@ export class CampaignGraphql {
           end_date
           description
           reward
+          campaign_i18n {
+            language_id
+            data
+            created_at
+            i18n_language {
+              id
+              is_main
+              symbol
+              icon
+              description
+            }
+          }
           user_campaign_rewards {
             tx_hash
             created_at

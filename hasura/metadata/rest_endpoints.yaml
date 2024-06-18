@@ -2,15 +2,6 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Create Campaign
-  methods:
-    - POST
-  name: Admin - Create Campaign
-  url: admin/campaign
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Admin - Query all campaign
   methods:
     - GET

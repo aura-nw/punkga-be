@@ -808,20 +808,6 @@
               affected_rows
             }
           }
-      - name: Admin - Create Campaign
-        query: |
-          mutation insert_campaign_one ($name: String = "", $status: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "", $reward: jsonb!, $description: String!) {
-            insert_campaign(objects: {name:$name,status:$status,start_date:$start_date,end_date:$end_date,reward:$reward,description:$description}) {
-              returning {
-                id
-                name
-                status
-                start_date
-                end_date
-                description
-              }
-            }
-          }
       - name: Admin - Create Quest
         query: |
           mutation insert_quests ($name: String!, $type: String!, $condition: jsonb = "", $requirement: jsonb!, $reward: jsonb!, $status: String!, $campaign_id: Int!, $description: String!, $repeat: String!) {
@@ -895,27 +881,6 @@
               status
               type
               created_at
-            }
-          }
-      - name: Admin - Query all campaign
-        query: |
-          query campaign {
-            campaign(order_by: {created_at:desc}) {
-              created_at
-              updated_at
-              id
-              slug
-              name
-              status
-              start_date
-              end_date
-              reward
-              description
-              campaign_quests_aggregate(where: {status:{_eq:"Published"}}) {
-                aggregate {
-                  count
-                }
-              }
             }
           }
       - name: Admin - Query campaign detail
@@ -1251,6 +1216,39 @@
                 owner
                 term_id
                 created_at
+              }
+            }
+          }
+      - name: Admin - Query all campaign
+        query: |
+          query campaign {
+            campaign(order_by: {created_at:desc}) {
+              created_at
+              updated_at
+              id
+              slug
+              name
+              status
+              start_date
+              end_date
+              reward
+              description
+              campaign_i18n {
+                language_id
+                data
+                created_at
+                i18n_language {
+                  id
+                  is_main
+                  symbol
+                  icon
+                  description
+                }
+              }
+              campaign_quests_aggregate(where: {status:{_eq:"Published"}}) {
+                aggregate {
+                  count
+                }
               }
             }
           }

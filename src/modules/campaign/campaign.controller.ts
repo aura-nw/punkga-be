@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   UploadedFiles,
   UseGuards,
@@ -20,10 +21,11 @@ import { CampaignService } from './campaign.service';
 import { EnrollCampaignDto } from './dto/enroll-campaign.dto';
 import { GetAllCampaignQuery } from './dto/get-all-campaign.dto';
 import { GetCampaignDetailDto } from './dto/get-campaign-detail.dto';
-import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { GetUserCampaignRankDto } from './dto/get-user-campaign-rank.dto';
 import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { CreateCampaignDto } from './dto/create-campaign.dto';
+import { UpdateCampaignParam } from './dto/update-campaign.dto';
 
 @Controller('campaign')
 @ApiTags('campaign')
@@ -41,6 +43,20 @@ export class CampaignController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.campaignSvc.create(body, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Put(':campaign_id')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @Roles(Role.Admin)
+  update(
+    @Param() param: UpdateCampaignParam,
+    @Body() body: CreateCampaignDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.campaignSvc.update(param.campaign_id, body, files);
   }
 
   @Get()
