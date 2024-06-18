@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { ContextProvider } from '../../providers/contex.provider';
 import { errorOrEmpty } from '../graphql/utils';
 import { generateSlug } from '../manga/util';
@@ -23,13 +28,13 @@ export class CampaignService {
     private checkRewardService: CheckRewardService,
     private userGraphql: UserGraphql,
     private questGraphql: QuestGraphql,
-    private redisClientService: RedisService,
-  ) { }
+    private redisClientService: RedisService
+  ) {}
 
   async create(data: CreateCampaignDto) {
     const { token } = ContextProvider.getAuthUser();
 
-    const slug = generateSlug(data.name, new Date().valueOf());
+    const slug = generateSlug(data.name);
     return this.campaignGraphql.createCampaign(
       slug,
       data.name,
@@ -39,7 +44,7 @@ export class CampaignService {
       data.reward,
       data.description,
       token
-    )
+    );
   }
 
   async getAll(userId: string) {
@@ -58,12 +63,18 @@ export class CampaignService {
       const campaignId = publicCampaignDetail.data.campaign[0].id;
 
       // check enroll
-      const userCampaign = await this.campaignGraphql.getUserCampaign(campaignId, userId);
+      const userCampaign = await this.campaignGraphql.getUserCampaign(
+        campaignId,
+        userId
+      );
       if (errorOrEmpty(userCampaign, 'user_campaign'))
         return publicCampaignDetail;
 
       // get auth-ed campaign info
-      const result = await this.campaignGraphql.getCampaignAuthDetail(campaignId, userId);
+      const result = await this.campaignGraphql.getCampaignAuthDetail(
+        campaignId,
+        userId
+      );
 
       if (errorOrEmpty(result, 'campaign')) return result;
       const campaign = result.data.campaign[0];
@@ -79,7 +90,8 @@ export class CampaignService {
         // check condition
 
         checkConditionPromises.push(
-          this.checkConditionService.verify(quest.condition, user));
+          this.checkConditionService.verify(quest.condition, user)
+        );
 
         // check reward status
         checkRewardPromises.push(
@@ -133,13 +145,11 @@ export class CampaignService {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
 
-      const user = await this.questGraphql.queryPublicUserWalletData(
-        {
-          id: userId,
-        },
-      );
+      const user = await this.questGraphql.queryPublicUserWalletData({
+        id: userId,
+      });
       if (!user.authorizer_users_user_wallet?.address) {
-        throw new BadRequestException('User wallet address not found')
+        throw new BadRequestException('User wallet address not found');
       }
 
       // check top 1 user of campaign
@@ -154,19 +164,19 @@ export class CampaignService {
         throw new ForbiddenException();
 
       // add unique key to db (duplicate item protection)
-      const uniqueKey = `c-${userId}-${campaignId}`
+      const uniqueKey = `c-${userId}-${campaignId}`;
 
       // insert new request
       const result = await this.questGraphql.insertRequestLog({
         data: {
           userId,
-          campaignId
+          campaignId,
         },
-        unique_key: uniqueKey
-      })
+        unique_key: uniqueKey,
+      });
 
       if (errorOrEmpty(result, 'insert_request_log_one')) return result;
-      this.logger.debug(`insert request success ${JSON.stringify(result)}`)
+      this.logger.debug(`insert request success ${JSON.stringify(result)}`);
 
       const requestId = result.data.insert_request_log_one.id;
 
@@ -174,14 +184,17 @@ export class CampaignService {
         requestId,
         userId,
         campaignId,
-      }
+      };
 
       const env = this.configService.get<string>('app.env') || 'prod';
-      this.redisClientService.client.rPush(`punkga-${env}:reward-users`, JSON.stringify(rewardInfo))
+      this.redisClientService.client.rPush(
+        `punkga-${env}:reward-users`,
+        JSON.stringify(rewardInfo)
+      );
 
       return {
         requestId,
-      }
+      };
     } catch (errors) {
       return {
         errors,
