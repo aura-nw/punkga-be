@@ -315,4 +315,39 @@ export class CampaignGraphql {
       headers
     );
   }
+
+  async getLanguages() {
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query languages {
+        languages {
+          id
+          is_main
+          icon
+          symbol
+          description
+        }
+      }
+      `,
+      'languages',
+      {}
+    );
+
+    return result.data.languages;
+  }
+
+  async updateI18n(variables: any, token: string) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `mutation update_i18n($campaign_id: Int!, $language_id: Int!, $data: jsonb!) {
+        update_i18n(where: {campaign_id: {_eq: $campaign_id}, language_id: {_eq: $language_id}}, _set: {data: $data}) {
+          affected_rows
+        }
+      }`,
+      'update_i18n',
+      variables
+    );
+  }
 }

@@ -20,7 +20,7 @@ import { QuestGraphql } from '../quest/quest.graphql';
 import { IRewardInfo } from '../quest/interface/ireward-info';
 import { RedisService } from '../redis/redis.service';
 import { ConfigService } from '@nestjs/config';
-import { plainToInstance } from 'class-transformer';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class CampaignService {
@@ -33,12 +33,17 @@ export class CampaignService {
     private checkRewardService: CheckRewardService,
     private userGraphql: UserGraphql,
     private questGraphql: QuestGraphql,
+    private fileService: FilesService,
     private redisClientService: RedisService
   ) {}
 
-  async create(data: CreateCampaignDto) {
+  async create(data: CreateCampaignDto, files: Array<Express.Multer.File>) {
     const { token } = ContextProvider.getAuthUser();
+
     // TODO: get vn language id from db/ default 2
+    // const languages = await this.campaignGraphql.getLanguages();
+    // const defaultlLanguage = languages.find((item) => item.is_main === true);
+
     const campaignLanguages = JSON.parse(data.i18n) as CampaignLanguagesDto;
     const defaultLanguageData = campaignLanguages.campaign_languages.find(
       (item) => item.language_id === 2
@@ -70,7 +75,60 @@ export class CampaignService {
         },
       ],
     };
-    return this.campaignGraphql.createCampaign(insertData, token);
+    const result = await this.campaignGraphql.createCampaign(insertData, token);
+    if (result.errors) return result;
+
+    // upload thumbnail
+    const campaignId = result.data.insert_campaign.returning[0].id;
+    let vnthumbnailUrl = '';
+    let enthumbnailUrl = '';
+
+    const vnthumbnail = files.filter((f) => f.fieldname === 'vn_thumbnail')[0];
+    if (vnthumbnail) {
+      vnthumbnailUrl = await this.fileService.uploadImageToS3(
+        `campaign-${campaignId}/vn`,
+        vnthumbnail
+      );
+      const result = await this.campaignGraphql.updateI18n(
+        {
+          campaign_id: campaignId,
+          language_id: 2,
+          data: {
+            ...campaignLanguagesData.find((item) => item.language_id === 2)
+              .data,
+            thumbnail_url: vnthumbnailUrl,
+          },
+        },
+        token
+      );
+      this.logger.debug(
+        `Update campaign thumbnail result: ${JSON.stringify(result)}`
+      );
+    }
+    const enthumbnail = files.filter((f) => f.fieldname === 'en_thumbnail')[0];
+    if (enthumbnail) {
+      enthumbnailUrl = await this.fileService.uploadImageToS3(
+        `campaign-${campaignId}/en`,
+        vnthumbnail
+      );
+      const result = await this.campaignGraphql.updateI18n(
+        {
+          campaign_id: campaignId,
+          language_id: 1,
+          data: {
+            ...campaignLanguagesData.find((item) => item.language_id === 2)
+              .data,
+            thumbnail_url: vnthumbnailUrl,
+          },
+        },
+        token
+      );
+      this.logger.debug(
+        `Update campaign thumbnail result: ${JSON.stringify(result)}`
+      );
+    }
+
+    return result;
   }
 
   async getAll(userId: string) {

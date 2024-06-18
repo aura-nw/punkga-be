@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber } from 'class-validator';
 
 export class CampaignLanguageDto {
@@ -33,4 +33,13 @@ export class CreateCampaignDto {
 
   @ApiProperty({ type: CampaignLanguagesDto })
   i18n: string;
+
+  @ApiPropertyOptional({ type: 'string', format: 'binary' })
+  vn_thumbnail: Express.Multer.File;
+
+  @ApiPropertyOptional({ type: 'string', format: 'binary' })
+  en_thumbnail: Express.Multer.File;
+
+  @ApiPropertyOptional({ type: ['string'], format: 'binary' })
+  files: Express.Multer.File[];
 }

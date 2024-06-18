@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Query,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -22,7 +23,7 @@ import { GetCampaignDetailDto } from './dto/get-campaign-detail.dto';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { GetUserCampaignRankDto } from './dto/get-user-campaign-rank.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('campaign')
 @ApiTags('campaign')
@@ -33,10 +34,13 @@ export class CampaignController {
   @ApiBearerAuth()
   @Post()
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(AuthUserInterceptor, FileInterceptor('file'))
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   @Roles(Role.Admin)
-  create(@Body() body: CreateCampaignDto) {
-    return this.campaignSvc.create(body);
+  create(
+    @Body() body: CreateCampaignDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.campaignSvc.create(body, files);
   }
 
   @Get()

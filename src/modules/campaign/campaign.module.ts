@@ -11,6 +11,7 @@ import { CampaignService } from './campaign.service';
 import { UserLevelModule } from '../user-level/user-level.module';
 import { UserWalletModule } from '../user-wallet/user-wallet.module';
 import { RedisModule } from '../redis/redis.module';
+import { FilesModule } from '../files/files.module';
 
 @Module({
   imports: [
@@ -21,9 +22,10 @@ import { RedisModule } from '../redis/redis.module';
     LevelingModule,
     UserLevelModule,
     UserWalletModule,
-    RedisModule
+    RedisModule,
+    FilesModule,
   ],
   providers: [CampaignService, CampaignGraphql],
   controllers: [CampaignController],
 })
-export class CampaignModule { }
+export class CampaignModule {}
