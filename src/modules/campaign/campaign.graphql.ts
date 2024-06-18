@@ -9,14 +9,14 @@ export class CampaignGraphql {
   constructor(
     private configService: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
 
-  async createCampaign(slug: string, name: string, status: string, startDate: string, endDate: string, reward: any, description: string, token: string) {
+  async createCampaign(objects: any, token: string) {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       token,
-      `mutation insert_campaign_one($name: String = "", $status: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "", $reward: jsonb!, $description: String!, $slug: String = "") {
-        insert_campaign(objects: {name: $name, status: $status, start_date: $start_date, end_date: $end_date, reward: $reward, description: $description, slug: $slug}) {
+      `mutation insert_campaign($objects: [campaign_insert_input!] = {}) {
+        insert_campaign(objects: $objects) {
           returning {
             id
             slug
@@ -27,16 +27,11 @@ export class CampaignGraphql {
             description
           }
         }
-      }`,
-      'insert_campaign_one',
+      }
+      `,
+      'insert_campaign',
       {
-        slug,
-        name: name,
-        status: status,
-        start_date: startDate,
-        end_date: endDate,
-        reward,
-        description
+        objects,
       }
     );
   }

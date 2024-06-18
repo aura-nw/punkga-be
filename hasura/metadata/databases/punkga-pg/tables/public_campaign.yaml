@@ -2,6 +2,13 @@ table:
   name: campaign
   schema: public
 array_relationships:
+  - name: campaign_i18n
+    using:
+      foreign_key_constraint_on:
+        column: campaign_id
+        table:
+          name: i18n
+          schema: public
   - name: campaign_quests
     using:
       foreign_key_constraint_on:

@@ -1126,3 +1126,131 @@
               }
             }
           }
+      - name: User - Create IP Asset
+        query: |
+          mutation insert_ip_asset_one ($object: ip_asset_insert_input = {}) {
+            insert_ip_asset_one(object: $object) {
+              id
+              ip_asset_id
+              nft_contract_address
+              nft_token_id
+              user_id
+              created_at
+              updated_at
+            }
+          }
+      - name: Public - Query IP Assets
+        query: |
+          query ip_asset ($user_id: bpchar!) {
+            ip_asset(where: {user_id:{_eq:$user_id}}, order_by: {created_at:desc}) {
+              ip_asset_id
+              nft_token_id
+              nft_contract_address
+              user_id
+              created_at
+            }
+          }
+      - name: Public - Get license tokens by ip asset id
+        query: |
+          query license_tokens ($ip_asset_id: String!) {
+            license_tokens(where: {ip_asset_id:{_eq:$ip_asset_id}}) {
+              id
+              ip_asset_id
+              license_id
+              license_template_address
+              owner
+              term_id
+              created_at
+              updated_at
+            }
+          }
+      - name: Public - Get launchpad
+        query: |
+          query launchpad {
+            launchpad(where: {status:{_eq:"PUBLISHED"}}) {
+              id
+              creator_address
+              creator_id
+              description
+              end_date
+              featured_images
+              license_token_address
+              license_token_id
+              logo_url
+              max_mint_per_address
+              metadata_contract_uri
+              max_supply
+              metadata_uri_base
+              mint_price
+              name
+              nft_images
+              onchain_info
+              royalties
+              start_date
+              status
+              thumbnail_url
+              created_at
+              updated_at
+            }
+          }
+      - name: Public - Launchpad by id
+        query: |
+          query launchpad ($id: Int!) {
+            launchpad_by_pk(id: $id) {
+              id
+              creator_address
+              creator_id
+              description
+              end_date
+              featured_images
+              license_token_address
+              license_token_id
+              logo_url
+              max_mint_per_address
+              metadata_contract_uri
+              max_supply
+              metadata_uri_base
+              mint_price
+              name
+              nft_images
+              onchain_info
+              royalties
+              start_date
+              status
+              thumbnail_url
+              created_at
+              updated_at
+              tx_hash
+              license {
+                ip_asset_id
+                license_id
+                term_id
+                license_template_address
+                owner
+                created_at
+              }
+            }
+          }
+      - name: User - Delete launchpad
+        query: |
+          mutation delete_launchpad ($id: Int!) {
+            delete_launchpad(where: {id:{_eq:$id},status:{_eq:"DRAFT"}}) {
+              affected_rows
+            }
+          }
+      - name: User - Insert license token
+        query: |
+          mutation insert_license_tokens ($objects: [license_tokens_insert_input!] = {}) {
+            insert_license_tokens(objects: $objects) {
+              affected_rows
+              returning {
+                id
+                license_id
+                ip_asset_id
+                license_template_address
+                owner
+                term_id
+                created_at
+              }
+            }
+          }
