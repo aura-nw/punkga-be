@@ -52,9 +52,15 @@ export class CampaignService {
     const campaignLanguages = JSON.parse(
       data.i18n
     ) as CreateCampaignLanguagesDto;
-    const defaultLanguageData = campaignLanguages.campaign_languages.find(
+    if (campaignLanguages.campaign_languages.length === 0)
+      throw new BadRequestException('campaign_languages invalid');
+
+    let defaultLanguageData = campaignLanguages.campaign_languages.find(
       (item) => item.language_id === 2
     );
+
+    if (!defaultLanguageData)
+      defaultLanguageData = campaignLanguages.campaign_languages[0];
 
     const slug = generateSlug(defaultLanguageData.name);
 
