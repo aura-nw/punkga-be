@@ -7,7 +7,7 @@ export class SystemCustodialWalletGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
 
   async insertGranterWallet(variables: any) {
     const headers = {

@@ -9,14 +9,28 @@ export class CampaignGraphql {
   constructor(
     private configService: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
 
-  async createCampaign(slug: string, name: string, status: string, startDate: string, endDate: string, reward: any, description: string, token: string) {
+  async updateCampaign(variables: any, token: string) {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       token,
-      `mutation insert_campaign_one($name: String = "", $status: String = "", $start_date: timestamptz = "", $end_date: timestamptz = "", $reward: jsonb!, $description: String!, $slug: String = "") {
-        insert_campaign(objects: {name: $name, status: $status, start_date: $start_date, end_date: $end_date, reward: $reward, description: $description, slug: $slug}) {
+      `mutation update_campaign_by_pk($id: Int!, $data: campaign_set_input = {}) {
+        update_campaign_by_pk(pk_columns: {id: $id}, _set: $data) {
+          updated_at
+        }
+      }`,
+      'update_campaign_by_pk',
+      variables
+    );
+  }
+
+  async createCampaign(variables: any, token: string) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `mutation insert_campaign($objects: [campaign_insert_input!] = {}) {
+        insert_campaign(objects: $objects) {
           returning {
             id
             slug
@@ -27,17 +41,10 @@ export class CampaignGraphql {
             description
           }
         }
-      }`,
-      'insert_campaign_one',
-      {
-        slug,
-        name: name,
-        status: status,
-        start_date: startDate,
-        end_date: endDate,
-        reward,
-        description
       }
+      `,
+      'insert_campaign',
+      variables
     );
   }
 
@@ -84,6 +91,18 @@ export class CampaignGraphql {
               count
             }
           }
+          campaign_i18n {
+            language_id
+            data
+            created_at
+            i18n_language {
+              id
+              is_main
+              symbol
+              icon
+              description
+            }
+          }
         }
       }
       `,
@@ -106,6 +125,18 @@ export class CampaignGraphql {
           end_date
           description
           reward
+          campaign_i18n {
+            language_id
+            data
+            created_at
+            i18n_language {
+              id
+              is_main
+              symbol
+              icon
+              description
+            }
+          }
           user_campaign_rewards {
             tx_hash
             created_at
@@ -165,9 +196,7 @@ export class CampaignGraphql {
       `query campaign($user_id: bpchar = "") {
         campaign(where: {status: {_eq: "Published"}}, order_by: {created_at: desc}) {
           id
-          name
           slug
-          description
           start_date
           end_date
           status
@@ -177,8 +206,20 @@ export class CampaignGraphql {
             id
             created_at
           }
+          campaign_i18n {
+            language_id
+            data
+            created_at
+            i18n_language {
+              id
+              is_main
+              symbol
+              icon
+              description
+            }
+          }
         }
-      }
+      }      
       `,
       'campaign',
       {
@@ -320,6 +361,41 @@ export class CampaignGraphql {
         user_id: userId,
       },
       headers
+    );
+  }
+
+  async getLanguages() {
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query languages {
+        languages {
+          id
+          is_main
+          icon
+          symbol
+          description
+        }
+      }
+      `,
+      'languages',
+      {}
+    );
+
+    return result.data.languages;
+  }
+
+  async insertI18n(variables: any, token: string) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `mutation insert_i18n_one($campaign_id: Int!, $language_id: Int!, $data: jsonb!) {
+        insert_i18n_one(object: {campaign_id: $campaign_id, language_id: $language_id, data: $data}, on_conflict: {constraint: i18n_campaign_id_language_id_key, update_columns: data}) {
+          data
+        }
+      }`,
+      'insert_i18n_one',
+      variables
     );
   }
 }
