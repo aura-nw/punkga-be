@@ -5,7 +5,6 @@
 - "!include public_chapter_languages.yaml"
 - "!include public_chapter_total_likes.yaml"
 - "!include public_chapters.yaml"
-- "!include public_collection.yaml"
 - "!include public_creators.yaml"
 - "!include public_email_subscribe.yaml"
 - "!include public_i18n.yaml"
