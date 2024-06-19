@@ -90,6 +90,35 @@ export class CampaignService {
     let vnthumbnailUrl = '';
     let enthumbnailUrl = '';
 
+    const vnCampaignInfo = campaignLanguagesData.find(
+      (item) => item.language_id === 2
+    );
+    if (vnCampaignInfo) {
+      const vndata: any = vnCampaignInfo.data;
+
+      const vnthumbnail = files.filter(
+        (f) => f.fieldname === 'vn_thumbnail'
+      )[0];
+      if (vnthumbnail) {
+        const vnthumbnailUrl = await this.fileService.uploadImageToS3(
+          `campaign-${campaignId}/vn`,
+          vnthumbnail
+        );
+        vndata.thumbnail_url = vnthumbnailUrl;
+      }
+
+      const result = await this.campaignGraphql.insertI18n(
+        {
+          campaign_id: campaignId,
+          language_id: 2,
+          data: vndata,
+        },
+        token
+      );
+      this.logger.debug(
+        `Update campaign thumbnail result: ${JSON.stringify(result)}`
+      );
+    }
     const vnthumbnail = files.filter((f) => f.fieldname === 'vn_thumbnail')[0];
     if (vnthumbnail) {
       vnthumbnailUrl = await this.fileService.uploadImageToS3(
@@ -112,21 +141,30 @@ export class CampaignService {
         `Update campaign thumbnail result: ${JSON.stringify(result)}`
       );
     }
-    const enthumbnail = files.filter((f) => f.fieldname === 'en_thumbnail')[0];
-    if (enthumbnail) {
-      enthumbnailUrl = await this.fileService.uploadImageToS3(
-        `campaign-${campaignId}/en`,
-        vnthumbnail
-      );
+
+    // update en info
+    const enCampaignInfo = campaignLanguagesData.find(
+      (item) => item.language_id === 1
+    );
+    if (enCampaignInfo) {
+      const endata: any = enCampaignInfo.data;
+
+      const enthumbnail = files.filter(
+        (f) => f.fieldname === 'en_thumbnail'
+      )[0];
+      if (enthumbnail) {
+        const enthumbnailUrl = await this.fileService.uploadImageToS3(
+          `campaign-${campaignId}/en`,
+          enthumbnail
+        );
+        endata.thumbnail_url = enthumbnailUrl;
+      }
+
       const result = await this.campaignGraphql.insertI18n(
         {
           campaign_id: campaignId,
           language_id: 1,
-          data: {
-            ...campaignLanguagesData.find((item) => item.language_id === 2)
-              .data,
-            thumbnail_url: enthumbnailUrl,
-          },
+          data: endata,
         },
         token
       );

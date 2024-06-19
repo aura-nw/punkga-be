@@ -34,7 +34,7 @@ export class SystemCustodialWalletService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.initGranterWallet();
+    // await this.initGranterWallet();
   }
 
   async initGranterWallet() {
