@@ -93,8 +93,6 @@ export class CampaignService {
 
     // upload thumbnail
     const campaignId = result.data.insert_campaign.returning[0].id;
-    let vnthumbnailUrl = '';
-    let enthumbnailUrl = '';
 
     const vnCampaignInfo = campaignLanguagesData.find(
       (item) => item.language_id === 2
@@ -118,28 +116,6 @@ export class CampaignService {
           campaign_id: campaignId,
           language_id: 2,
           data: vndata,
-        },
-        token
-      );
-      this.logger.debug(
-        `Update campaign thumbnail result: ${JSON.stringify(result)}`
-      );
-    }
-    const vnthumbnail = files.filter((f) => f.fieldname === 'vn_thumbnail')[0];
-    if (vnthumbnail) {
-      vnthumbnailUrl = await this.fileService.uploadImageToS3(
-        `campaign-${campaignId}/vn`,
-        vnthumbnail
-      );
-      const result = await this.campaignGraphql.insertI18n(
-        {
-          campaign_id: campaignId,
-          language_id: 2,
-          data: {
-            ...campaignLanguagesData.find((item) => item.language_id === 2)
-              .data,
-            thumbnail_url: vnthumbnailUrl,
-          },
         },
         token
       );
