@@ -11,6 +11,9 @@ export class CampaignLanguageDto {
 
   @ApiProperty()
   description: string;
+
+  @ApiPropertyOptional()
+  thumbnail_url: string;
 }
 
 export class CampaignLanguagesDto {
@@ -18,7 +21,7 @@ export class CampaignLanguagesDto {
   campaign_languages: CampaignLanguageDto[];
 }
 
-export class CreateCampaignDto {
+export class UpdateCampaignDto {
   @ApiProperty()
   status: string;
 
@@ -42,4 +45,9 @@ export class CreateCampaignDto {
 
   @ApiPropertyOptional({ type: ['string'], format: 'binary' })
   files: Express.Multer.File[];
+}
+
+export class UpdateCampaignParam {
+  @ApiProperty()
+  campaign_id: number;
 }
