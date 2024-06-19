@@ -74,7 +74,7 @@ export class CampaignService {
           status: data.status,
           start_date: data.start_date,
           end_date: data.end_date,
-          reward: data.reward,
+          reward: JSON.parse(data.reward),
           slug,
           campaign_i18n: {
             data: campaignLanguagesData,
@@ -163,7 +163,7 @@ export class CampaignService {
       status: data.status,
       start_date: data.start_date,
       end_date: data.end_date,
-      reward: data.reward,
+      reward: JSON.parse(data.reward),
     };
     const result = await this.campaignGraphql.updateCampaign(
       {
