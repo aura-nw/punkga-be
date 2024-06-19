@@ -13,14 +13,19 @@ import { UserGraphql } from '../user/user.graphql';
 import { CampaignGraphql } from './campaign.graphql';
 import {
   CampaignLanguageDto,
-  CampaignLanguagesDto,
+  CampaignLanguagesDto as CreateCampaignLanguagesDto,
   CreateCampaignDto,
 } from './dto/create-campaign.dto';
+
 import { QuestGraphql } from '../quest/quest.graphql';
 import { IRewardInfo } from '../quest/interface/ireward-info';
 import { RedisService } from '../redis/redis.service';
 import { ConfigService } from '@nestjs/config';
 import { FilesService } from '../files/files.service';
+import {
+  UpdateCampaignDto,
+  CampaignLanguagesDto as UpdateCampaignLanguagesDto,
+} from './dto/update-campaign.dto';
 
 @Injectable()
 export class CampaignService {
@@ -44,7 +49,9 @@ export class CampaignService {
     // const languages = await this.campaignGraphql.getLanguages();
     // const defaultlLanguage = languages.find((item) => item.is_main === true);
 
-    const campaignLanguages = JSON.parse(data.i18n) as CampaignLanguagesDto;
+    const campaignLanguages = JSON.parse(
+      data.i18n
+    ) as CreateCampaignLanguagesDto;
     const defaultLanguageData = campaignLanguages.campaign_languages.find(
       (item) => item.language_id === 2
     );
@@ -89,7 +96,7 @@ export class CampaignService {
         `campaign-${campaignId}/vn`,
         vnthumbnail
       );
-      const result = await this.campaignGraphql.updateI18n(
+      const result = await this.campaignGraphql.insertI18n(
         {
           campaign_id: campaignId,
           language_id: 2,
@@ -111,7 +118,7 @@ export class CampaignService {
         `campaign-${campaignId}/en`,
         vnthumbnail
       );
-      const result = await this.campaignGraphql.updateI18n(
+      const result = await this.campaignGraphql.insertI18n(
         {
           campaign_id: campaignId,
           language_id: 1,
@@ -133,18 +140,21 @@ export class CampaignService {
 
   async update(
     campaignId: number,
-    data: CreateCampaignDto,
+    data: UpdateCampaignDto,
     files: Array<Express.Multer.File>
   ) {
     const { token } = ContextProvider.getAuthUser();
 
-    const campaignLanguages = JSON.parse(data.i18n) as CampaignLanguagesDto;
+    const campaignLanguages = JSON.parse(
+      data.i18n
+    ) as UpdateCampaignLanguagesDto;
     const campaignLanguagesData = campaignLanguages.campaign_languages.map(
       (item) => ({
         language_id: item.language_id,
         data: {
           name: item.name,
           description: item.description,
+          thumbnail_url: item.thumbnail_url,
         },
       })
     );
@@ -163,21 +173,29 @@ export class CampaignService {
       token
     );
 
-    const vnthumbnail = files.filter((f) => f.fieldname === 'vn_thumbnail')[0];
-    if (vnthumbnail) {
-      const vnthumbnailUrl = await this.fileService.uploadImageToS3(
-        `campaign-${campaignId}/vn`,
-        vnthumbnail
-      );
-      const result = await this.campaignGraphql.updateI18n(
+    // update vn info
+    const vnCampaignInfo = campaignLanguagesData.find(
+      (item) => item.language_id === 2
+    );
+    if (vnCampaignInfo) {
+      const vndata = vnCampaignInfo.data;
+
+      const vnthumbnail = files.filter(
+        (f) => f.fieldname === 'vn_thumbnail'
+      )[0];
+      if (vnthumbnail) {
+        const vnthumbnailUrl = await this.fileService.uploadImageToS3(
+          `campaign-${campaignId}/vn`,
+          vnthumbnail
+        );
+        vndata.thumbnail_url = vnthumbnailUrl;
+      }
+
+      const result = await this.campaignGraphql.insertI18n(
         {
           campaign_id: campaignId,
           language_id: 2,
-          data: {
-            ...campaignLanguagesData.find((item) => item.language_id === 2)
-              .data,
-            thumbnail_url: vnthumbnailUrl,
-          },
+          data: vndata,
         },
         token
       );
@@ -186,21 +204,29 @@ export class CampaignService {
       );
     }
 
-    const enthumbnail = files.filter((f) => f.fieldname === 'en_thumbnail')[0];
-    if (enthumbnail) {
-      const enthumbnailUrl = await this.fileService.uploadImageToS3(
-        `campaign-${campaignId}/en`,
-        vnthumbnail
-      );
-      const result = await this.campaignGraphql.updateI18n(
+    // update en info
+    const enCampaignInfo = campaignLanguagesData.find(
+      (item) => item.language_id === 1
+    );
+    if (enCampaignInfo) {
+      const endata = enCampaignInfo.data;
+
+      const enthumbnail = files.filter(
+        (f) => f.fieldname === 'en_thumbnail'
+      )[0];
+      if (enthumbnail) {
+        const enthumbnailUrl = await this.fileService.uploadImageToS3(
+          `campaign-${campaignId}/en`,
+          enthumbnail
+        );
+        endata.thumbnail_url = enthumbnailUrl;
+      }
+
+      const result = await this.campaignGraphql.insertI18n(
         {
           campaign_id: campaignId,
           language_id: 1,
-          data: {
-            ...campaignLanguagesData.find((item) => item.language_id === 1)
-              .data,
-            thumbnail_url: enthumbnailUrl,
-          },
+          data: endata,
         },
         token
       );

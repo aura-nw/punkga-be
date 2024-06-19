@@ -11,6 +11,9 @@ export class CampaignLanguageDto {
 
   @ApiProperty()
   description: string;
+
+  @ApiPropertyOptional()
+  thumbnail_url: string;
 }
 
 export class CampaignLanguagesDto {

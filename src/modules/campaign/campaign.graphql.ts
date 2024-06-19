@@ -385,16 +385,16 @@ export class CampaignGraphql {
     return result.data.languages;
   }
 
-  async updateI18n(variables: any, token: string) {
+  async insertI18n(variables: any, token: string) {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       token,
-      `mutation update_i18n($campaign_id: Int!, $language_id: Int!, $data: jsonb!) {
-        update_i18n(where: {campaign_id: {_eq: $campaign_id}, language_id: {_eq: $language_id}}, _set: {data: $data}) {
-          affected_rows
+      `mutation insert_i18n_one($campaign_id: Int!, $language_id: Int!, $data: jsonb!) {
+        insert_i18n_one(object: {campaign_id: $campaign_id, language_id: $language_id, data: $data}, on_conflict: {constraint: i18n_campaign_id_language_id_key, update_columns: data}) {
+          data
         }
       }`,
-      'update_i18n',
+      'insert_i18n_one',
       variables
     );
   }
