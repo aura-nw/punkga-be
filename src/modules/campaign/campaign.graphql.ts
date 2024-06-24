@@ -398,4 +398,22 @@ export class CampaignGraphql {
       variables
     );
   }
+
+  async getI18n(variables: any, token: string) {
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `query i18n($campaign_id: Int!) {
+        i18n(where: {campaign_id: {_eq: $campaign_id}}) {
+          id
+          language_id
+          data
+        }
+      }`,
+      'i18n',
+      variables
+    );
+
+    return result.data.i18n;
+  }
 }
