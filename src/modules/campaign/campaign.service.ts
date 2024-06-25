@@ -4,11 +4,17 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
 import { ContextProvider } from '../../providers/contex.provider';
+import { FilesService } from '../files/files.service';
 import { errorOrEmpty } from '../graphql/utils';
 import { generateSlug } from '../manga/util';
 import { CheckConditionService } from '../quest/check-condition.service';
 import { CheckRewardService } from '../quest/check-reward.service';
+import { IRewardInfo } from '../quest/interface/ireward-info';
+import { QuestGraphql } from '../quest/quest.graphql';
+import { RedisService } from '../redis/redis.service';
 import { UserGraphql } from '../user/user.graphql';
 import { CampaignGraphql } from './campaign.graphql';
 import {
@@ -16,15 +22,9 @@ import {
   CampaignLanguagesDto as CreateCampaignLanguagesDto,
   CreateCampaignDto,
 } from './dto/create-campaign.dto';
-
-import { QuestGraphql } from '../quest/quest.graphql';
-import { IRewardInfo } from '../quest/interface/ireward-info';
-import { RedisService } from '../redis/redis.service';
-import { ConfigService } from '@nestjs/config';
-import { FilesService } from '../files/files.service';
 import {
-  UpdateCampaignDto,
   CampaignLanguagesDto as UpdateCampaignLanguagesDto,
+  UpdateCampaignDto,
 } from './dto/update-campaign.dto';
 
 @Injectable()
@@ -70,6 +70,10 @@ export class CampaignService {
         data: {
           name: item.name,
           description: item.description,
+          seo: {
+            title: item.name,
+            description: this.getSEODescription(item.description),
+          },
         },
       })
     );
@@ -109,6 +113,7 @@ export class CampaignService {
           vnthumbnail
         );
         vndata.thumbnail_url = vnthumbnailUrl;
+        vndata.seo.thumbnail_url = vnthumbnailUrl;
       }
 
       const result = await this.campaignGraphql.insertI18n(
@@ -140,6 +145,7 @@ export class CampaignService {
           enthumbnail
         );
         endata.thumbnail_url = enthumbnailUrl;
+        endata.seo.thumbnail_url = enthumbnailUrl;
       }
 
       const result = await this.campaignGraphql.insertI18n(
@@ -165,6 +171,14 @@ export class CampaignService {
   ) {
     const { token } = ContextProvider.getAuthUser();
 
+    // get i18n campaign
+    const i18nData: any[] = await this.campaignGraphql.getI18n(
+      {
+        campaign_id: campaignId,
+      },
+      token
+    );
+
     const campaignLanguages = JSON.parse(
       data.i18n
     ) as UpdateCampaignLanguagesDto;
@@ -175,6 +189,10 @@ export class CampaignService {
           name: item.name,
           description: item.description,
           thumbnail_url: item.thumbnail_url,
+          seo: {
+            title: item.name,
+            description: this.getSEODescription(item.description),
+          },
         },
       })
     );
@@ -198,6 +216,9 @@ export class CampaignService {
       (item) => item.language_id === 2
     );
     if (vnCampaignInfo) {
+      const oldVnSEOData = i18nData.find((item) => item.language_id === 2).data
+        ?.seo;
+
       const vndata = vnCampaignInfo.data;
 
       const vnthumbnail = files.filter(
@@ -215,7 +236,13 @@ export class CampaignService {
         {
           campaign_id: campaignId,
           language_id: 2,
-          data: vndata,
+          data: {
+            ...vndata,
+            seo: {
+              ...oldVnSEOData,
+              ...vndata.seo,
+            },
+          },
         },
         token
       );
@@ -230,6 +257,9 @@ export class CampaignService {
     );
     if (enCampaignInfo) {
       const endata = enCampaignInfo.data;
+
+      const oldEnSEOData = i18nData.find((item) => item.language_id === 1).data
+        ?.seo;
 
       const enthumbnail = files.filter(
         (f) => f.fieldname === 'en_thumbnail'
@@ -246,7 +276,13 @@ export class CampaignService {
         {
           campaign_id: campaignId,
           language_id: 1,
-          data: endata,
+          data: {
+            ...endata,
+            seo: {
+              ...oldEnSEOData,
+              ...endata.seo,
+            },
+          },
         },
         token
       );
@@ -416,5 +452,14 @@ export class CampaignService {
   async getUserRank(campaignId: number) {
     const { userId } = ContextProvider.getAuthUser();
     return this.campaignGraphql.getUserCampaignRank(campaignId, userId);
+  }
+
+  private getSEODescription(richTextDescription: string): string {
+    try {
+      return richTextDescription.split('</p>')[0].split('<p>').pop();
+    } catch (err) {
+      console.log(err);
+      return richTextDescription;
+    }
   }
 }
