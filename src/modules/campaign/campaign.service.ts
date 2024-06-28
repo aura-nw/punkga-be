@@ -216,7 +216,7 @@ export class CampaignService {
       (item) => item.language_id === 2
     );
     if (vnCampaignInfo) {
-      const oldVnSEOData = i18nData.find((item) => item.language_id === 2).data
+      const oldVnSEOData = i18nData.find((item) => item.language_id === 2)?.data
         ?.seo;
 
       const vndata = vnCampaignInfo.data;
@@ -258,7 +258,7 @@ export class CampaignService {
     if (enCampaignInfo) {
       const endata = enCampaignInfo.data;
 
-      const oldEnSEOData = i18nData.find((item) => item.language_id === 1).data
+      const oldEnSEOData = i18nData.find((item) => item.language_id === 1)?.data
         ?.seo;
 
       const enthumbnail = files.filter(
