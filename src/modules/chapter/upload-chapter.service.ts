@@ -101,6 +101,7 @@ export class UploadChapterService {
       );
     });
     const fileExtensions = await Promise.all(promises);
+    console.log(JSON.stringify(fileExtensions));
 
     const allowedFiles = fileExtensions
       .filter((fe) => fe.type.includes('image'))
