@@ -91,7 +91,7 @@ export class UserService {
         unique_key: uniqueKey,
       });
 
-      if (insertRequestResult.errors) return result;
+      if (insertRequestResult.errors) return insertRequestResult;
       this.logger.debug(`insert request success ${JSON.stringify(result)}`);
 
       const requestId = insertRequestResult.data.insert_request_log_one.id;
