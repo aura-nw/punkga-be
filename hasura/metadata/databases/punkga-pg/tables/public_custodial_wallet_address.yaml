@@ -1,0 +1,3 @@
+table:
+  name: custodial_wallet_address
+  schema: public
