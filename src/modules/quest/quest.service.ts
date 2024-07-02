@@ -94,7 +94,7 @@ export class QuestService {
     }
   }
 
-  async upload(file: Express.Multer.File) {
+  async upload(name: string, file: Express.Multer.File) {
     try {
       const url = await this.filesService.uploadImageToS3(`nft`, file);
 
@@ -104,8 +104,8 @@ export class QuestService {
 
       // upload metadata to ipfs
       const metadata = {
-        name: `PunkgaReward NFT`,
-        description: 'Punkga Reward',
+        name,
+        description: `Punkga Reward - ${name}`,
         attributes: [],
         image: `ipfs://${cid}/${originalname}`,
       };

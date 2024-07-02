@@ -36,15 +36,8 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 @ApiTags('quest')
 export class QuestController {
   constructor(
-    private readonly questSvc: QuestService,
-    // private readonly questEVMSvc: QuestEVMProcessor
-
-  ) { }
-
-  // @Get()
-  // getAllCampaignQuest(@Query() query: GetAllCampaignQuestRequestDto) {
-  //   return this.questSvc.getAllCampaignQuest(query.user_id);
-  // }
+    private readonly questSvc: QuestService // private readonly questEVMSvc: QuestEVMProcessor
+  ) {}
 
   @Get(':quest_id')
   @UseInterceptors(CacheInterceptor)
@@ -86,7 +79,10 @@ export class QuestController {
     @Body() data: UploadNftImageRequestDto,
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
-    return this.questSvc.upload(files.filter((f) => f.fieldname === 'file')[0]);
+    return this.questSvc.upload(
+      data.name,
+      files.filter((f) => f.fieldname === 'file')[0]
+    );
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -97,13 +93,4 @@ export class QuestController {
   delete(@Param() data: DeleteQuestParamDto) {
     return this.questSvc.deleteQuest(data.quest_id);
   }
-
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @ApiBearerAuth()
-  // @Roles(Role.Admin)
-  // @Post('mint')
-  // @UseInterceptors(AuthUserInterceptor)
-  // mint() {
-  //   return this.questEVMSvc._mintReward();
-  // }
 }
