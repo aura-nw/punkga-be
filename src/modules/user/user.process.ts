@@ -70,7 +70,7 @@ export class UserWalletProcessor {
         // check wallet balance
         const fee = 0.1 * 10 ** 6;
         const availableBalance =
-          Number(custodialWalletAsset.balance.amount) - fee;
+          Number(custodialWalletAsset.balance?.amount || 0) - fee;
 
         if (availableBalance <= 0)
           await this.systemWalletSvc.faucet(custodialWalletAddress);
@@ -98,16 +98,24 @@ export class UserWalletProcessor {
         // send nft
         if (custodialWalletAsset.cw721Tokens.length > 0) {
           const contract = this.userWalletService.getLevelingContract(wallet);
-          txsPromise.push(
-            ...custodialWalletAsset.cw721Tokens.map((token: ICw721Token) => {
-              const tx = contract.safeTransferFrom(
-                custodialWalletAddress,
-                user.wallet_address,
-                token.tokenId
-              );
-              return tx.wait();
-            })
+          const nftContractAddress = this.configService.get<string>(
+            'network.contractAddress.leveling'
           );
+          const transferNftTxsPromises = [];
+          transferNftTxsPromises.push(
+            ...custodialWalletAsset.cw721Tokens
+              .filter((token) => token.contractAddress === nftContractAddress)
+              .map((token: ICw721Token) => {
+                return contract.dock(
+                  custodialWalletAddress,
+                  user.wallet_address,
+                  token.tokenId
+                );
+                // return tx.wait();
+              })
+          );
+          const transferNftTxs = await Promise.all(transferNftTxsPromises);
+          txsPromise.push(...transferNftTxs.map((tx) => tx.wait()));
         }
 
         // get result txs

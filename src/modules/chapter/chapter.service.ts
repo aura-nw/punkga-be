@@ -31,7 +31,7 @@ export class ChapterService {
     private mangaService: MangaService,
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService
-  ) { }
+  ) {}
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
     try {
@@ -39,7 +39,8 @@ export class ChapterService {
       const { name, currentChunkIndex, totalChunks } = data;
 
       this.logger.debug(
-        `uploading file ${name}: ${Number(currentChunkIndex) + 1
+        `uploading file ${name}: ${
+          Number(currentChunkIndex) + 1
         }/${totalChunks}`
       );
 
@@ -145,7 +146,11 @@ export class ChapterService {
           (chapter) => chapter.language_id
         );
         const chapterLanguages = chapter_images.chapter_languages
-          .filter((chapter_language) => Object.keys(groupLanguageChapter).includes(chapter_language.language_id.toString()))
+          .filter((chapter_language) =>
+            Object.keys(groupLanguageChapter).includes(
+              chapter_language.language_id.toString()
+            )
+          )
           .map((m) => ({
             languageId: m.language_id,
             detail: groupLanguageChapter[`${m.language_id}`].map((r) => ({
@@ -199,7 +204,11 @@ export class ChapterService {
         token,
         chapter_id
       );
-      const { manga_id, thumbnail_url, chapter_languages: current_chapter_languages } = chapter;
+      const {
+        manga_id,
+        thumbnail_url,
+        chapter_languages: current_chapter_languages,
+      } = chapter;
 
       // create folder
       writeFilesToFolder(files, storageFolder);
@@ -243,56 +252,70 @@ export class ChapterService {
         });
 
       // remove files
-      rimraf.sync(storageFolder);
+      // rimraf.sync(storageFolder);
 
-      const newChapterLanguages = input_chapter_images.chapter_languages.map(({ add_images, delete_images, language_id }) => {
-        const [existingLanguageData] = current_chapter_languages.filter((chapter_language) => chapter_language.language_id === language_id);
+      const newChapterLanguages = input_chapter_images.chapter_languages.map(
+        ({ add_images, delete_images, language_id }) => {
+          const [existingLanguageData] = current_chapter_languages.filter(
+            (chapter_language) => chapter_language.language_id === language_id
+          );
 
-        if (existingLanguageData) {
-          // remove images
-          _.remove(existingLanguageData.detail, (image: any) => delete_images.includes(image.name));
+          if (existingLanguageData) {
+            // remove images
+            _.remove(existingLanguageData.detail, (image: any) =>
+              delete_images.includes(image.name)
+            );
 
-          // add images without duplicate
-          uploadChapterResult
-            .filter((uploadResult) =>
-              // by languages
-              uploadResult.language_id === existingLanguageData.language_id
-              // images already uploaded
-              && add_images.includes(uploadResult.name)
-              // and unique
-              && !existingLanguageData.detail.some((item) => item.name === uploadResult.name))
-            .forEach((uploadResult) => {
-              // push new data to existing data
-              existingLanguageData.detail.push({
-                order: uploadResult.order,
-                image_path: uploadResult.image_path,
-                name: uploadResult.name,
+            // add images without duplicate
+            uploadChapterResult
+              .filter(
+                (uploadResult) =>
+                  // by languages
+                  uploadResult.language_id ===
+                    existingLanguageData.language_id &&
+                  // images already uploaded
+                  add_images.includes(uploadResult.name) &&
+                  // and unique
+                  !existingLanguageData.detail.some(
+                    (item) => item.name === uploadResult.name
+                  )
+              )
+              .forEach((uploadResult) => {
+                // push new data to existing data
+                existingLanguageData.detail.push({
+                  order: uploadResult.order,
+                  image_path: uploadResult.image_path,
+                  name: uploadResult.name,
+                });
               });
-            });
 
-          return {
-            languageId: language_id,
-            detail: existingLanguageData.detail.sort((a, b) => a.order - b.order),
-          };
-        } else {
-          const newLanguageData = {
-            languageId: language_id,
-            detail: []
+            return {
+              languageId: language_id,
+              detail: existingLanguageData.detail.sort(
+                (a, b) => a.order - b.order
+              ),
+            };
+          } else {
+            const newLanguageData = {
+              languageId: language_id,
+              detail: [],
+            };
+            // add images already uploaded
+            uploadChapterResult
+              .filter((uploadResult) => add_images.includes(uploadResult.name))
+              .forEach((uploadResult) => {
+                // push new data
+                newLanguageData.detail.push({
+                  order: uploadResult.order,
+                  image_path: uploadResult.image_path,
+                  name: uploadResult.name,
+                });
+              });
+
+            return newLanguageData;
           }
-          // add images already uploaded
-          uploadChapterResult.filter((uploadResult) => add_images.includes(uploadResult.name))
-            .forEach((uploadResult) => {
-              // push new data
-              newLanguageData.detail.push({
-                order: uploadResult.order,
-                image_path: uploadResult.image_path,
-                name: uploadResult.name,
-              });
-            });
-
-          return newLanguageData;
         }
-      });
+      );
 
       // console.log(JSON.stringify(newChapterLanguages))
       // build new chapter languages for existing languages
