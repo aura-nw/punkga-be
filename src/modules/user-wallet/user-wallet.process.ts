@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { SysKeyService } from '../keys/syskey.service';
@@ -6,10 +6,12 @@ import { RedisService } from '../redis/redis.service';
 import { IGenerateUserWallet } from './interfaces/generate-user-wallet.interface';
 import { UserWalletGraphql } from './user-wallet.graphql';
 import { ConfigService } from '@nestjs/config';
+import { Wallet } from 'ethers';
 
 @Injectable()
-export class UserWalletProcessor {
+export class UserWalletProcessor implements OnModuleInit {
   private readonly logger = new Logger(UserWalletProcessor.name);
+  private chains: any[] = [];
 
   constructor(
     private configService: ConfigService,
@@ -17,6 +19,12 @@ export class UserWalletProcessor {
     private redisClientService: RedisService,
     private userWalletGraphql: UserWalletGraphql
   ) {}
+
+  async onModuleInit() {
+    // get all chain
+    const result = await this.userWalletGraphql.getALlChains();
+    this.chains = result.data.chains;
+  }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async generateUserWallet() {
@@ -32,11 +40,15 @@ export class UserWalletProcessor {
     );
 
     const wallets = this.generateWallets(data);
-    const insertObjects = wallets.map(({ userId, cipherPhrase, address }) => ({
-      address,
-      data: cipherPhrase,
-      user_id: userId,
-    }));
+    const insertObjects = wallets.map(
+      ({ userId, cipherPhrase, addressesData }) => ({
+        custodial_wallet_addresses: {
+          data: addressesData,
+        },
+        data: cipherPhrase,
+        user_id: userId,
+      })
+    );
 
     // store db
     const result = await this.userWalletGraphql.insertManyUserWallet({
@@ -49,11 +61,22 @@ export class UserWalletProcessor {
   generateWallets(data: IGenerateUserWallet[]) {
     this.logger.debug(`starting generate account..`);
     return data.map((data) => {
-      const { cipherPhrase, address } = this.sysKeyService.generateWallet();
+      const { phrase, cipherPhrase } = this.sysKeyService.randomPhrase();
+      // generate address for all chain
+      const addressesData = this.chains.map((chain) => {
+        const wallet = Wallet.fromPhrase(phrase);
+        return {
+          chain_id: chain.id,
+          address: wallet.address,
+          address_type: 'evm',
+          user_id: data.userId,
+        };
+      });
+      // const { cipherPhrase, address } = this.sysKeyService.generateWallet();
       return {
         userId: data.userId,
         cipherPhrase,
-        address,
+        addressesData,
       };
     });
   }

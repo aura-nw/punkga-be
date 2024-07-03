@@ -1,6 +1,14 @@
 table:
   name: user_wallet
   schema: public
+array_relationships:
+  - name: custodial_wallet_addresses
+    using:
+      foreign_key_constraint_on:
+        column: custodial_wallet_id
+        table:
+          name: custodial_wallet_address
+          schema: public
 select_permissions:
   - role: anonymous
     permission:

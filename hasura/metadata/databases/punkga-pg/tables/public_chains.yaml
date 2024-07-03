@@ -1,3 +1,26 @@
 table:
   name: chains
   schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - address_type
+        - chain_id
+        - name
+        - rpc
+        - created_at
+        - updated_at
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - id
+        - address_type
+        - chain_id
+        - name
+        - rpc
+        - created_at
+        - updated_at
+      filter: {}
