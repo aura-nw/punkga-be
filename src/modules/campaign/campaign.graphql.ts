@@ -80,6 +80,11 @@ export class CampaignGraphql {
           start_date
           end_date
           description
+          campaign_chain {
+            id
+            name
+            contracts
+          }
           reward
           status
           user_campaign_rewards {
@@ -124,6 +129,11 @@ export class CampaignGraphql {
           start_date
           end_date
           description
+          campaign_chain {
+            id
+            name
+            contracts
+          }
           reward
           campaign_i18n {
             language_id
@@ -200,6 +210,11 @@ export class CampaignGraphql {
           start_date
           end_date
           status
+          campaign_chain {
+            id
+            name
+            contracts
+          }
           reward
           created_at
           campaign_user(where: {user_id: {_eq: $user_id}}) {

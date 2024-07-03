@@ -82,6 +82,7 @@ export class CampaignService {
       objects: [
         {
           status: data.status,
+          chain_id: data.chain_id,
           start_date: data.start_date,
           end_date: data.end_date,
           reward: JSON.parse(data.reward),
@@ -198,6 +199,7 @@ export class CampaignService {
     );
 
     const updateData = {
+      chain_id: data.chain_id,
       status: data.status,
       start_date: data.start_date,
       end_date: data.end_date,

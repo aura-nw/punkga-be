@@ -23,6 +23,9 @@ export class CampaignLanguagesDto {
 
 export class UpdateCampaignDto {
   @ApiProperty()
+  chain_id: number;
+
+  @ApiProperty()
   status: string;
 
   @ApiProperty()

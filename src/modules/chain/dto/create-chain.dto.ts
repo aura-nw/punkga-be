@@ -12,4 +12,7 @@ export class CreateChainDto {
 
   @ApiProperty()
   address_type: string;
+
+  @ApiProperty()
+  contracts: any;
 }
