@@ -304,6 +304,7 @@ export class CampaignGraphql {
           campaign_id
           user_campaign_campaign {
             reward
+            chain_id
           }
           user_campaign_user_campaign_rewards {
             tx_hash

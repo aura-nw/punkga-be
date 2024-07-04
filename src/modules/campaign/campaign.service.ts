@@ -433,6 +433,7 @@ export class CampaignService {
         requestId,
         userId,
         campaignId,
+        chainId: top1UserCampaign.user_campaign_campaign.chain_id,
       };
 
       const env = this.configService.get<string>('app.env') || 'prod';

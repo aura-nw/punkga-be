@@ -15,18 +15,16 @@ import { IRewardInfo } from './interface/ireward-info';
 import { QuestGraphql } from './quest.graphql';
 import { QuestRewardService } from './reward.service';
 import { UserCampaignXp, UserRewardInfo } from './user-reward';
+import { chain, groupBy } from 'lodash';
+
+interface IRewardByChain {
+  chainId: string;
+  listReward: IRewardInfo[];
+}
 
 @Processor('quest')
 export class QuestProcessor {
   private readonly logger = new Logger(QuestProcessor.name);
-  // private PROVIDER_URL = this.configService.get<string>('network.rpcEndpoint');
-  // Connecting to provider
-  // private PROVIDER = new JsonRpcProvider(this.PROVIDER_URL);
-  // private contractLevelingProxy: string = this.configService.get<string>(
-  //   'network.contractAddress.leveling'
-  // );
-  // private CONTRACT_ABI = [];
-  // private contractWithMasterWallet = null;
 
   constructor(
     private configService: ConfigService,
@@ -49,10 +47,17 @@ export class QuestProcessor {
     const listRewards = redisData.map(
       (dataStr) => JSON.parse(dataStr) as IRewardInfo
     );
+
+    // filter chain_id
+    const chainReward = groupBy(listRewards, 'chain_id');
+    for (const [key, value] of Object.entries(chainReward)) {
+      // get chain info
+      const chain = await this.questGraphql.getChainInfo({ id: key });
+    }
+
     const rewardMap = await this.mapUserReward(listRewards);
     try {
       // create msg and execute contract
-      // const messages = await this.buildMessages(rewardMap);
       const txs = await this.mintRewards(rewardMap);
       // execute contract
       if (txs.length === 0) {

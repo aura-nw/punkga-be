@@ -196,6 +196,7 @@ export class QuestService {
         userId,
         questId,
         userCampaignId,
+        chainId: quest.quests_campaign.chain_id,
       };
 
       const env = this.configService.get<string>('app.env') || 'prod';

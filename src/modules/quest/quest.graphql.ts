@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { GraphqlService } from '../graphql/graphql.service';
@@ -11,7 +16,28 @@ export class QuestGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
+
+  async getChainInfo(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query chains_by_pk($id: Int!) {
+        chains_by_pk(id: $id) {
+          id
+          name
+          rpc
+          contracts
+          chain_id
+          address_type
+        }
+      }`,
+      'chains_by_pk',
+      variables
+    );
+
+    return result.data.chains_by_pk;
+  }
 
   async getQuestDetailWithUserCampaign(variables: any) {
     const result = await this.graphqlSvc.query(
@@ -28,6 +54,7 @@ export class QuestGraphql {
           reward
           campaign_id
           quests_campaign {
+            chain_id
             campaign_user(where: {user_id: {_eq: $user_id}}) {
               id
             }
@@ -49,10 +76,7 @@ export class QuestGraphql {
     return result.data.quests[0];
   }
 
-  async saveUserCampaignReward(
-    campaignId: number,
-    userCampaignId: number,
-  ) {
+  async saveUserCampaignReward(campaignId: number, userCampaignId: number) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
@@ -80,7 +104,6 @@ export class QuestGraphql {
   }
 
   async getUserCampaignReward(id: number) {
-
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
@@ -109,7 +132,7 @@ export class QuestGraphql {
       }`,
       'user_campaign_reward',
       {
-        id
+        id,
       },
       headers
     );
@@ -118,7 +141,6 @@ export class QuestGraphql {
       throw new ForbiddenException(result.errors);
 
     return result.data.user_campaign[0];
-
   }
 
   async updateUserCampaignRewardResult(variables: any) {
@@ -142,7 +164,6 @@ export class QuestGraphql {
     );
 
     return result;
-
   }
 
   async updateUserQuestResult(variables: any) {
@@ -166,7 +187,6 @@ export class QuestGraphql {
     );
 
     return result;
-
   }
 
   async insertRequestLog(variables: any) {
@@ -216,7 +236,6 @@ export class QuestGraphql {
     );
 
     return result;
-
   }
 
   async updateRequestLog(variables: any) {
