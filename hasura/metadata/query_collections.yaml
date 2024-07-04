@@ -1136,3 +1136,13 @@
               }
             }
           }
+      - name: Public - Get user campaign xp
+        query: |
+          query user_campaign ($user_id: bpchar!, $campaign_id: Int!) {
+            user_campaign(where: {user_id:{_eq:$user_id},campaign_id:{_eq:$campaign_id}}) {
+              user_id
+              campaign_id
+              total_reward_xp
+              updated_at
+            }
+          }
