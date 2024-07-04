@@ -20,10 +20,10 @@ export class MasterWalletService implements OnModuleInit {
   private readonly logger = new Logger(MasterWalletService.name);
   private masterHDWallet: HDNodeWallet = null;
   private masterWalletAddress = '';
-  private levelingProxyContractAddress = '';
+  // private levelingProxyContractAddress = '';
   // private provider: JsonRpcProvider = null;
-  private levelingContract: BaseContract = null;
-  private levelingContractMap: Map<number, Contract>;
+  // private levelingContract: BaseContract = null;
+  private levelingContractMap: Map<number, Contract> = new Map();
   private chains: IChainInfo[] = [];
 
   constructor(
@@ -31,9 +31,9 @@ export class MasterWalletService implements OnModuleInit {
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService
   ) {
-    this.levelingProxyContractAddress = this.configService.get<string>(
-      'network.contractAddress.leveling'
-    );
+    // this.levelingProxyContractAddress = this.configService.get<string>(
+    //   'network.contractAddress.leveling'
+    // );
   }
 
   async onModuleInit() {
@@ -93,21 +93,21 @@ export class MasterWalletService implements OnModuleInit {
 
   getLevelingContract(chainId: number): any {
     const levelingContract = this.levelingContractMap.get(chainId);
-    if (levelingContract !== null) return levelingContract;
+    if (levelingContract) return levelingContract;
 
     try {
       const chain = this.chains.find((chain) => chain.id === chainId);
       const provider = new JsonRpcProvider(chain.rpc);
       // Connecting to smart contract
       const contract = new Contract(
-        chain.contracts.levelingContract,
+        chain.contracts.leveling_contract,
         levelingAbi,
         provider
       );
 
-      const levelingContract = contract.connect(
-        this.masterHDWallet
-      ) as Contract;
+      const wallet = this.masterHDWallet.connect(provider);
+
+      const levelingContract = contract.connect(wallet) as Contract;
       this.levelingContractMap.set(chainId, levelingContract);
       return levelingContract;
     } catch (error) {

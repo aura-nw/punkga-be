@@ -1,18 +1,23 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class Contracts {
+  @ApiProperty({ example: '0xFfABBAC4b8860268317d787A181aD4D7F8E93D00' })
+  leveling_contract: string;
+}
+
 export class CreateChainDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'Aura Euphoria' })
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'https://jsonrpc.euphoria.aura.network' })
   rpc: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 6321 })
   chain_id: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'evm' })
   address_type: string;
 
-  @ApiProperty()
-  contracts: any;
+  @ApiProperty({ type: Contracts })
+  contracts: Contracts;
 }

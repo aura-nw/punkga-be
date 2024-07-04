@@ -44,7 +44,7 @@ export class QuestProcessor {
     );
 
     // filter chain_id
-    const chainReward = groupBy(listRewards, 'chain_id');
+    const chainReward = groupBy(listRewards, (item) => item.chainId);
     for (const [key, value] of Object.entries(chainReward)) {
       // get chain info
       // const chain = await this.questGraphql.getChainInfo({ id: key });
@@ -169,7 +169,7 @@ export class QuestProcessor {
         // get user info by map key
         const user = await this.questGraphql.queryPublicUserWalletData({
           id: key,
-          chain: chainId,
+          chain_id: chainId,
         });
 
         // calculate total xp and level
@@ -180,7 +180,6 @@ export class QuestProcessor {
         const newLevel = this.levelingService.xpToLevel(totalXp);
 
         const tx = await contractWithMasterWallet.updateUserInfo(
-          '',
           user.active_address,
           newLevel,
           totalXp
