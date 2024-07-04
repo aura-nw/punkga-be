@@ -22,7 +22,7 @@ export class UserWalletProcessor implements OnModuleInit {
 
   async onModuleInit() {
     // get all chain
-    const result = await this.userWalletGraphql.getALlChains();
+    const result = await this.userWalletGraphql.getAllChains();
     this.chains = result.data.chains;
   }
 

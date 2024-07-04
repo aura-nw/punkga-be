@@ -52,24 +52,23 @@ export class QuestProcessor {
     const chainReward = groupBy(listRewards, 'chain_id');
     for (const [key, value] of Object.entries(chainReward)) {
       // get chain info
-      const chain = await this.questGraphql.getChainInfo({ id: key });
-    }
-
-    const rewardMap = await this.mapUserReward(listRewards);
-    try {
-      // create msg and execute contract
-      const txs = await this.mintRewards(rewardMap);
-      // execute contract
-      if (txs.length === 0) {
-        const errMsg = `Request ${listRewards
-          .map((reward) => reward.requestId)
-          .toString()}: 0 message`;
-        this.logger.error(errMsg);
-        throw new Error(errMsg);
+      // const chain = await this.questGraphql.getChainInfo({ id: key });
+      const rewardMap = await this.mapUserReward(value);
+      try {
+        // create msg and execute contract
+        const txs = await this.mintRewards(rewardMap, Number(key));
+        // execute contract
+        if (txs.length === 0) {
+          const errMsg = `Request ${listRewards
+            .map((reward) => reward.requestId)
+            .toString()}: 0 message`;
+          this.logger.error(errMsg);
+          throw new Error(errMsg);
+        }
+      } catch (error) {
+        this.logger.error(JSON.stringify(error));
+        await this.updateErrorRequest(rewardMap, error.toString());
       }
-    } catch (error) {
-      this.logger.error(JSON.stringify(error));
-      await this.updateErrorRequest(rewardMap, error.toString());
     }
   }
 
@@ -162,12 +161,12 @@ export class QuestProcessor {
     return rewardMap;
   }
 
-  async mintRewards(rewardMap: Map<string, UserRewardInfo>) {
+  async mintRewards(rewardMap: Map<string, UserRewardInfo>, chainId: number) {
     const txsTotal = [];
 
     try {
       const contractWithMasterWallet =
-        this.masterWalletSerivce.getLevelingContract();
+        this.masterWalletSerivce.getLevelingContract(chainId);
       for await (const [key, value] of rewardMap.entries()) {
         // const txs = [];
         const txsPromise = [];
@@ -175,6 +174,7 @@ export class QuestProcessor {
         // get user info by map key
         const user = await this.questGraphql.queryPublicUserWalletData({
           id: key,
+          chain: chainId,
         });
 
         // calculate total xp and level
@@ -185,7 +185,8 @@ export class QuestProcessor {
         const newLevel = this.levelingService.xpToLevel(totalXp);
 
         const tx = await contractWithMasterWallet.updateUserInfo(
-          user.active_wallet_address,
+          '',
+          user.active_address,
           newLevel,
           totalXp
         );
@@ -202,7 +203,7 @@ export class QuestProcessor {
         txsPromise.push(
           ...rewardNFT.map(async (nftInfo) => {
             const tx = await contractWithMasterWallet.mintReward(
-              user.active_wallet_address,
+              user.active_address,
               nftInfo.image
             );
             return tx.wait();

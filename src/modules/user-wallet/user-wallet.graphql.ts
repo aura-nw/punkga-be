@@ -10,15 +10,18 @@ export class UserWalletGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
-  async getALlChains() {
+  async getAllChains() {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query chains {
         chains {
           id
+          name
+          rpc
           chain_id
           address_type
+          contracts
         }
       }`,
       'chains',

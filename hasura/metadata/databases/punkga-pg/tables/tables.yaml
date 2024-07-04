@@ -31,7 +31,7 @@
 - "!include public_user_campaign.yaml"
 - "!include public_user_campaign_reward.yaml"
 - "!include public_user_level.yaml"
-- "!include public_user_persional_wallet.yaml"
+- "!include public_user_personal_wallet.yaml"
 - "!include public_user_quest.yaml"
 - "!include public_user_quest_reward.yaml"
 - "!include public_user_read_chapter.yaml"

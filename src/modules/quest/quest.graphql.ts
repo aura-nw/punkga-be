@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { GraphqlService } from '../graphql/graphql.service';
 import { errorOrEmpty } from '../graphql/utils';
+import { IChainInfo } from './interface/ichain-info';
 
 @Injectable()
 export class QuestGraphql {
@@ -36,7 +37,7 @@ export class QuestGraphql {
       variables
     );
 
-    return result.data.chains_by_pk;
+    return result.data.chains_by_pk as IChainInfo;
   }
 
   async getQuestDetailWithUserCampaign(variables: any) {
@@ -273,21 +274,25 @@ export class QuestGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query authorizer_users($id: bpchar = "") {
+      `query authorizer_users($id: bpchar!, $chain_id: Int!) {
         authorizer_users(where: {id: {_eq: $id}}) {
           id
           levels {
             level
             xp
           }
+          active_address(args: {chain: $chain_id})
           authorizer_users_user_wallet {
-            address
             user_id
+            custodial_wallet_addresses(where: {chain_id: {_eq: $chain_id}}) {
+              address
+            }
           }
-          active_wallet_address
+          authorizer_users_user_personal_wallets(where: {chain_id: {_eq: $chain_id}}) {
+            address
+          }
         }
-      }
-      `,
+      }`,
       'authorizer_users',
       variables
     );

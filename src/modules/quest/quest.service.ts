@@ -151,13 +151,6 @@ export class QuestService {
     try {
       const { userId } = ContextProvider.getAuthUser();
 
-      const user = await this.questGraphql.queryPublicUserWalletData({
-        id: userId,
-      });
-      if (!user.authorizer_users_user_wallet?.address) {
-        throw new BadRequestException('User wallet address not found');
-      }
-
       const quest = await this.questGraphql.getQuestDetailWithUserCampaign({
         id: questId,
         user_id: userId,

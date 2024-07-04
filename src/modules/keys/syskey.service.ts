@@ -60,7 +60,7 @@ export class SysKeyService implements OnModuleInit {
     return this.seed;
   }
 
-  async randomWallet(provider: JsonRpcProvider) {
+  async randomWallet(provider?: JsonRpcProvider) {
     const wallet = Wallet.createRandom(provider);
 
     const phrase = wallet.mnemonic.phrase;

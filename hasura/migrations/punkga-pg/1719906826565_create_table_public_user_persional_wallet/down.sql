@@ -1,1 +1,1 @@
-DROP TABLE "public"."user_persional_wallet";
+DROP TABLE "public"."user_personal_wallet";

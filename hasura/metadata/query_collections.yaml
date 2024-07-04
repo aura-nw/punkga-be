@@ -998,7 +998,6 @@
               email
               created_at
               updated_at
-              active_wallet_address
             }
             authorizer_users_aggregate(where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
               aggregate {
@@ -1017,7 +1016,6 @@
               birthdate
               gender
               wallet_address
-              active_wallet_address
               nickname
               picture
               signup_methods

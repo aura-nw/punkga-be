@@ -394,18 +394,20 @@ export class CampaignService {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
 
-      const user = await this.questGraphql.queryPublicUserWalletData({
-        id: userId,
-      });
-      if (!user.authorizer_users_user_wallet?.address) {
-        throw new BadRequestException('User wallet address not found');
-      }
+      // if (!user.authorizer_users_user_wallet?.address) {
+      //   throw new BadRequestException('User wallet address not found');
+      // }
 
       // check top 1 user of campaign
       const top1UserCampaign = await this.campaignGraphql.getTop1UserCampaign(
         campaignId,
         token
       );
+
+      // const user = await this.questGraphql.queryPublicUserWalletData({
+      //   id: userId,
+      //   chain_id: top1UserCampaign.user_campaign_campaign.chain_id,
+      // });
       if (userId !== top1UserCampaign.user_id) throw new ForbiddenException();
 
       // check claim status
