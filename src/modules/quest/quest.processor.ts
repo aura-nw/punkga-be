@@ -17,11 +17,6 @@ import { QuestRewardService } from './reward.service';
 import { UserCampaignXp, UserRewardInfo } from './user-reward';
 import { chain, groupBy } from 'lodash';
 
-interface IRewardByChain {
-  chainId: string;
-  listReward: IRewardInfo[];
-}
-
 @Processor('quest')
 export class QuestProcessor {
   private readonly logger = new Logger(QuestProcessor.name);
@@ -196,6 +191,7 @@ export class QuestProcessor {
         const updatedValue = { ...value };
         updatedValue.userXp = totalXp;
         updatedValue.userLevel = newLevel;
+        updatedValue.chainId = chainId;
         rewardMap.set(key, updatedValue);
 
         // generate mint nft msg
@@ -247,6 +243,7 @@ export class QuestProcessor {
           user_id: value.userId,
           xp: value.userXp,
           level: value.userLevel,
+          chain_id: value.chainId,
         })
       );
     }
