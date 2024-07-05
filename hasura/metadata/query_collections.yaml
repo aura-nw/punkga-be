@@ -1124,6 +1124,7 @@
               total_reward_xp
               updated_at
             }
+          }
       - name: Admin - Get All Users
         query: |
           query GetAllUsers ($limit: Int = 50, $offset: Int = 0) {
