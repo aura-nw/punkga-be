@@ -1,6 +1,10 @@
 table:
   name: campaign
   schema: public
+object_relationships:
+  - name: campaign_chain
+    using:
+      foreign_key_constraint_on: chain_id
 array_relationships:
   - name: campaign_i18n
     using:
@@ -34,6 +38,7 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
+        - chain_id
         - created_at
         - description
         - end_date
@@ -49,15 +54,16 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - created_at
-        - description
-        - end_date
+        - chain_id
         - id
-        - name
         - reward
+        - description
+        - name
         - slug
-        - start_date
         - status
+        - created_at
+        - end_date
+        - start_date
         - updated_at
       filter: {}
       allow_aggregations: true

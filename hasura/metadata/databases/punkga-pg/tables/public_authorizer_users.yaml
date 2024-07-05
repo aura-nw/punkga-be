@@ -17,6 +17,13 @@ array_relationships:
         table:
           name: social_activities
           schema: public
+  - name: authorizer_users_user_personal_wallets
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_personal_wallet
+          schema: public
   - name: levels
     using:
       foreign_key_constraint_on:
@@ -32,10 +39,10 @@ array_relationships:
           name: user_quest
           schema: public
 computed_fields:
-  - name: active_wallet_address
+  - name: active_address
     definition:
       function:
-        name: main_wallet_address
+        name: main_wallet_address_by_chain
         schema: public
 select_permissions:
   - role: anonymous
@@ -50,7 +57,7 @@ select_permissions:
         - picture
         - wallet_address
       computed_fields:
-        - active_wallet_address
+        - active_address
       filter: {}
       allow_aggregations: true
   - role: user
@@ -79,7 +86,7 @@ select_permissions:
         - updated_at
         - wallet_address
       computed_fields:
-        - active_wallet_address
+        - active_address
       filter:
         id:
           _eq: X-Hasura-User-Id

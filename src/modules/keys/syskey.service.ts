@@ -34,7 +34,7 @@ export class SysKeyService implements OnModuleInit {
           this.seed
         ).toString(enc.Utf8);
       } else {
-        const { mnemonic, encryptedMnemonic } = await this.randomMnemonic();
+        const { mnemonic, encryptedMnemonic } = this.randomMnemonic();
 
         this.mnemonic = mnemonic;
         await this.keysGraphql.addEncryptedMnemonic(
@@ -45,7 +45,7 @@ export class SysKeyService implements OnModuleInit {
     } else {
       this.seed = randomSeed();
       const encryptedSeed = await this.kmsService.encryptSeed(this.seed);
-      const { mnemonic, encryptedMnemonic } = await this.randomMnemonic();
+      const { mnemonic, encryptedMnemonic } = this.randomMnemonic();
 
       this.mnemonic = mnemonic;
 
@@ -60,7 +60,7 @@ export class SysKeyService implements OnModuleInit {
     return this.seed;
   }
 
-  async randomWallet(provider: JsonRpcProvider) {
+  async randomWallet(provider?: JsonRpcProvider) {
     const wallet = Wallet.createRandom(provider);
 
     const phrase = wallet.mnemonic.phrase;
@@ -86,7 +86,19 @@ export class SysKeyService implements OnModuleInit {
     };
   }
 
-  private async randomMnemonic() {
+  randomPhrase() {
+    const wallet = Wallet.createRandom();
+    const cipherPhrase = Crypter.encrypt(
+      wallet.mnemonic.phrase,
+      this.originalSeed
+    );
+    return {
+      cipherPhrase,
+      phrase: wallet.mnemonic.phrase,
+    };
+  }
+
+  private randomMnemonic() {
     const mnemonic = bip39.generateMnemonic();
     const encryptedMnemonic = AES.encrypt(mnemonic, this.seed).toString();
 

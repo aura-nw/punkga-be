@@ -20,6 +20,9 @@ export class CampaignLanguagesDto {
 
 export class CreateCampaignDto {
   @ApiProperty()
+  chain_id: number;
+
+  @ApiProperty()
   status: string;
 
   @ApiProperty()

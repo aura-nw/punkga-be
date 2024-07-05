@@ -904,25 +904,6 @@
               }
             }
           }
-      - name: Admin - Get All Users
-        query: |
-          query GetAllUsers ($limit: Int = 50, $offset: Int = 0) {
-            authorizer_users(order_by: {created_at:desc}, limit: $limit, offset: $offset) {
-              id
-              nickname
-              email
-              created_at
-              updated_at
-              authorizer_users_user_wallet {
-                address
-              }
-            }
-            authorizer_users_aggregate {
-              aggregate {
-                count
-              }
-            }
-          }
       - name: Admin - Query creators
         query: |
           query QueryCreators {
@@ -1017,7 +998,6 @@
               email
               created_at
               updated_at
-              active_wallet_address
             }
             authorizer_users_aggregate(where: {_or:[{email:{_like:$text}},{nickname:{_like:$text}}]}) {
               aggregate {
@@ -1036,7 +1016,6 @@
               birthdate
               gender
               wallet_address
-              active_wallet_address
               nickname
               picture
               signup_methods
@@ -1144,5 +1123,20 @@
               campaign_id
               total_reward_xp
               updated_at
+            }
+      - name: Admin - Get All Users
+        query: |
+          query GetAllUsers ($limit: Int = 50, $offset: Int = 0) {
+            authorizer_users(order_by: {created_at:desc}, limit: $limit, offset: $offset) {
+              id
+              nickname
+              email
+              created_at
+              updated_at
+            }
+            authorizer_users_aggregate {
+              aggregate {
+                count
+              }
             }
           }
