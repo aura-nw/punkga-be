@@ -46,8 +46,6 @@ export class MasterWalletService implements OnModuleInit {
   async initMasterWallet() {
     // get from db
     const masterWalletData = await this.userWalletGraphql.getMasterWallet();
-    // const providerUrl = this.configService.get<string>('network.rpcEndpoint');
-    // this.provider = new JsonRpcProvider(providerUrl);
 
     if (masterWalletData) {
       const phrase = this.decryptPhrase(masterWalletData.data);

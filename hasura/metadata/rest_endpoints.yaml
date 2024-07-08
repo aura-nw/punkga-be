@@ -245,6 +245,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Query all chain
+  methods:
+    - GET
+  name: Public - Query all chain
+  url: public/chains
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Get Chapter Comments
   methods:
     - GET
