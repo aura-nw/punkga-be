@@ -1075,46 +1075,6 @@
               }
             }
           }
-      - name: Admin - Query campaign detail
-        query: |
-          query campaign_by_pk ($id: Int!) {
-            campaign_by_pk(id: $id) {
-              created_at
-              updated_at
-              id
-              slug
-              name
-              status
-              start_date
-              end_date
-              reward
-              description
-              campaign_i18n {
-                language_id
-                data
-                created_at
-                i18n_language {
-                  id
-                  is_main
-                  symbol
-                  icon
-                  description
-                }
-              }
-              campaign_quests(order_by: {created_at:desc}) {
-                created_at
-                updated_at
-                id
-                name
-                description
-                type
-                repeat
-                condition
-                reward
-                status
-              }
-            }
-          }
       - name: Public - Get user campaign xp
         query: |
           query user_campaign ($user_id: bpchar!, $campaign_id: Int!) {
@@ -1152,5 +1112,50 @@
               address_type
               contracts
               created_at
+            }
+          }
+      - name: Admin - Query campaign detail
+        query: |
+          query campaign_by_pk ($id: Int!) {
+            campaign_by_pk(id: $id) {
+              created_at
+              updated_at
+              id
+              slug
+              name
+              status
+              start_date
+              end_date
+              reward
+              description
+              campaign_chain {
+                id
+                name
+                contracts
+              }
+              campaign_i18n {
+                language_id
+                data
+                created_at
+                i18n_language {
+                  id
+                  is_main
+                  symbol
+                  icon
+                  description
+                }
+              }
+              campaign_quests(order_by: {created_at:desc}) {
+                created_at
+                updated_at
+                id
+                name
+                description
+                type
+                repeat
+                condition
+                reward
+                status
+              }
             }
           }
