@@ -150,14 +150,6 @@ export class CampaignGraphql {
             id
             name
             description
-            quests_i18n {
-              data
-              i18n_language {
-                id
-                description
-                is_main
-              }
-            }
             condition
             requirement
             reward

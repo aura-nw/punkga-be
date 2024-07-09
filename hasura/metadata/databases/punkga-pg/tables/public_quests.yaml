@@ -6,13 +6,6 @@ object_relationships:
     using:
       foreign_key_constraint_on: campaign_id
 array_relationships:
-  - name: quests_i18n
-    using:
-      foreign_key_constraint_on:
-        column: quest_id
-        table:
-          name: i18n
-          schema: public
   - name: quests_quest_activities
     using:
       foreign_key_constraint_on:

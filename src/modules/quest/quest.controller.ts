@@ -30,11 +30,14 @@ import {
   AnswerQuestRequestDto,
 } from './dto/answer-quest.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+// import { QuestEVMProcessor } from './quest-evm.processor';
 
 @Controller('quest')
 @ApiTags('quest')
 export class QuestController {
-  constructor(private readonly questSvc: QuestService) {}
+  constructor(
+    private readonly questSvc: QuestService // private readonly questEVMSvc: QuestEVMProcessor
+  ) {}
 
   @Get(':quest_id')
   @UseInterceptors(CacheInterceptor)
