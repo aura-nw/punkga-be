@@ -104,37 +104,35 @@ export class UserWalletProcessor {
 
           txsPromise.push(tx.wait());
         }
+        // get result txs
+        const result = await Promise.all(txsPromise);
+        const txs = result.map((tx) => tx.hash);
 
         // send nft
+        const transferNftHash = [];
         if (custodialWalletAsset.cw721Tokens.length > 0) {
           const contract = this.userWalletService.getLevelingContract(wallet);
           const nftContractAddress = this.configService.get<string>(
             'network.contractAddress.leveling'
           );
-          const transferNftTxsPromises = [];
-          transferNftTxsPromises.push(
-            ...custodialWalletAsset.cw721Tokens
-              .filter(
-                (token) =>
-                  token.contractAddress.toLocaleLowerCase() ===
-                  nftContractAddress.toLocaleLowerCase()
-              )
-              .map((token: ICw721Token) => {
-                return contract.safeTransferFrom(
-                  custodialWalletAddress,
-                  user.wallet_address,
-                  token.tokenId
-                );
-                // return tx.wait();
-              })
+
+          const validTokens = custodialWalletAsset.cw721Tokens.filter(
+            (token) =>
+              token.contractAddress.toLocaleLowerCase() ===
+              nftContractAddress.toLocaleLowerCase()
           );
-          const transferNftTxs = await Promise.all(transferNftTxsPromises);
-          txsPromise.push(...transferNftTxs.map((tx) => tx.wait()));
+          for (let i = 0; i < validTokens.length; i++) {
+            const tx = await contract.safeTransferFrom(
+              custodialWalletAddress,
+              user.wallet_address,
+              validTokens[i].tokenId
+            );
+            const result = await tx.wait();
+            transferNftHash.push(result.hash);
+          }
         }
 
-        // get result txs
-        const result = await Promise.all(txsPromise);
-        const txs = result.map((tx) => tx.hash);
+        txs.push(...transferNftHash);
 
         // update request
         await this.userGraphql.updateRequestLogs({
