@@ -1,8 +1,10 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
 import { RedisService } from '../redis/redis.service';
 import { SystemCustodialWalletService } from '../system-custodial-wallet/system-custodial-wallet.service';
+import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { UserWalletService } from '../user-wallet/user-wallet.service';
 import {
   ICustodialWalletAsset,
@@ -23,6 +25,7 @@ export class UserWalletProcessor {
     private configService: ConfigService,
     private redisClientService: RedisService,
     private userWalletService: UserWalletService,
+    private masterWalletService: MasterWalletService,
     private userGraphql: UserGraphql,
     private systemWalletSvc: SystemCustodialWalletService
   ) {}
@@ -36,9 +39,6 @@ export class UserWalletProcessor {
     );
     if (redisData.length === 0) return true;
 
-    // const redisData = [
-    //   '{"userId": "9861ab99-66b4-4320-8a52-c0b0762261f2", "requestId": 10 }',
-    // ];
     const { userId, requestId } = redisData.map(
       (dataStr) => JSON.parse(dataStr) as MigrateWalletType
     )[0];
@@ -57,7 +57,6 @@ export class UserWalletProcessor {
       )
         throw new Error('User custodial address is empty');
       const custodialWalletAddress = user.authorizer_users_user_wallet.address;
-      // const granterAddress = this.systemWalletSvc.granterAddress;
 
       // check asset in custodial wallet
       const custodialWalletAsset =
@@ -72,17 +71,28 @@ export class UserWalletProcessor {
         const availableBalance =
           Number(custodialWalletAsset.balance?.amount || 0) - fee;
 
-        if (availableBalance <= 0)
+        if (availableBalance < 0)
           await this.systemWalletSvc.faucet(custodialWalletAddress);
 
         // transfer asset
         const txsPromise = [];
         const { wallet } = await this.userWalletService.deserialize(userId);
 
+        // update user xp
+        const contractWithMasterWallet =
+          this.masterWalletService.getLevelingContract();
+        const updateXpTx = await contractWithMasterWallet.updateUserInfo(
+          user.wallet_address,
+          user.levels[0]?.level || 0,
+          user.levels[0]?.xp || 0
+        );
+        txsPromise.push(updateXpTx.wait());
+
         // send native token
         if (
           !!custodialWalletAsset.balance &&
-          Number(custodialWalletAsset.balance.amount) > 0
+          Number(custodialWalletAsset.balance.amount) > 0 &&
+          availableBalance > 0
         ) {
           const evmAvailableBalance = (availableBalance * 10 ** 12).toString();
           const nonce = await wallet.getNonce();
@@ -104,9 +114,13 @@ export class UserWalletProcessor {
           const transferNftTxsPromises = [];
           transferNftTxsPromises.push(
             ...custodialWalletAsset.cw721Tokens
-              .filter((token) => token.contractAddress === nftContractAddress)
+              .filter(
+                (token) =>
+                  token.contractAddress.toLocaleLowerCase() ===
+                  nftContractAddress.toLocaleLowerCase()
+              )
               .map((token: ICw721Token) => {
-                return contract.dock(
+                return contract.safeTransferFrom(
                   custodialWalletAddress,
                   user.wallet_address,
                   token.tokenId

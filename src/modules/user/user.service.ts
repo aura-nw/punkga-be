@@ -32,7 +32,17 @@ export class UserService {
     private redisClientService: RedisService,
     @InjectQueue('userWallet')
     private readonly userWalletQueue: Queue
-  ) {}
+  ) {
+    // const migrateWalletData = {
+    //   requestId: 141,
+    //   userId: '5995539a-1744-4a4f-8c5f-98a143f0eeaa',
+    // };
+    // const env = this.configService.get<string>('app.env') || 'prod';
+    // this.redisClientService.client.rPush(
+    //   `punkga-${env}:migrate-user-wallet`,
+    //   JSON.stringify(migrateWalletData)
+    // );
+  }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async triggerMigrateWallet() {
