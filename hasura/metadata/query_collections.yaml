@@ -808,6 +808,55 @@
               affected_rows
             }
           }
+      - name: Admin - Create Quest
+        query: |
+          mutation insert_quests ($name: String!, $type: String!, $condition: jsonb = "", $requirement: jsonb!, $reward: jsonb!, $status: String!, $campaign_id: Int!, $description: String!, $repeat: String!) {
+            insert_quests(objects: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,campaign_id:$campaign_id,description:$description,repeat:$repeat}) {
+              affected_rows
+              returning {
+                id
+                name
+                campaign_id
+                status
+                description
+              }
+            }
+          }
+      - name: Admin - Get quest by id
+        query: |
+          query quests_by_pk ($id: Int!) {
+            quests_by_pk(id: $id) {
+              campaign_id
+              condition
+              created_at
+              id
+              name
+              description
+              requirement
+              reward
+              status
+              type
+              repeat
+              updated_at
+              quests_campaign {
+                name
+                created_at
+              }
+            }
+          }
+      - name: Admin - Update quest
+        query: |
+          mutation update_quests ($name: String!, $type: String!, $condition: jsonb = "", $requirement: jsonb!, $reward: jsonb!, $status: String!, $id: Int!, $description: String!, $repeat: String!) {
+            update_quests(where: {id:{_eq:$id}}, _set: {name:$name,type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,description:$description,repeat:$repeat}) {
+              affected_rows
+              returning {
+                id
+                name
+                status
+                updated_at
+              }
+            }
+          }
       - name: User - Get user campaign rank
         query: |
           query user_campaign_rank ($id: Int!, $user_id: bpchar!) {
@@ -1047,32 +1096,6 @@
               }
             }
           }
-      - name: Public - Get user campaign xp
-        query: |
-          query user_campaign ($user_id: bpchar!, $campaign_id: Int!) {
-            user_campaign(where: {user_id:{_eq:$user_id},campaign_id:{_eq:$campaign_id}}) {
-              user_id
-              campaign_id
-              total_reward_xp
-              updated_at
-            }
-          }
-      - name: Admin - Create Quest
-        query: |
-          mutation insert_quests ($type: String!, $condition: jsonb = "", $requirement: jsonb!, $reward: jsonb!, $status: String!, $campaign_id: Int!, $repeat: String!, $quest_languages: [i18n_insert_input!] = {}) {
-            insert_quests(objects: {type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,campaign_id:$campaign_id,repeat:$repeat,quests_i18n:{data:$quest_languages}}) {
-              affected_rows
-              returning {
-                id
-                campaign_id
-                status
-                quests_i18n {
-                  language_id
-                  data
-                }
-              }
-            }
-          }
       - name: Admin - Query campaign detail
         query: |
           query campaign_by_pk ($id: Int!) {
@@ -1110,59 +1133,6 @@
                 condition
                 reward
                 status
-                quests_i18n {
-                  id
-                  quest_id
-                  language_id
-                  data
-                }
-              }
-            }
-          }
-      - name: Admin - Get quest by id
-        query: |
-          query quests_by_pk ($id: Int!) {
-            quests_by_pk(id: $id) {
-              campaign_id
-              condition
-              created_at
-              id
-              requirement
-              reward
-              status
-              type
-              repeat
-              updated_at
-              quests_campaign {
-                name
-                created_at
-              }
-              quests_i18n {
-                i18n_language {
-                  id
-                  is_main
-                  symbol
-                  icon
-                }
-                data
-              }
-            }
-          }
-      - name: Admin - Update quest
-        query: |
-          mutation update_quests ($type: String!, $condition: jsonb = "", $requirement: jsonb!, $reward: jsonb!, $status: String!, $id: Int!, $repeat: String!, $quest_languages: [i18n_insert_input!] = {}) {
-            update_quests(where: {id:{_eq:$id}}, _set: {type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,repeat:$repeat}) {
-              affected_rows
-              returning {
-                id
-                status
-                updated_at
-              }
-            }
-            insert_i18n(objects: $quest_languages, on_conflict: {constraint:i18n_quest_id_language_id_key,update_columns:data}) {
-              affected_rows
-              returning {
-                data
               }
             }
           }
