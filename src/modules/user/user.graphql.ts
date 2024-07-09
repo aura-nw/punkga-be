@@ -224,6 +224,14 @@ export class UserGraphql {
             campaign_quests(where: {status: {_eq: "Published"}}, order_by: {created_at: desc}) {
               id
               name
+              quests_i18n {
+                data
+                i18n_language {
+                  id
+                  description
+                  is_main
+                }
+              }
               repeat
               quest_reward_claimed
               description
