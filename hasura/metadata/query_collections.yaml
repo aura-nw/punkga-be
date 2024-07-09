@@ -1081,6 +1081,24 @@
               }
             }
           }
+      - name: Admin - Update quest
+        query: |
+          mutation update_quests ($type: String!, $condition: jsonb = "", $requirement: jsonb!, $reward: jsonb!, $status: String!, $id: Int!, $repeat: String!, $quest_languages: [i18n_insert_input!] = {}) {
+            update_quests(where: {id:{_eq:$id}}, _set: {type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,repeat:$repeat}) {
+              affected_rows
+              returning {
+                id
+                status
+                updated_at
+              }
+            }
+            insert_i18n(objects: $quest_languages, on_conflict: {constraint:i18n_quest_id_language_id_key,update_columns:data}) {
+              affected_rows
+              returning {
+                data
+              }
+            }
+          }
       - name: Admin - Query campaign detail
         query: |
           query campaign_by_pk ($id: Int!) {
@@ -1098,6 +1116,7 @@
               campaign_chain {
                 id
                 name
+                punkga_config
                 contracts
               }
               campaign_i18n {
@@ -1149,6 +1168,9 @@
               quests_campaign {
                 name
                 created_at
+                campaign_chain {
+                  punkga_config
+                }
               }
               quests_i18n {
                 i18n_language {
@@ -1157,24 +1179,6 @@
                   symbol
                   icon
                 }
-                data
-              }
-            }
-          }
-      - name: Admin - Update quest
-        query: |
-          mutation update_quests ($type: String!, $condition: jsonb = "", $requirement: jsonb!, $reward: jsonb!, $status: String!, $id: Int!, $repeat: String!, $quest_languages: [i18n_insert_input!] = {}) {
-            update_quests(where: {id:{_eq:$id}}, _set: {type:$type,condition:$condition,requirement:$requirement,reward:$reward,status:$status,repeat:$repeat}) {
-              affected_rows
-              returning {
-                id
-                status
-                updated_at
-              }
-            }
-            insert_i18n(objects: $quest_languages, on_conflict: {constraint:i18n_quest_id_language_id_key,update_columns:data}) {
-              affected_rows
-              returning {
                 data
               }
             }

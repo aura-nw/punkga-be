@@ -5,13 +5,14 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
+        - id
+        - contracts
+        - punkga_config
         - address_type
         - chain_id
-        - contracts
-        - created_at
-        - id
         - name
         - rpc
+        - created_at
         - updated_at
       filter: {}
   - role: user
@@ -19,6 +20,7 @@ select_permissions:
       columns:
         - id
         - contracts
+        - punkga_config
         - address_type
         - chain_id
         - name
