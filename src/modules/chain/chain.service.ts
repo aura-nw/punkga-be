@@ -20,7 +20,8 @@ export class ChainService {
   async create(data: CreateChainDto) {
     const { token } = ContextProvider.getAuthUser();
 
-    const { name, rpc, chain_id, address_type, contracts } = data;
+    const { name, rpc, chain_id, address_type, contracts, punkga_config } =
+      data;
     const insertData = {
       object: {
         name,
@@ -28,6 +29,7 @@ export class ChainService {
         chain_id,
         address_type,
         contracts,
+        punkga_config,
       },
     };
     const insertResult = await this.chainGraphql.createChain(insertData, token);

@@ -5,6 +5,11 @@ export class Contracts {
   leveling_contract: string;
 }
 
+export class PunkgaConfigs {
+  @ApiProperty({ example: 'XP' })
+  reward_point_name: string;
+}
+
 export class CreateChainDto {
   @ApiProperty({ example: 'Aura Euphoria' })
   name: string;
@@ -20,4 +25,7 @@ export class CreateChainDto {
 
   @ApiProperty({ type: Contracts })
   contracts: Contracts;
+
+  @ApiProperty({ type: PunkgaConfigs })
+  punkga_config: PunkgaConfigs;
 }
