@@ -192,21 +192,22 @@ export class QuestProcessor {
         updatedValue.userLevel = newLevel;
         rewardMap.set(key, updatedValue);
 
-        // generate mint nft msg
-        const rewardNFT = value.reward.nft;
-        txsPromise.push(
-          ...rewardNFT.map(async (nftInfo) => {
-            const tx = await contractWithMasterWallet.mintReward(
-              user.active_wallet_address,
-              nftInfo.image
-            );
-            return tx.wait();
-          })
-        );
-
         // get result txs of user
         const result = await Promise.all(txsPromise);
         const txs = result.map((tx) => tx.hash);
+
+        // generate mint nft msg
+        const transferNftHash = [];
+        const rewardNFT = value.reward.nft;
+        for (let i = 0; i < rewardNFT.length; i++) {
+          const tx = await contractWithMasterWallet.mintReward(
+            user.active_wallet_address,
+            rewardNFT[i].image
+          );
+          const result = await tx.wait();
+          transferNftHash.push(result.hash);
+        }
+        txs.push(...transferNftHash);
 
         // update offchain data
         await this.updateOffchainData(
