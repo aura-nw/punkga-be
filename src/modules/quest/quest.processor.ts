@@ -47,7 +47,6 @@ export class QuestProcessor {
     const chainReward = groupBy(listRewards, (item) => item.chainId);
     for (const [key, value] of Object.entries(chainReward)) {
       // get chain info
-      // const chain = await this.questGraphql.getChainInfo({ id: key });
       const rewardMap = await this.mapUserReward(value);
       try {
         // create msg and execute contract
@@ -163,8 +162,7 @@ export class QuestProcessor {
       const contractWithMasterWallet =
         this.masterWalletSerivce.getLevelingContract(chainId);
       for await (const [key, value] of rewardMap.entries()) {
-        // const txs = [];
-        const txsPromise = [];
+        const txs = [];
 
         // get user info by map key
         const user = await this.questGraphql.queryPublicUserWalletData({
@@ -179,12 +177,13 @@ export class QuestProcessor {
         // calculate level from xp
         const newLevel = this.levelingService.xpToLevel(totalXp);
 
-        const tx = await contractWithMasterWallet.updateUserInfo(
-          user.active_address,
+        const updateXpTx = await contractWithMasterWallet.updateUserInfo(
+          user.active_evm_address,
           newLevel,
           totalXp
         );
-        txsPromise.push(tx.wait());
+        const updateXpTxResult = await updateXpTx.wait();
+        txs.push(updateXpTxResult.hash);
 
         // update total xp to map value
         const updatedValue = { ...value };
@@ -195,19 +194,14 @@ export class QuestProcessor {
 
         // generate mint nft msg
         const rewardNFT = value.reward.nft;
-        txsPromise.push(
-          ...rewardNFT.map(async (nftInfo) => {
-            const tx = await contractWithMasterWallet.mintReward(
-              user.active_address,
-              nftInfo.image
-            );
-            return tx.wait();
-          })
-        );
-
-        // get result txs of user
-        const result = await Promise.all(txsPromise);
-        const txs = result.map((tx) => tx.hash);
+        for (let i = 0; i < rewardNFT.length; i++) {
+          const tx = await contractWithMasterWallet.mintReward(
+            user.active_evm_address,
+            rewardNFT[i].image
+          );
+          const txResult = await tx.wait();
+          txs.push(txResult.hash);
+        }
 
         // update offchain data
         await this.updateOffchainData(

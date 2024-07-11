@@ -274,21 +274,16 @@ export class QuestGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query authorizer_users($id: bpchar!, $chain_id: Int!) {
+      `query authorizer_users($id: bpchar!) {
         authorizer_users(where: {id: {_eq: $id}}) {
           id
           levels {
             level
             xp
           }
-          active_address(args: {chain: $chain_id})
+          wallet_address
+          active_evm_address
           authorizer_users_user_wallet {
-            user_id
-            custodial_wallet_addresses(where: {chain_id: {_eq: $chain_id}}) {
-              address
-            }
-          }
-          authorizer_users_user_personal_wallets(where: {chain_id: {_eq: $chain_id}}) {
             address
           }
         }

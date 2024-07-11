@@ -404,10 +404,6 @@ export class CampaignService {
         token
       );
 
-      // const user = await this.questGraphql.queryPublicUserWalletData({
-      //   id: userId,
-      //   chain_id: top1UserCampaign.user_campaign_campaign.chain_id,
-      // });
       if (userId !== top1UserCampaign.user_id) throw new ForbiddenException();
 
       // check claim status
