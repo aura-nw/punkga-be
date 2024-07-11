@@ -30,23 +30,6 @@ export class ChainGraphql {
     );
   }
 
-  getUserWallets(variables: any, token: string) {
-    return this.graphqlSvc.query(
-      this.configService.get<string>('graphql.endpoint'),
-      token,
-      `query user_wallet($limit: Int!, $offset: Int!) {
-        user_wallet(limit: $limit, offset: $offset) {
-          id
-          data
-          user_id
-        }
-      }
-      `,
-      'user_wallet',
-      variables
-    );
-  }
-
   insertCustodialAddress(variables: any, token: string) {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),

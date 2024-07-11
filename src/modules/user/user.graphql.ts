@@ -140,7 +140,19 @@ export class UserGraphql {
     );
 
     if (result.data?.authorizer_users_by_pk) {
-      return result.data.authorizer_users_by_pk;
+      const user = result.data.authorizer_users_by_pk;
+
+      // throw error if personal address not set
+      if (!user.wallet_address || user.wallet_address === '')
+        throw new Error('User address is empty');
+
+      // throw error if custodial address not set
+      if (
+        !user.authorizer_users_user_wallet.address ||
+        user.authorizer_users_user_wallet.address === ''
+      )
+        throw new Error('User custodial address is empty');
+      return user;
     }
 
     throw new NotFoundException();

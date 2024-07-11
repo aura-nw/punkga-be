@@ -17,13 +17,6 @@ array_relationships:
         table:
           name: social_activities
           schema: public
-  - name: authorizer_users_user_personal_wallets
-    using:
-      foreign_key_constraint_on:
-        column: user_id
-        table:
-          name: user_personal_wallet
-          schema: public
   - name: levels
     using:
       foreign_key_constraint_on:
