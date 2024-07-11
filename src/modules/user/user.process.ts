@@ -153,7 +153,7 @@ export class UserWalletProcessor implements OnModuleInit {
     const fee = 0.1 * 10 ** 6;
     const availableBalance = balance - fee;
 
-    if (availableBalance <= 0) await this.systemWalletSvc.faucet(address);
+    if (availableBalance < 0) await this.systemWalletSvc.faucet(address);
 
     return availableBalance;
   }
@@ -191,7 +191,8 @@ export class UserWalletProcessor implements OnModuleInit {
   ): Promise<string> {
     if (
       !!custodialWalletAsset.balance &&
-      Number(custodialWalletAsset.balance.amount) > 0
+      Number(custodialWalletAsset.balance.amount) > 0 &&
+      availableBalance > 0
     ) {
       const evmAvailableBalance = (availableBalance * 10 ** 12).toString();
       const nonce = await wallet.getNonce();
