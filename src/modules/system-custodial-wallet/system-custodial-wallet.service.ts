@@ -86,35 +86,4 @@ export class SystemCustodialWalletService implements OnModuleInit {
   get granterAddress() {
     return this.granterWalletAddress;
   }
-
-  // generateGrantFeeMsg(granteeAddress: string) {
-  //   const denom = this.configService.get<string>('network.denom');
-  //   const grantAmount = this.configService.get<string>('network.grantAmount');
-  //   const allowance: Any = {
-  //     typeUrl: '/cosmos.feegrant.v1beta1.BasicAllowance',
-  //     value: Uint8Array.from(
-  //       BasicAllowance.encode(
-  //         BasicAllowance.fromPartial({
-  //           spendLimit: [
-  //             {
-  //               denom: denom || "uaura",
-  //               amount: String(grantAmount) || '100000',
-  //             },
-  //           ],
-  //         })
-  //       ).finish(),
-  //     ),
-  //   };
-  //   const grantMsg = {
-  //     typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
-  //     value: MsgGrantAllowance.fromPartial({
-  //       granter: this.granterWalletAddress,
-  //       grantee: granteeAddress,
-  //       allowance: allowance,
-  //     }),
-  //   };
-
-  //   return grantMsg;
-
-  // }
 }

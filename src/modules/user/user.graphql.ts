@@ -64,11 +64,6 @@ export class UserGraphql {
       variables
     );
 
-    // if (result.data[network].account.length === 0) return {
-    //   balance: undefined,
-    //   cw721Tokens: []
-    // } as ICustodialWalletAsset;
-
     const nativeDenom = this.configSvc.get<string>('network.denom');
     const balance =
       result.data[network].account.length === 0
