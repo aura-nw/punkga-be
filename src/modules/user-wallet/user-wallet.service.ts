@@ -1,10 +1,4 @@
-import {
-  BaseContract,
-  Contract,
-  HDNodeWallet,
-  JsonRpcProvider,
-  Wallet,
-} from 'ethers';
+import { Contract, HDNodeWallet, JsonRpcProvider, Wallet } from 'ethers';
 
 import {
   HttpException,

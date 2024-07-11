@@ -40,15 +40,11 @@ export class UserWalletProcessor implements OnModuleInit {
     );
 
     const wallets = this.generateWallets(data);
-    const insertObjects = wallets.map(
-      ({ userId, cipherPhrase, addressesData }) => ({
-        custodial_wallet_addresses: {
-          data: addressesData,
-        },
-        data: cipherPhrase,
-        user_id: userId,
-      })
-    );
+    const insertObjects = wallets.map(({ userId, cipherPhrase, address }) => ({
+      address,
+      data: cipherPhrase,
+      user_id: userId,
+    }));
 
     // store db
     const result = await this.userWalletGraphql.insertManyUserWallet({
@@ -61,22 +57,11 @@ export class UserWalletProcessor implements OnModuleInit {
   generateWallets(data: IGenerateUserWallet[]) {
     this.logger.debug(`starting generate account..`);
     return data.map((data) => {
-      const { phrase, cipherPhrase } = this.sysKeyService.randomPhrase();
-      // generate address for all chain
-      const addressesData = this.chains.map((chain) => {
-        const wallet = Wallet.fromPhrase(phrase);
-        return {
-          chain_id: chain.id,
-          address: wallet.address,
-          address_type: 'evm',
-          user_id: data.userId,
-        };
-      });
-      // const { cipherPhrase, address } = this.sysKeyService.generateWallet();
+      const { cipherPhrase, address } = this.sysKeyService.generateWallet();
       return {
         userId: data.userId,
         cipherPhrase,
-        addressesData,
+        address,
       };
     });
   }
