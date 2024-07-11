@@ -11,6 +11,7 @@ import {
 import { UserGraphql } from './user.graphql';
 import { UserWalletGraphql } from '../user-wallet/user-wallet.graphql';
 import { AddressType } from '../../common/enum';
+import { MasterWalletService } from '../user-wallet/master-wallet.service';
 
 type MigrateWalletType = {
   requestId: number;
@@ -26,6 +27,7 @@ export class UserWalletProcessor implements OnModuleInit {
     private configService: ConfigService,
     private redisClientService: RedisService,
     private userWalletService: UserWalletService,
+    private masterWalletService: MasterWalletService,
     private userGraphql: UserGraphql,
     private userWalletGraphql: UserWalletGraphql,
     private systemWalletSvc: SystemCustodialWalletService
@@ -92,8 +94,17 @@ export class UserWalletProcessor implements OnModuleInit {
             custodialWalletBalance
           );
 
-          // transfer asset
           const txs: string[] = [];
+          // update user xp
+          const updateXpHash = await this.updateUserXp(
+            currentChain.id,
+            user.wallet_address,
+            user.levels[0]?.level || 0,
+            user.levels[0]?.xp || 0
+          );
+          if (updateXpHash) txs.push(updateXpHash);
+
+          // transfer asset
           const { wallet } = await this.userWalletService.deserialize(userId);
 
           // send native token
@@ -147,6 +158,31 @@ export class UserWalletProcessor implements OnModuleInit {
     return availableBalance;
   }
 
+  async updateUserXp(
+    chainId: number,
+    wallet_address: string,
+    level = 0,
+    xp = 0
+  ): Promise<string> {
+    const contractWithMasterWallet =
+      this.masterWalletService.getLevelingContract(chainId);
+    const updateXpTx = await contractWithMasterWallet.updateUserInfo(
+      wallet_address,
+      level,
+      xp
+    );
+    const tx = await updateXpTx.wait();
+    return tx.hash;
+  }
+
+  /**
+   * send native token  from custodial wallet to user wallet
+   * @param custodialWalletAsset
+   * @param availableBalance
+   * @param wallet
+   * @param to
+   * @returns
+   */
   async sendNativeToken(
     custodialWalletAsset: any,
     availableBalance: number,
