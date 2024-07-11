@@ -155,7 +155,7 @@ export class UserGraphql {
       return user;
     }
 
-    throw new NotFoundException();
+    throw new NotFoundException('user not found');
   }
 
   async insertRequestLog(variables: any) {

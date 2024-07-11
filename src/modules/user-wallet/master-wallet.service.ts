@@ -20,9 +20,6 @@ export class MasterWalletService implements OnModuleInit {
   private readonly logger = new Logger(MasterWalletService.name);
   private masterHDWallet: HDNodeWallet = null;
   private masterWalletAddress = '';
-  // private levelingProxyContractAddress = '';
-  // private provider: JsonRpcProvider = null;
-  // private levelingContract: BaseContract = null;
   private levelingContractMap: Map<number, Contract> = new Map();
   private chains: IChainInfo[] = [];
 
@@ -30,11 +27,7 @@ export class MasterWalletService implements OnModuleInit {
     private configService: ConfigService,
     private userWalletGraphql: UserWalletGraphql,
     private sysKeyService: SysKeyService
-  ) {
-    // this.levelingProxyContractAddress = this.configService.get<string>(
-    //   'network.contractAddress.leveling'
-    // );
-  }
+  ) {}
 
   async onModuleInit() {
     await this.initMasterWallet();

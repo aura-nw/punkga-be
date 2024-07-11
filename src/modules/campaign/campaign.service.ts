@@ -404,11 +404,12 @@ export class CampaignService {
         token
       );
 
-      if (userId !== top1UserCampaign.user_id) throw new ForbiddenException();
+      if (userId !== top1UserCampaign.user_id)
+        throw new ForbiddenException('user is not satisfied');
 
       // check claim status
       if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
-        throw new ForbiddenException();
+        throw new ForbiddenException('reward already claimed');
 
       // add unique key to db (duplicate item protection)
       const uniqueKey = `c-${userId}-${campaignId}`;

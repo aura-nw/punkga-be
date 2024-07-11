@@ -127,7 +127,7 @@ export class UserService {
 
       if (chapter.chapter_type === 'NFTs only') {
         const { nft } = await this.mangaService.getAccess(chapter.manga_id);
-        if (!nft) throw new ForbiddenException();
+        if (!nft) throw new ForbiddenException('nft only');
       }
 
       const { token } = ContextProvider.getAuthUser();

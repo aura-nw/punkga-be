@@ -292,7 +292,10 @@ export class QuestGraphql {
       variables
     );
 
-    if (errorOrEmpty(result, 'authorizer_users')) throw new NotFoundException();
+    if (errorOrEmpty(result, 'authorizer_users')) {
+      this.logger.error(result);
+      throw new NotFoundException('user not found');
+    }
 
     return result.data.authorizer_users[0];
   }
@@ -320,7 +323,8 @@ export class QuestGraphql {
       variables
     );
 
-    if (errorOrEmpty(result, 'authorizer_users')) throw new NotFoundException();
+    if (errorOrEmpty(result, 'authorizer_users'))
+      throw new NotFoundException('user not found');
 
     return result.data.authorizer_users[0];
   }

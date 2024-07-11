@@ -65,7 +65,7 @@ export class QuestService {
         id: questId,
       });
 
-      if (!quest) throw new NotFoundException();
+      if (!quest) throw new NotFoundException('quest not found');
 
       const activity = {
         user_id: userId,
@@ -132,7 +132,7 @@ export class QuestService {
         id: questId,
       });
 
-      if (!quest) throw new NotFoundException();
+      if (!quest) throw new NotFoundException('quest not found');
 
       quest.reward_status = await this.checkRewardService.getClaimRewardStatus(
         quest,
@@ -163,7 +163,7 @@ export class QuestService {
         userId
       );
       if (rewardStatus !== RewardStatus.CanClaimReward)
-        throw new ForbiddenException();
+        throw new ForbiddenException('reward status invalid');
 
       // add unique key to db (duplicate item protection)
       let uniqueKey = `q-${userId}-${questId}`;

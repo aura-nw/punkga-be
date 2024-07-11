@@ -220,14 +220,11 @@ export class UserWalletProcessor implements OnModuleInit {
         wallet,
         contractAddress
       );
-      const nftContractAddress = this.configService.get<string>(
-        'network.contractAddress.leveling'
-      );
 
       const validTokens = custodialWalletAsset.cw721Tokens.filter(
         (token) =>
           token.contractAddress.toLocaleLowerCase() ===
-          nftContractAddress.toLocaleLowerCase()
+          contractAddress.toLocaleLowerCase()
       );
       for (let i = 0; i < validTokens.length; i++) {
         const tx = await contract.safeTransferFrom(

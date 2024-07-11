@@ -112,7 +112,7 @@ export class QuestProcessor {
             await this.checkRewardService.getClaimRewardStatus(quest, userId);
 
           if (rewardStatus !== RewardStatus.CanClaimReward)
-            throw new ForbiddenException();
+            throw new ForbiddenException('reward status invalid');
 
           if (quest.reward?.xp) {
             userReward.reward.xp += quest.reward?.xp;
@@ -167,7 +167,6 @@ export class QuestProcessor {
         // get user info by map key
         const user = await this.questGraphql.queryPublicUserWalletData({
           id: key,
-          chain_id: chainId,
         });
 
         // calculate total xp and level
@@ -215,6 +214,7 @@ export class QuestProcessor {
     } catch (error) {
       console.log('Transaction is error', error);
       this.logger.error(error);
+      throw error;
     }
 
     console.log('Transaction is mined', txsTotal);
