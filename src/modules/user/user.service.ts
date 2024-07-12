@@ -33,16 +33,15 @@ export class UserService {
     @InjectQueue('userWallet')
     private readonly userWalletQueue: Queue
   ) {
-    const migrateWalletData = {
-      requestId: 9157,
-      userId: '9629d772-cc03-42f2-bd51-9def9ae94686',
-    };
-
-    const env = this.configService.get<string>('app.env') || 'prod';
-    this.redisClientService.client.rPush(
-      `punkga-${env}:migrate-user-wallet`,
-      JSON.stringify(migrateWalletData)
-    );
+    // const migrateWalletData = {
+    //   requestId: 9157,
+    //   userId: '9629d772-cc03-42f2-bd51-9def9ae94686',
+    // };
+    // const env = this.configService.get<string>('app.env') || 'prod';
+    // this.redisClientService.client.rPush(
+    //   `punkga-${env}:migrate-user-wallet`,
+    //   JSON.stringify(migrateWalletData)
+    // );
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
