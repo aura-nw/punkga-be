@@ -123,6 +123,10 @@ export class UserGraphql {
       `query authorizer_users_by_pk($id: bpchar!) {
         authorizer_users_by_pk(id: $id) {
           wallet_address
+          levels {
+            xp
+            level
+          }
           authorizer_users_user_wallet {
             address
           }
