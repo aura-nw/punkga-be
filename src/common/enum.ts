@@ -27,3 +27,9 @@ export enum RewardStatus {
   Claimed = 'CLAIMED',
   OutOfSlot = 'OUT_OF_SLOT',
 }
+
+export enum LaunchpadStatus {
+  Draft = 'DRAFT',
+  ReadyToMint = 'READY_TO_MINT',
+  Published = 'PUBLISHED',
+}
