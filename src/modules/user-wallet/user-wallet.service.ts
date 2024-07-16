@@ -155,14 +155,14 @@ export class UserWalletService {
    * @param wallet get evm leveling contract for given wallet
    * @returns
    */
-  getLevelingContract(wallet: HDNodeWallet, contractAddress: string): any {
+  getLevelingContract(
+    wallet: HDNodeWallet,
+    contractAddress: string,
+    provider: JsonRpcProvider
+  ): any {
     try {
       // Connecting to smart contract
-      const contract = new Contract(
-        contractAddress,
-        levelingAbi,
-        this.provider
-      );
+      const contract = new Contract(contractAddress, levelingAbi, provider);
 
       const levelingContract = contract.connect(wallet);
       return levelingContract;

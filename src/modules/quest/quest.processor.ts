@@ -1,7 +1,12 @@
 // import { Contract, JsonRpcProvider } from 'ethers';
 
 import { Process, Processor } from '@nestjs/bull';
-import { ForbiddenException, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { RewardStatus } from '../../common/enum';
@@ -16,10 +21,12 @@ import { QuestGraphql } from './quest.graphql';
 import { QuestRewardService } from './reward.service';
 import { UserCampaignXp, UserRewardInfo } from './user-reward';
 import { chain, groupBy } from 'lodash';
+import { UserWalletGraphql } from '../user-wallet/user-wallet.graphql';
 
 @Processor('quest')
-export class QuestProcessor {
+export class QuestProcessor implements OnModuleInit {
   private readonly logger = new Logger(QuestProcessor.name);
+  private chains: any[] = [];
 
   constructor(
     private configService: ConfigService,
@@ -29,8 +36,15 @@ export class QuestProcessor {
     private redisClientService: RedisService,
     private levelingService: LevelingService,
     private masterWalletSerivce: MasterWalletService,
-    private userLevelGraphql: UserLevelGraphql
+    private userLevelGraphql: UserLevelGraphql,
+    private userWalletGraphql: UserWalletGraphql
   ) {}
+
+  async onModuleInit() {
+    // get all chain
+    const result = await this.userWalletGraphql.getAllChains();
+    this.chains = result.data.chains;
+  }
 
   @Process({ name: 'claim-reward', concurrency: 1 })
   async claimQuestReward() {
@@ -46,7 +60,6 @@ export class QuestProcessor {
     // filter chain_id
     const chainReward = groupBy(listRewards, (item) => item.chainId);
     for (const [key, value] of Object.entries(chainReward)) {
-      // get chain info
       const rewardMap = await this.mapUserReward(value);
       try {
         // create msg and execute contract
@@ -156,11 +169,18 @@ export class QuestProcessor {
   }
 
   async mintRewards(rewardMap: Map<string, UserRewardInfo>, chainId: number) {
+    // get chain info
+    const currentChain = this.chains.find((chain) => chain.id === chainId);
+    if (!currentChain) throw new NotFoundException('chain not found');
+
     const txsTotal = [];
 
     try {
       const contractWithMasterWallet =
-        this.masterWalletSerivce.getLevelingContract(chainId);
+        this.masterWalletSerivce.getLevelingContract(
+          currentChain.contracts.leveling_contract,
+          currentChain.rpc
+        );
       for await (const [key, value] of rewardMap.entries()) {
         const txs = [];
 
