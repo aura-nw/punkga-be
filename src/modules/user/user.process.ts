@@ -6,10 +6,7 @@ import { RedisService } from '../redis/redis.service';
 import { SystemCustodialWalletService } from '../system-custodial-wallet/system-custodial-wallet.service';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { UserWalletService } from '../user-wallet/user-wallet.service';
-import {
-  ICustodialWalletAsset,
-  ICw721Token,
-} from './interfaces/account-onchain.interface';
+import { ICustodialWalletAsset } from './interfaces/account-onchain.interface';
 import { UserGraphql } from './user.graphql';
 
 type MigrateWalletType = {
@@ -59,6 +56,20 @@ export class UserWalletProcessor {
       const custodialWalletAddress = user.authorizer_users_user_wallet.address;
 
       // check asset in custodial wallet
+      const totalTxs: string[] = [];
+
+      // update user xp
+      const contractWithMasterWallet =
+        this.masterWalletService.getLevelingContract();
+      const updateXpTx = await contractWithMasterWallet.updateUserInfo(
+        user.wallet_address,
+        user.levels[0]?.level || 0,
+        user.levels[0]?.xp || 0
+      );
+
+      const updateXpTxResult = await updateXpTx.wait();
+      totalTxs.push(updateXpTxResult.hash);
+
       const custodialWalletAsset =
         await this.userGraphql.queryCustodialWalletAsset(
           custodialWalletAddress
@@ -75,18 +86,7 @@ export class UserWalletProcessor {
           await this.systemWalletSvc.faucet(custodialWalletAddress);
 
         // transfer asset
-        const txsPromise = [];
         const { wallet } = await this.userWalletService.deserialize(userId);
-
-        // update user xp
-        const contractWithMasterWallet =
-          this.masterWalletService.getLevelingContract();
-        const updateXpTx = await contractWithMasterWallet.updateUserInfo(
-          user.wallet_address,
-          user.levels[0]?.level || 0,
-          user.levels[0]?.xp || 0
-        );
-        txsPromise.push(updateXpTx.wait());
 
         // send native token
         if (
@@ -102,11 +102,9 @@ export class UserWalletProcessor {
             value: evmAvailableBalance,
           });
 
-          txsPromise.push(tx.wait());
+          const sendNativeTxResult = await tx.wait();
+          totalTxs.push(sendNativeTxResult.hash);
         }
-        // get result txs
-        const result = await Promise.all(txsPromise);
-        const txs = result.map((tx) => tx.hash);
 
         // send nft
         const transferNftHash = [];
@@ -131,28 +129,20 @@ export class UserWalletProcessor {
             transferNftHash.push(result.hash);
           }
         }
-
-        txs.push(...transferNftHash);
-
-        // update request
-        await this.userGraphql.updateRequestLogs({
-          ids: [requestId],
-          log: JSON.stringify(txs),
-          status: 'SUCCEEDED',
-        });
+        totalTxs.push(...transferNftHash);
 
         this.logger.debug(`Migrate wallet success!!!`);
       } else {
         this.logger.debug(
           `Wallet ${user.authorizer_users_user_wallet.address} empty`
         );
-        // update request
-        await this.userGraphql.updateRequestLogs({
-          ids: [requestId],
-          log: 'Wallet empty',
-          status: 'SUCCEEDED',
-        });
       }
+      // update request
+      await this.userGraphql.updateRequestLogs({
+        ids: [requestId],
+        log: JSON.stringify(totalTxs),
+        status: 'SUCCEEDED',
+      });
     } catch (error) {
       this.logger.error(error.toString());
       await this.userGraphql.updateRequestLogs({
