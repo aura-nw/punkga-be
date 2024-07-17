@@ -81,6 +81,13 @@ export class UserGraphql {
       }
     );
 
+    this.logger.debug(
+      `migrate account asset ${address}: ${JSON.stringify({
+        balance,
+        cw721Tokens,
+      })}`
+    );
+
     return {
       balance,
       cw721Tokens,
