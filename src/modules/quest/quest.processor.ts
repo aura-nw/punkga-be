@@ -1,5 +1,8 @@
 // import { Contract, JsonRpcProvider } from 'ethers';
 
+import { JsonRpcProvider } from 'ethers';
+import { groupBy } from 'lodash';
+
 import { Process, Processor } from '@nestjs/bull';
 import {
   ForbiddenException,
@@ -14,14 +17,12 @@ import { LevelingService } from '../leveling/leveling.service';
 import { RedisService } from '../redis/redis.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
+import { UserWalletGraphql } from '../user-wallet/user-wallet.graphql';
 import { CheckRewardService } from './check-reward.service';
-// import * as ABI from './files/PunkgaReward.json';
 import { IRewardInfo } from './interface/ireward-info';
 import { QuestGraphql } from './quest.graphql';
 import { QuestRewardService } from './reward.service';
 import { UserCampaignXp, UserRewardInfo } from './user-reward';
-import { chain, groupBy } from 'lodash';
-import { UserWalletGraphql } from '../user-wallet/user-wallet.graphql';
 
 @Processor('quest')
 export class QuestProcessor implements OnModuleInit {
@@ -173,13 +174,15 @@ export class QuestProcessor implements OnModuleInit {
     const currentChain = this.chains.find((chain) => chain.id === chainId);
     if (!currentChain) throw new NotFoundException('chain not found');
 
+    const provider = new JsonRpcProvider(currentChain.rpc);
+
     const txsTotal = [];
 
     try {
       const contractWithMasterWallet =
         this.masterWalletSerivce.getLevelingContract(
           currentChain.contracts.leveling_contract,
-          currentChain.rpc
+          provider
         );
       for await (const [key, value] of rewardMap.entries()) {
         const txs = [];
