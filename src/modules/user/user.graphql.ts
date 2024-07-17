@@ -68,12 +68,10 @@ export class UserGraphql {
     this.logger.debug(`horoscope result ${address}: ${JSON.stringify(result)}`);
 
     const nativeDenom = this.configSvc.get<string>('network.denom');
-    const balance =
-      result.data[network].account_balance.length === 0
-        ? undefined
-        : (result.data[network].account_balance.filter(
-            (balance) => balance.denom === nativeDenom
-          )[0] as IAccountBalance);
+    const accountBalance: any[] = result.data[network].account_balance;
+    const balance = accountBalance.find(
+      (balance) => balance.denom === nativeDenom
+    ) as IAccountBalance;
     const cw721Tokens: ICw721Token[] = result.data[network].erc721_token.map(
       (token) => {
         return {
