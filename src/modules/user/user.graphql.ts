@@ -44,8 +44,9 @@ export class UserGraphql {
       '',
       `query queryAsset($owner_address: String!) {
         ${network} {
-          account(where: {evm_address: {_eq: $owner_address}}) {
-            balances
+          account_balance(where: {account: {evm_address: {_eq: $owner_address}}}) {
+            amount
+            denom
           }
           erc721_token(
             where: {owner: {_eq: $owner_address}}
@@ -64,16 +65,11 @@ export class UserGraphql {
       variables
     );
 
-    // if (result.data[network].account.length === 0) return {
-    //   balance: undefined,
-    //   cw721Tokens: []
-    // } as ICustodialWalletAsset;
-
     const nativeDenom = this.configSvc.get<string>('network.denom');
     const balance =
-      result.data[network].account.length === 0
+      result.data[network].account_balance.length === 0
         ? undefined
-        : (result.data[network].account[0].balances.filter(
+        : (result.data[network].account_balance.filter(
             (balance) => balance.denom === nativeDenom
           )[0] as IAccountBalance);
     const cw721Tokens: ICw721Token[] = result.data[network].erc721_token.map(
