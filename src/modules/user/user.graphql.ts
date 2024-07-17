@@ -69,6 +69,10 @@ export class UserGraphql {
 
     const nativeDenom = this.configSvc.get<string>('network.denom');
     const accountBalance: any[] = result.data[network].account_balance;
+
+    this.logger.debug(
+      `balance denom ${nativeDenom}: ${JSON.stringify(accountBalance)}`
+    );
     const balance = accountBalance.find(
       (balance) => balance.denom === nativeDenom
     ) as IAccountBalance;
