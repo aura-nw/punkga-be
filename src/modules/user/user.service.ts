@@ -34,8 +34,8 @@ export class UserService {
     private readonly userWalletQueue: Queue
   ) {
     // const migrateWalletData = {
-    //   requestId: 9157,
-    //   userId: '9629d772-cc03-42f2-bd51-9def9ae94686',
+    //   requestId: 9158,
+    //   userId: '6a9880ad-bb3d-4bbe-a11b-d41fc485e358',
     // };
     // const env = this.configService.get<string>('app.env') || 'prod';
     // this.redisClientService.client.rPush(

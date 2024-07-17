@@ -91,7 +91,7 @@ export class UserWalletProcessor implements OnModuleInit {
         // update user xp
         const updateXpHash = await this.chainGatewaySvc.updateUserXp(
           chain,
-          currentChain.user.wallet_address,
+          user.wallet_address,
           user.levels[0]?.level || 0,
           user.levels[0]?.xp || 0
         );
@@ -99,7 +99,7 @@ export class UserWalletProcessor implements OnModuleInit {
 
         if (this.isEmptyWallet(custodialWalletAsset)) {
           this.logger.debug(
-            `Wallet ${user.authorizer_users_user_wallet.address} empty`
+            `chain ${chain} wallet ${user.authorizer_users_user_wallet.address}: empty`
           );
         } else {
           // faucet
