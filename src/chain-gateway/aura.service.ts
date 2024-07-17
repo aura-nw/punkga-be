@@ -63,7 +63,8 @@ export class AuraClientService implements IChainClient {
 
     const nativeDenom = this.configSvc.get<string>('network.denom');
     const balance =
-      result.data[network].account.length === 0
+      result.data[network].account_balance
+      .length === 0
         ? undefined
         : (result.data[network].account_balance.filter(
             (balance) => balance.denom === nativeDenom
