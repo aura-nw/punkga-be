@@ -168,167 +168,28 @@ export class LaunchpadService {
     }
   }
 
-  // async preDeploy(launchpadId: number) {
-  //   const { userId, token } = ContextProvider.getAuthUser();
-
-  //   // Get launchpad info
-  //   const launchpad = await this.getExistingLaunchpad(launchpadId, token);
-  //   if (launchpad.status === LaunchpadStatus.Draft) {
-  //     // Upload nft images to IPFS
-  //     //   - fetch nft images from s3
-  //     const nftImages = launchpad.nft_images;
-  //     if (nftImages.length === 0) throw new Error('NFT images empty!');
-
-  //     const filePromises: Promise<GetObjectCommandOutput>[] = nftImages.map(
-  //       (nftImageUrl: string) => {
-  //         // remove / from pathname
-  //         const keyName = new URL(nftImageUrl).pathname.substring(1);
-  //         return this.fileService.downloadFromS3(keyName);
-  //       }
-  //     );
-
-  //     const files = await Promise.all(filePromises);
-  //     const convertedDataFiles = await Promise.all(
-  //       files.map((file) => ({
-  //         body: file.Body as Readable,
-  //       }))
-  //     );
-  //     //    - write files to folder
-  //     const folderPath = `./uploads/launchpad-${launchpadId}`;
-  //     mkdirp(folderPath);
-  //     convertedDataFiles.map(async (data, index) => {
-  //       const tokenId = 1370000000000 + index;
-  //       const localFilePath = `${folderPath}/${tokenId}`;
-  //       return writeFile(localFilePath, data.body);
-  //     });
-  //   - upload nft images folder to ipfs
-  // const ipfsImageFolder = `/punkga-launchpad-${launchpadId}/images`;
-  // const { cid, filenames } = await this.ipfsService.uploadLocalFolderToIpfs(
-  //   folderPath,
-  //   ipfsImageFolder
-  // );
-
-  //   - make & upload nft metadata
-  // const ipfsMetadataFolder = `/punkga-launchpad-${launchpadId}/metadata`;
-  // const metadataObjects: IMetadata[] = filenames.map(
-  //   (filename, index: number) => ({
-  //     token_id: 1370000000000 + index,
-  //     name: (1370000000000 + index).toString(),
-  //     description: 'punkga nft',
-  //     attributes: [],
-  //     image: `https://ipfs-gw.dev.aura.network/ipfs/${cid}/${
-  //       1370000000000 + index
-  //     }`,
-  //   })
-  // );
-  // const medatadaFolderCid =
-  //   await this.ipfsService.uploadMetadataObjectsToIpfs(
-  //     metadataObjects,
-  //     ipfsMetadataFolder
-  //   );
-  // const metadataIpfsLink = `https://ipfs-gw.dev.aura.network/ipfs/${medatadaFolderCid}`;
-  // console.log(`\n\nUploaded metadata. Link: ${metadataIpfsLink}`);
-
-  //   - upload metadata contract uri
-  // const metadataContract = {
-  //   name: launchpad.name,
-  //   image_url: launchpad.thumbnail_url,
-  //   banner_image_url: launchpad.thumbnail_url,
-  //   description: launchpad.description,
-  //   website: 'https://punkga.me',
-  // };
-  // const metadataContractFolderPath = `/punkga-launchpad-${launchpadId}`;
-  // const metadataContractCid =
-  //   await this.ipfsService.uploadMetadataContractToIpfs(
-  //     metadataContract,
-  //     metadataContractFolderPath
-  //   );
-  // const metadataContractIpfsLink = `https://ipfs-gw.dev.aura.network/ipfs/${metadataContractCid}`;
-  // launchpad.metadata_uri_base = metadataIpfsLink;
-  // launchpad.metadata_contract_uri = metadataContractIpfsLink;
-  // launchpad.status = LaunchpadStatus.ReadyToMint;
-
-  // Create erc20 drop
-  // -> FRONTEND Call
-
-  // Update offchain data
-  //   const updateResult = await this.launchpadGraphql.update({
-  //     id: launchpadId,
-  //     data: {
-  //       metadata_uri_base: metadataIpfsLink,
-  //       metadata_contract_uri: metadataContractIpfsLink,
-  //     },
-  //   });
-  //   if (updateResult.errors) return updateResult;
-  // }
-
-  //   // query creator address
-  //   const queryUserResult = await this.launchpadGraphql.queryCreatorAddress({
-  //     id: userId,
-  //   });
-  //   if (queryUserResult.errors) return queryUserResult;
-  //   const creatorAddress =
-  //     queryUserResult.data.authorizer_users_by_pk.wallet_address;
-
-  //   // return
-  //   return {
-  //     name: launchpad.name,
-  //     symbol: `PL${launchpadId}`,
-  //     defaultAdmin: creatorAddress,
-  //     editionSize: launchpad.max_supply,
-  //     royaltyBPS: 0,
-  //     fundsRecipient: creatorAddress,
-  //     saleConfig: {
-  //       publicSale: {
-  //         startTime: new Date(launchpad.start_date).getTime(),
-  //         endTime: new Date(launchpad.end_date).getTime(),
-  //         publicSalePrice: launchpad.mint_price,
-  //         maxSalePurchasePerAddress: launchpad.max_mint_per_address,
-  //       },
-  //     },
-  //     metadataURIBase: launchpad.metadata_uri_base,
-  //     metadataContractURI: launchpad.metadata_contract_uri,
-  //   };
-  // }
-
-  // async postDeploy(launchpadId: number, txHash: string) {
-  //   const { token } = ContextProvider.getAuthUser();
-
-  //   const launchpad = await this.getExistingLaunchpad(launchpadId, token);
-  //   if (launchpad.status != LaunchpadStatus.Draft)
-  //     throw new ForbiddenException('invalid launchpad status');
-
-  //   return this.launchpadGraphql.update({
-  //     id: launchpadId,
-  //     data: {
-  //       status: LaunchpadStatus.ReadyToMint,
-  //       tx_hash: txHash,
-  //     },
-  //   });
-  // }
-
   async unpublish(launchpadId: number) {
     // Update offchain launchpad data
     const { token } = ContextProvider.getAuthUser();
 
-    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
+    const launchpad = await this.getExistingLaunchpad(launchpadId);
     if (launchpad.status != LaunchpadStatus.Published)
       throw new ForbiddenException('invalid launchpad status');
 
     return this.launchpadGraphql.update({
       id: launchpadId,
       data: {
-        status: LaunchpadStatus.ReadyToMint,
+        status: LaunchpadStatus.Draft,
       },
     });
   }
 
   async publish(launchpadId: number) {
     // Update offchain launchpad data
-    const { token } = ContextProvider.getAuthUser();
+    // const { token } = ContextProvider.getAuthUser();
 
-    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
-    if (launchpad.status != LaunchpadStatus.ReadyToMint)
+    const launchpad = await this.getExistingLaunchpad(launchpadId);
+    if (launchpad.status != LaunchpadStatus.Draft)
       throw new ForbiddenException('invalid launchpad status');
 
     return this.launchpadGraphql.update({
@@ -339,21 +200,44 @@ export class LaunchpadService {
     });
   }
 
-  async listOwnedLanchpad() {
-    const { userId } = ContextProvider.getAuthUser();
+  // async listOwnedLanchpad() {
+  //   const { userId } = ContextProvider.getAuthUser();
 
-    return this.launchpadGraphql.listOwnedLaunchpad({
-      user_id: userId,
-    });
+  //   return this.launchpadGraphql.listOwnedLaunchpad({
+  //     user_id: userId,
+  //   });
+  // }
+
+  async launchpadDetail(launchpad_id: number, language_id: number) {
+    // const { token } = ContextProvider.getAuthUser();
+    return this.launchpadGraphql.getLaunchpadDetail(
+      {
+        launchpad_id,
+        language_id,
+      }
+      // token
+    );
   }
 
-  async launchpadDetail(id: number) {
-    const { token } = ContextProvider.getAuthUser();
-    return this.launchpadGraphql.getOwnedLaunchpadDetail(
-      {
-        id,
-      },
-      token
+  async getListLaunchpad(
+    language_id: number,
+    limit: number,
+    offset: number,
+    status?: string[]
+  ) {
+    // const { token } = ContextProvider.getAuthUser();
+    const variables: any = {
+      language_id,
+      limit,
+      offset,
+    };
+    if (status && status.length > 0) {
+      variables.status = status;
+    }
+
+    return this.launchpadGraphql.getListLaunchpad(
+      variables
+      // token
     );
   }
 
@@ -370,7 +254,7 @@ export class LaunchpadService {
     const { userId, token } = ContextProvider.getAuthUser();
 
     // check launchpad
-    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
+    const launchpad = await this.getExistingLaunchpad(launchpadId);
     if (launchpad.status !== LaunchpadStatus.Draft)
       throw new BadRequestException('launchpad status invalid');
     if (launchpad.creator_id !== userId)
@@ -483,7 +367,7 @@ export class LaunchpadService {
     const { userId, token } = ContextProvider.getAuthUser();
 
     // check launchpad
-    const launchpad = await this.getExistingLaunchpad(launchpadId, token);
+    const launchpad = await this.getExistingLaunchpad(launchpadId);
     if (launchpad.status !== LaunchpadStatus.ReadyToMint)
       throw new BadRequestException('launchpad status invalid');
     if (launchpad.creator_id !== userId)
@@ -546,13 +430,10 @@ export class LaunchpadService {
     return result;
   }
 
-  private async getExistingLaunchpad(launchpadId: number, token: string) {
-    const result = await this.launchpadGraphql.queryByPk(
-      {
-        id: launchpadId,
-      },
-      token
-    );
+  private async getExistingLaunchpad(launchpadId: number) {
+    const result = await this.launchpadGraphql.queryByPk({
+      id: launchpadId,
+    });
     if (result.errors) throw new Error(JSON.stringify(result));
 
     const launchpad = result.data.launchpad_by_pk;

@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -26,7 +27,7 @@ import {
 } from './dto/deploy-launchpad-request.dto';
 import { PublishLaunchpadRequestDtoParam } from './dto/publish-launchpad-request.dto';
 import { UnPublishLaunchpadRequestDtoParam } from './dto/unpublish-launchpad-request.dto';
-import { DetailOwnedLaunchpadRequestDtoParam } from './dto/detail-owned-launchpad-request.dto';
+import { DetailLaunchpadRequestDtoParam } from './dto/detail-launchpad-request.dto';
 import {
   EditDraftLaunchpadParamDto,
   EditDraftLaunchpadRequestDto,
@@ -35,6 +36,7 @@ import {
   EditUnPublishLaunchpadParamDto,
   EditUnPublishLaunchpadRequestDto,
 } from './dto/edit-unpublish-launchpad-request.dto';
+import { ListLaunchpadRequestDtoParam } from './dto/list-launchpad-request.dto';
 
 @Controller('launchpad')
 @ApiTags('launchpad')
@@ -76,23 +78,23 @@ export class LaunchpadController {
   //   return this.launchpadSvc.postDeploy(param.id, body.tx_hash);
   // }
 
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @ApiBearerAuth()
-  // @Roles(Role.User)
-  // @Post(':id/publish')
-  // @UseInterceptors(AuthUserInterceptor)
-  // publish(@Param() param: PublishLaunchpadRequestDtoParam) {
-  //   return this.launchpadSvc.publish(param.id);
-  // }
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @Post(':id/publish')
+  @UseInterceptors(AuthUserInterceptor)
+  publish(@Param() param: PublishLaunchpadRequestDtoParam) {
+    return this.launchpadSvc.publish(param.id);
+  }
 
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @ApiBearerAuth()
-  // @Roles(Role.User)
-  // @Post(':id/unpublish')
-  // @UseInterceptors(AuthUserInterceptor)
-  // unpublish(@Param() param: UnPublishLaunchpadRequestDtoParam) {
-  //   return this.launchpadSvc.unpublish(param.id);
-  // }
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @Post(':id/unpublish')
+  @UseInterceptors(AuthUserInterceptor)
+  unpublish(@Param() param: UnPublishLaunchpadRequestDtoParam) {
+    return this.launchpadSvc.unpublish(param.id);
+  }
 
   // @UseGuards(AuthGuard, RolesGuard)
   // @ApiBearerAuth()
@@ -103,14 +105,32 @@ export class LaunchpadController {
   //   return this.launchpadSvc.listOwnedLanchpad();
   // }
 
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @ApiBearerAuth()
-  // @Roles(Role.User)
-  // @Get('owned/:id')
-  // @UseInterceptors(AuthUserInterceptor)
-  // onwedLaunchpadDetail(@Param() param: DetailOwnedLaunchpadRequestDtoParam) {
-  //   return this.launchpadSvc.launchpadDetail(param.id);
-  // }
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin, Role.User)
+  @Get(':launchpad_id/:language_id')
+  @UseInterceptors(AuthUserInterceptor)
+  detailLaunchpadDetail(@Param() param: DetailLaunchpadRequestDtoParam) {
+    return this.launchpadSvc.launchpadDetail(
+      param.launchpad_id,
+      param.language_id
+    );
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin, Role.User)
+  // @Get(':language_id/:limit/:offset')
+  @Get('')
+  @UseInterceptors(AuthUserInterceptor)
+  listLaunchpadDetail(@Query() params: ListLaunchpadRequestDtoParam) {
+    return this.launchpadSvc.getListLaunchpad(
+      params.language_id,
+      params.limit,
+      params.offset,
+      params.status
+    );
+  }
 
   // @UseGuards(AuthGuard, RolesGuard)
   // @ApiBearerAuth()

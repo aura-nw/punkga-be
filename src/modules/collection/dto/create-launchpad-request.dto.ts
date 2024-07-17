@@ -18,20 +18,23 @@ export class CreateLaunchpadRequestDto {
 
   @ApiProperty()
   seo_description_in_vn: string;
-
+  
   @ApiProperty({ type: 'string', format: 'binary' })
   thumbnail: Express.Multer.File;
-
+  
   @ApiProperty({ type: 'string', format: 'binary' })
   thumbnail_in_vn: Express.Multer.File;
-
+  
   // @ApiProperty({ type: 'string', format: 'binary' })
   // logo: Express.Multer.File;
-
+  
   @ApiProperty({ type: ['string'], format: 'binary' })
   featured_images: Express.Multer.File[];
-
+  
   @ApiProperty()
   creator_id: number;
+
+  @ApiProperty()
+  contract_address: string;
 
 }
