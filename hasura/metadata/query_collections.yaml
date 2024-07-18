@@ -1184,6 +1184,13 @@
                     quest_id
                     language_id
                     data
+                    i18n_language {
+                      id
+                      description
+                      icon
+                      is_main
+                      symbol
+                    }
                   }
                   reward
                 }
