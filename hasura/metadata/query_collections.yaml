@@ -1179,6 +1179,12 @@
                 quest {
                   id
                   name
+                  quests_i18n {
+                    id
+                    quest_id
+                    language_id
+                    data
+                  }
                   reward
                 }
               }

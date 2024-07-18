@@ -84,6 +84,7 @@ export class CampaignGraphql {
             id
             name
             contracts
+            punkga_config
           }
           reward
           status
@@ -133,6 +134,7 @@ export class CampaignGraphql {
             id
             name
             contracts
+            punkga_config
           }
           reward
           campaign_i18n {
@@ -222,6 +224,7 @@ export class CampaignGraphql {
             id
             name
             contracts
+            punkga_config
           }
           reward
           created_at
