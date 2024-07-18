@@ -102,12 +102,17 @@ export class QuestService {
         file
       );
 
+      const ipfsDisplayUrl =
+        this.configService.get<string>('network.ipfsQuery');
+
+      const image = `${ipfsDisplayUrl}/${cid}/${originalname}`;
+
       // upload metadata to ipfs
       const metadata = {
         name,
         description: `Punkga Reward - ${name}`,
         attributes: [],
-        image: `ipfs://${cid}/${originalname}`,
+        image,
       };
       const { cid: metadataCID } = await this.filesService.uploadMetadataToIpfs(
         metadata,
@@ -117,7 +122,8 @@ export class QuestService {
       this.logger.debug(`uploading nft image ${file.originalname} success`);
       return {
         url,
-        ipfs: `ipfs://${metadataCID}`,
+        // ipfs: `ipfs://${metadataCID}`,
+        ipfs: `https://ipfs-gw.dev.aura.network/ipfs/${metadataCID}`,
       };
     } catch (errors) {
       return {
