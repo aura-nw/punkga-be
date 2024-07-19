@@ -1164,6 +1164,11 @@
               levels {
                 xp
                 level
+                user_level_chain {
+                  id
+                  name
+                  punkga_config
+                }
               }
               authorizer_users_user_wallet {
                 address

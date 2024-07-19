@@ -231,6 +231,13 @@ export class UserGraphql {
             campaign_quests(where: {status: {_eq: "Published"}}, order_by: {created_at: desc}) {
               id
               name
+              quests_campaign {
+                campaign_chain {
+                  id
+                  name
+                  punkga_config
+                }
+              }
               quests_i18n {
                 data
                 i18n_language {
@@ -258,7 +265,8 @@ export class UserGraphql {
             }
           }
         }
-      }`,
+      }
+      `,
       'queryAvailableQuests',
       {
         now: new Date(),
