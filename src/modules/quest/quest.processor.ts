@@ -61,10 +61,13 @@ export class QuestProcessor implements OnModuleInit {
     // filter chain_id
     const chainReward = groupBy(listRewards, (item) => item.chainId);
     for (const [key, value] of Object.entries(chainReward)) {
+      const chainId = Number(
+        key === 'null' ? this.chains.find((chain) => chain.is_default).id : key
+      );
       const rewardMap = await this.mapUserReward(value);
       try {
         // create msg and execute contract
-        const txs = await this.mintRewards(rewardMap, Number(key));
+        const txs = await this.mintRewards(rewardMap, chainId);
         // execute contract
         if (txs.length === 0) {
           const errMsg = `Request ${listRewards

@@ -22,6 +22,7 @@ export class UserWalletGraphql {
           chain_id
           address_type
           contracts
+          is_default
         }
       }`,
       'chains',

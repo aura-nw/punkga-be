@@ -24,6 +24,7 @@ select_permissions:
     permission:
       columns:
         - user_id
+        - chain_id
         - level
         - xp
         - updated_at
@@ -33,6 +34,7 @@ select_permissions:
     permission:
       columns:
         - user_id
+        - chain_id
         - level
         - xp
         - updated_at

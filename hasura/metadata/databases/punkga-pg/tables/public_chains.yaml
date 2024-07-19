@@ -5,6 +5,7 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
+        - is_default
         - id
         - contracts
         - punkga_config
@@ -18,6 +19,7 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - is_default
         - id
         - contracts
         - punkga_config

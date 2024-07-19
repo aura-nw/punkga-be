@@ -1146,14 +1146,6 @@
               }
             }
           }
-      - name: Public - Get user xp
-        query: |
-          query user_level ($wallet_address: String!) {
-            user_level(where: {authorizer_user:{active_wallet_address:{_ilike:$wallet_address}}}) {
-              level
-              xp
-            }
-          }
       - name: User - Get Profile
         query: |
           query GetUserProfile {

@@ -380,11 +380,11 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Public - Get user xp
+      query_name: Public - Get user campaign xp
   methods:
     - GET
-  name: Public - Get user xp
-  url: public/user-xp
+  name: Public - Get user campaign xp
+  url: public/user-campaign
 - comment: ""
   definition:
     query:
