@@ -1,13 +1,3 @@
-// import * as bip39 from 'bip39';
-
-// import { BasicAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/feegrant';
-// import { MsgGrantAllowance } from 'cosmjs-types/cosmos/feegrant/v1beta1/tx';
-
-// import {
-//   GasPrice,
-//   SigningStargateClient,
-//   SigningStargateClientOptions,
-// } from '@cosmjs/stargate';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -15,16 +5,12 @@ import { SysKeyService } from '../keys/syskey.service';
 import { SystemCustodialWalletGraphql } from './system-custodial-wallet.graphql';
 import { HDNodeWallet, JsonRpcProvider, Wallet, parseEther } from 'ethers';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
-// import { Any } from 'cosmjs-types/google/protobuf/any';
-// import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 @Injectable()
 export class SystemCustodialWalletService implements OnModuleInit {
   private readonly logger = new Logger(SystemCustodialWalletService.name);
   private granterWallet: HDNodeWallet = null;
   private granterWalletAddress: string;
-  // private client: SigningStargateClient;
-  private provider: JsonRpcProvider = null;
 
   constructor(
     private configService: ConfigService,
@@ -41,19 +27,18 @@ export class SystemCustodialWalletService implements OnModuleInit {
     // get from db
     const granterWalletData = await this.walletGraphql.getGranterWallet();
     const providerUrl = this.configService.get<string>('network.rpcEndpoint');
-    this.provider = new JsonRpcProvider(providerUrl);
 
     if (granterWalletData) {
       const phrase = this.masterWalletService.decryptPhrase(
         granterWalletData.data
       );
-      const wallet = Wallet.fromPhrase(phrase, this.provider);
+      const wallet = Wallet.fromPhrase(phrase);
 
       this.granterWallet = wallet;
       this.granterWalletAddress = wallet.address;
     } else {
       const { wallet, address, cipherPhrase } =
-        await this.sysKeyService.randomWallet(this.provider);
+        await this.sysKeyService.randomWallet();
 
       this.granterWallet = wallet;
       this.granterWalletAddress = address;
@@ -72,9 +57,10 @@ export class SystemCustodialWalletService implements OnModuleInit {
     }
   }
 
-  async faucet(address: string) {
-    const nonce = await this.granterWallet.getNonce();
-    const tx = await this.granterWallet.sendTransaction({
+  async faucet(address: string, provider: JsonRpcProvider) {
+    const wallet = this.granterWallet.connect(provider);
+    const nonce = await wallet.getNonce();
+    const tx = await wallet.sendTransaction({
       nonce,
       to: address,
       value: parseEther('0.1'),
@@ -86,35 +72,4 @@ export class SystemCustodialWalletService implements OnModuleInit {
   get granterAddress() {
     return this.granterWalletAddress;
   }
-
-  // generateGrantFeeMsg(granteeAddress: string) {
-  //   const denom = this.configService.get<string>('network.denom');
-  //   const grantAmount = this.configService.get<string>('network.grantAmount');
-  //   const allowance: Any = {
-  //     typeUrl: '/cosmos.feegrant.v1beta1.BasicAllowance',
-  //     value: Uint8Array.from(
-  //       BasicAllowance.encode(
-  //         BasicAllowance.fromPartial({
-  //           spendLimit: [
-  //             {
-  //               denom: denom || "uaura",
-  //               amount: String(grantAmount) || '100000',
-  //             },
-  //           ],
-  //         })
-  //       ).finish(),
-  //     ),
-  //   };
-  //   const grantMsg = {
-  //     typeUrl: "/cosmos.feegrant.v1beta1.MsgGrantAllowance",
-  //     value: MsgGrantAllowance.fromPartial({
-  //       granter: this.granterWalletAddress,
-  //       grantee: granteeAddress,
-  //       allowance: allowance,
-  //     }),
-  //   };
-
-  //   return grantMsg;
-
-  // }
 }

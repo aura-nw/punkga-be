@@ -1,27 +1,28 @@
 class NftInfo {
-  name: string
-  image: string
-  tokenId: string
+  name: string;
+  image: string;
+  tokenId: string;
 }
 
 class RewardInfo {
-  xp = 0
-  nft: NftInfo[] = []
+  xp = 0;
+  nft: NftInfo[] = [];
 }
 
 export class UserCampaignXp {
-  userCampaignId: number
-  xp: number
+  userCampaignId: number;
+  xp: number;
 }
 
 export class UserRewardInfo {
   reward: RewardInfo;
-  userQuestIds: number[] = []
-  userCampaignRewardIds: number[] = []
-  requestIds: number[] = []
+  userQuestIds: number[] = [];
+  userCampaignRewardIds: number[] = [];
+  requestIds: number[] = [];
   userXp = 0;
   userLevel = 0;
-  userCampaignXp: UserCampaignXp[] = []
+  userCampaignXp: UserCampaignXp[] = [];
+  chainId = 0;
 
   constructor(public userId: string) {
     this.reward = new RewardInfo();

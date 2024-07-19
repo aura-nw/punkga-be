@@ -12,6 +12,7 @@ select_permissions:
         - campaign_id
         - id
         - language_id
+        - quest_id
         - data
         - created_at
         - updated_at
@@ -22,6 +23,7 @@ select_permissions:
         - campaign_id
         - id
         - language_id
+        - quest_id
         - data
         - created_at
         - updated_at

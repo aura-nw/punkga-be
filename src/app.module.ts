@@ -21,6 +21,8 @@ import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/s
 import { TasksModule } from './modules/task/task.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
 import { UserModule } from './modules/user/user.module';
+import { ChainModule } from './modules/chain/chain.module';
+import { ChainGateWayModule } from './chain-gateway/chain-gateway.module';
 
 @Module({
   imports: [
@@ -65,6 +67,8 @@ import { UserModule } from './modules/user/user.module';
     RequestModule,
     RedisModule,
     SystemCustodialWalletModule,
+    ChainModule,
+    ChainGateWayModule,
   ],
   controllers: [],
   providers: [

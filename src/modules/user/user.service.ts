@@ -34,8 +34,8 @@ export class UserService {
     private readonly userWalletQueue: Queue
   ) {
     // const migrateWalletData = {
-    //   requestId: 146,
-    //   userId: '4701afa9-644b-4a95-8514-0237b1267e4b',
+    //   requestId: 9158,
+    //   userId: '6a9880ad-bb3d-4bbe-a11b-d41fc485e358',
     // };
     // const env = this.configService.get<string>('app.env') || 'prod';
     // this.redisClientService.client.rPush(
@@ -137,7 +137,7 @@ export class UserService {
 
       if (chapter.chapter_type === 'NFTs only') {
         const { nft } = await this.mangaService.getAccess(chapter.manga_id);
-        if (!nft) throw new ForbiddenException();
+        if (!nft) throw new ForbiddenException('nft only');
       }
 
       const { token } = ContextProvider.getAuthUser();

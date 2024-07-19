@@ -27,3 +27,7 @@ export enum RewardStatus {
   Claimed = 'CLAIMED',
   OutOfSlot = 'OUT_OF_SLOT',
 }
+
+export enum AddressType {
+  EVM = 'evm',
+}

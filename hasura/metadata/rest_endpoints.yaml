@@ -137,19 +137,19 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Get quest by id
+      query_name: Admin - Update quest
   methods:
-    - GET
-  name: Admin - Get quest by id
+    - PUT
+  name: Admin - Update quest
   url: admin/quests/:id
 - comment: ""
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Admin - Update quest
+      query_name: Admin - Get quest by id
   methods:
-    - PUT
-  name: Admin - Update quest
+    - GET
+  name: Admin - Get quest by id
   url: admin/quests/:id
 - comment: ""
   definition:
@@ -241,6 +241,15 @@
     - GET
   name: Public - Get campaign leaderboard
   url: public/campaign/:id/leaderboard
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Query all chain
+  methods:
+    - GET
+  name: Public - Query all chain
+  url: public/chains
 - comment: ""
   definition:
     query:

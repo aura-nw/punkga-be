@@ -151,10 +151,22 @@ export class UserGraphql {
     );
 
     if (result.data?.authorizer_users_by_pk) {
-      return result.data.authorizer_users_by_pk;
+      const user = result.data.authorizer_users_by_pk;
+
+      // throw error if personal address not set
+      if (!user.wallet_address || user.wallet_address === '')
+        throw new Error('User address is empty');
+
+      // throw error if custodial address not set
+      if (
+        !user.authorizer_users_user_wallet.address ||
+        user.authorizer_users_user_wallet.address === ''
+      )
+        throw new Error('User custodial address is empty');
+      return user;
     }
 
-    throw new NotFoundException();
+    throw new NotFoundException('user not found');
   }
 
   async insertRequestLog(variables: any) {
@@ -231,6 +243,21 @@ export class UserGraphql {
             campaign_quests(where: {status: {_eq: "Published"}}, order_by: {created_at: desc}) {
               id
               name
+              quests_campaign {
+                campaign_chain {
+                  id
+                  name
+                  punkga_config
+                }
+              }
+              quests_i18n {
+                data
+                i18n_language {
+                  id
+                  description
+                  is_main
+                }
+              }
               repeat
               quest_reward_claimed
               description
@@ -250,7 +277,8 @@ export class UserGraphql {
             }
           }
         }
-      }`,
+      }
+      `,
       'queryAvailableQuests',
       {
         now: new Date(),

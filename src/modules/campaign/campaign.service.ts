@@ -82,6 +82,7 @@ export class CampaignService {
       objects: [
         {
           status: data.status,
+          chain_id: data.chain_id,
           start_date: data.start_date,
           end_date: data.end_date,
           reward: JSON.parse(data.reward),
@@ -198,6 +199,7 @@ export class CampaignService {
     );
 
     const updateData = {
+      chain_id: data.chain_id,
       status: data.status,
       start_date: data.start_date,
       end_date: data.end_date,
@@ -392,23 +394,22 @@ export class CampaignService {
     try {
       const { userId, token } = ContextProvider.getAuthUser();
 
-      const user = await this.questGraphql.queryPublicUserWalletData({
-        id: userId,
-      });
-      if (!user.authorizer_users_user_wallet?.address) {
-        throw new BadRequestException('User wallet address not found');
-      }
+      // if (!user.authorizer_users_user_wallet?.address) {
+      //   throw new BadRequestException('User wallet address not found');
+      // }
 
       // check top 1 user of campaign
       const top1UserCampaign = await this.campaignGraphql.getTop1UserCampaign(
         campaignId,
         token
       );
-      if (userId !== top1UserCampaign.user_id) throw new ForbiddenException();
+
+      if (userId !== top1UserCampaign.user_id)
+        throw new ForbiddenException('user is not satisfied');
 
       // check claim status
       if (top1UserCampaign.user_campaign_user_campaign_rewards.length > 0)
-        throw new ForbiddenException();
+        throw new ForbiddenException('reward already claimed');
 
       // add unique key to db (duplicate item protection)
       const uniqueKey = `c-${userId}-${campaignId}`;
@@ -431,6 +432,7 @@ export class CampaignService {
         requestId,
         userId,
         campaignId,
+        chainId: top1UserCampaign.user_campaign_campaign.chain_id,
       };
 
       const env = this.configService.get<string>('app.env') || 'prod';

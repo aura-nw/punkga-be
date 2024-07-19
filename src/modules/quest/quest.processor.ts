@@ -1,7 +1,15 @@
 // import { Contract, JsonRpcProvider } from 'ethers';
 
+import { JsonRpcProvider } from 'ethers';
+import { groupBy } from 'lodash';
+
 import { Process, Processor } from '@nestjs/bull';
-import { ForbiddenException, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { RewardStatus } from '../../common/enum';
@@ -9,24 +17,17 @@ import { LevelingService } from '../leveling/leveling.service';
 import { RedisService } from '../redis/redis.service';
 import { UserLevelGraphql } from '../user-level/user-level.graphql';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
+import { UserWalletGraphql } from '../user-wallet/user-wallet.graphql';
 import { CheckRewardService } from './check-reward.service';
-// import * as ABI from './files/PunkgaReward.json';
 import { IRewardInfo } from './interface/ireward-info';
 import { QuestGraphql } from './quest.graphql';
 import { QuestRewardService } from './reward.service';
 import { UserCampaignXp, UserRewardInfo } from './user-reward';
 
 @Processor('quest')
-export class QuestProcessor {
+export class QuestProcessor implements OnModuleInit {
   private readonly logger = new Logger(QuestProcessor.name);
-  // private PROVIDER_URL = this.configService.get<string>('network.rpcEndpoint');
-  // Connecting to provider
-  // private PROVIDER = new JsonRpcProvider(this.PROVIDER_URL);
-  // private contractLevelingProxy: string = this.configService.get<string>(
-  //   'network.contractAddress.leveling'
-  // );
-  // private CONTRACT_ABI = [];
-  // private contractWithMasterWallet = null;
+  private chains: any[] = [];
 
   constructor(
     private configService: ConfigService,
@@ -36,8 +37,15 @@ export class QuestProcessor {
     private redisClientService: RedisService,
     private levelingService: LevelingService,
     private masterWalletSerivce: MasterWalletService,
-    private userLevelGraphql: UserLevelGraphql
+    private userLevelGraphql: UserLevelGraphql,
+    private userWalletGraphql: UserWalletGraphql
   ) {}
+
+  async onModuleInit() {
+    // get all chain
+    const result = await this.userWalletGraphql.getAllChains();
+    this.chains = result.data.chains;
+  }
 
   @Process({ name: 'claim-reward', concurrency: 1 })
   async claimQuestReward() {
@@ -49,22 +57,26 @@ export class QuestProcessor {
     const listRewards = redisData.map(
       (dataStr) => JSON.parse(dataStr) as IRewardInfo
     );
-    const rewardMap = await this.mapUserReward(listRewards);
-    try {
-      // create msg and execute contract
-      // const messages = await this.buildMessages(rewardMap);
-      const txs = await this.mintRewards(rewardMap);
-      // execute contract
-      if (txs.length === 0) {
-        const errMsg = `Request ${listRewards
-          .map((reward) => reward.requestId)
-          .toString()}: 0 message`;
-        this.logger.error(errMsg);
-        throw new Error(errMsg);
+
+    // filter chain_id
+    const chainReward = groupBy(listRewards, (item) => item.chainId);
+    for (const [key, value] of Object.entries(chainReward)) {
+      const rewardMap = await this.mapUserReward(value);
+      try {
+        // create msg and execute contract
+        const txs = await this.mintRewards(rewardMap, Number(key));
+        // execute contract
+        if (txs.length === 0) {
+          const errMsg = `Request ${listRewards
+            .map((reward) => reward.requestId)
+            .toString()}: 0 message`;
+          this.logger.error(errMsg);
+          throw new Error(errMsg);
+        }
+      } catch (error) {
+        this.logger.error(JSON.stringify(error));
+        await this.updateErrorRequest(rewardMap, error.toString());
       }
-    } catch (error) {
-      this.logger.error(JSON.stringify(error));
-      await this.updateErrorRequest(rewardMap, error.toString());
     }
   }
 
@@ -114,7 +126,7 @@ export class QuestProcessor {
             await this.checkRewardService.getClaimRewardStatus(quest, userId);
 
           if (rewardStatus !== RewardStatus.CanClaimReward)
-            throw new ForbiddenException();
+            throw new ForbiddenException('reward status invalid');
 
           if (quest.reward?.xp) {
             userReward.reward.xp += quest.reward?.xp;
@@ -157,15 +169,23 @@ export class QuestProcessor {
     return rewardMap;
   }
 
-  async mintRewards(rewardMap: Map<string, UserRewardInfo>) {
+  async mintRewards(rewardMap: Map<string, UserRewardInfo>, chainId: number) {
+    // get chain info
+    const currentChain = this.chains.find((chain) => chain.id === chainId);
+    if (!currentChain) throw new NotFoundException('chain not found');
+
+    const provider = new JsonRpcProvider(currentChain.rpc);
+
     const txsTotal = [];
 
     try {
       const contractWithMasterWallet =
-        this.masterWalletSerivce.getLevelingContract();
+        this.masterWalletSerivce.getLevelingContract(
+          currentChain.contracts.leveling_contract,
+          provider
+        );
       for await (const [key, value] of rewardMap.entries()) {
-        // const txs = [];
-        const txsPromise = [];
+        const txs = [];
 
         // get user info by map key
         const user = await this.questGraphql.queryPublicUserWalletData({
@@ -179,35 +199,31 @@ export class QuestProcessor {
         // calculate level from xp
         const newLevel = this.levelingService.xpToLevel(totalXp);
 
-        const tx = await contractWithMasterWallet.updateUserInfo(
-          user.active_wallet_address,
+        const updateXpTx = await contractWithMasterWallet.updateUserInfo(
+          user.active_evm_address,
           newLevel,
           totalXp
         );
-        txsPromise.push(tx.wait());
+        const updateXpTxResult = await updateXpTx.wait();
+        txs.push(updateXpTxResult.hash);
 
         // update total xp to map value
         const updatedValue = { ...value };
         updatedValue.userXp = totalXp;
         updatedValue.userLevel = newLevel;
+        updatedValue.chainId = chainId;
         rewardMap.set(key, updatedValue);
 
-        // get result txs of user
-        const result = await Promise.all(txsPromise);
-        const txs = result.map((tx) => tx.hash);
-
         // generate mint nft msg
-        const transferNftHash = [];
         const rewardNFT = value.reward.nft;
         for (let i = 0; i < rewardNFT.length; i++) {
           const tx = await contractWithMasterWallet.mintReward(
-            user.active_wallet_address,
+            user.active_evm_address,
             rewardNFT[i].image
           );
-          const result = await tx.wait();
-          transferNftHash.push(result.hash);
+          const txResult = await tx.wait();
+          txs.push(txResult.hash);
         }
-        txs.push(...transferNftHash);
 
         // update offchain data
         await this.updateOffchainData(
@@ -221,6 +237,7 @@ export class QuestProcessor {
     } catch (error) {
       console.log('Transaction is error', error);
       this.logger.error(error);
+      throw error;
     }
 
     console.log('Transaction is mined', txsTotal);
@@ -242,6 +259,7 @@ export class QuestProcessor {
           user_id: value.userId,
           xp: value.userXp,
           level: value.userLevel,
+          chain_id: value.chainId,
         })
       );
     }

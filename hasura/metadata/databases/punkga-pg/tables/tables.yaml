@@ -2,6 +2,7 @@
 - "!include public_authorizer_users.yaml"
 - "!include public_authorizer_verification_requests.yaml"
 - "!include public_campaign.yaml"
+- "!include public_chains.yaml"
 - "!include public_chapter_languages.yaml"
 - "!include public_chapter_total_likes.yaml"
 - "!include public_chapters.yaml"
