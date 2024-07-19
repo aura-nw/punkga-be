@@ -190,6 +190,7 @@ export class QuestProcessor implements OnModuleInit {
         // get user info by map key
         const user = await this.questGraphql.queryPublicUserWalletData({
           id: key,
+          chain_id: currentChain.id,
         });
 
         // calculate total xp and level
