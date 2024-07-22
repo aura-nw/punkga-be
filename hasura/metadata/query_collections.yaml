@@ -1181,6 +1181,9 @@
               user_quests(order_by: {created_at:desc}, limit: 20) {
                 created_at
                 status
+                user_quest_rewards {
+                  tx_hash
+                }
                 quest {
                   id
                   name
