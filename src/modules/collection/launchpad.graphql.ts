@@ -132,6 +132,13 @@ export class LaunchpadGraphql {
           id
           status
           updated_at
+          contract_address
+          fund
+          launchpad_i18ns {
+            id
+            language_id
+            data
+          }
         }
       }`,
       'launchpad_by_pk',
@@ -198,6 +205,7 @@ export class LaunchpadGraphql {
           updated_at
           contract_address
           creator_id
+          fund
         }
       }
       `,

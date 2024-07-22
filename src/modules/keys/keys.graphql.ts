@@ -108,7 +108,7 @@ export class KeysGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation insert_system_key($encrypted_seed: String!, $encrypted_mnemonic!) {
+      `mutation insert_system_key($encrypted_seed: String!, $encrypted_mnemonic: String!) {
         insert_system_key(objects: {encrypted_seed: $encrypted_seed, encrypted_mnemonic: $encrypted_mnemonic}) {
           affected_rows
         }

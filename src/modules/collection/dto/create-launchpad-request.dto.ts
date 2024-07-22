@@ -37,4 +37,7 @@ export class CreateLaunchpadRequestDto {
   @ApiProperty()
   contract_address: string;
 
+  @ApiProperty()
+  fund: number;
+
 }
