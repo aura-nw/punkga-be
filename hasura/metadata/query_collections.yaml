@@ -1187,6 +1187,11 @@
                 quest {
                   id
                   name
+                  quests_campaign {
+                    campaign_chain {
+                      punkga_config
+                    }
+                  }
                   quests_i18n {
                     id
                     quest_id
