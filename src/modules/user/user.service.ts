@@ -202,7 +202,7 @@ export class UserService {
     files: Array<Express.Multer.File>
   ) {
     try {
-      const { birthdate, gender, bio } = data;
+      const { birthdate, gender, bio, nickname } = data;
       const { token, userId } = ContextProvider.getAuthUser();
 
       const variables: IUpdateProfile = {
@@ -211,6 +211,7 @@ export class UserService {
           bio,
           gender,
           birthdate,
+          nickname,
         },
       };
 
