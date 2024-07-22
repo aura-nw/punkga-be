@@ -390,9 +390,12 @@ export class LaunchpadService {
     const { userId } = ContextProvider.getAuthUser();
     const launchpad = await this.getExistingLaunchpad(launchpadId);
     if(launchpad.status != LaunchpadStatus.Published){
-      throw new BadRequestException('Launchpad status must be Published');
+      throw new BadRequestException('Launchpad status must be Published!');
     }
     const userWallet = await this.userWalletService.deserialize(userId);
+    if(!userWallet){
+      throw new BadRequestException('Can not get user wallet!');
+    }
     const launchpadContract = await this.userWalletService.getLaunchpadContract(
       userWallet.wallet,
       launchpad.contract_address
