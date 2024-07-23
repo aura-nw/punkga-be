@@ -63,8 +63,7 @@ export class AuraClientService implements IChainClient {
 
     const nativeDenom = this.configSvc.get<string>('network.denom');
     const balance =
-      result.data[network].account_balance
-      .length === 0
+      result.data[network].account_balance.length === 0
         ? undefined
         : (result.data[network].account_balance.filter(
             (balance) => balance.denom === nativeDenom
@@ -88,7 +87,7 @@ export class AuraClientService implements IChainClient {
     // faucet if wallet balance < fee required
     // transfer token from granter wallet to user custodial wallet
     // check wallet balance
-    const fee = 0.1 * 10 ** 6;
+    const fee = 0.01 * 10 ** 6;
     const availableBalance = balance - fee;
 
     if (availableBalance < 0)
