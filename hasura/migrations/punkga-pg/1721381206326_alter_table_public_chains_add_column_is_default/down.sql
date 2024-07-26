@@ -1,4 +1,4 @@
 -- Could not auto-generate a down migration.
 -- Please write an appropriate down migration for the SQL below:
--- alter table "public"."authorizer_users" add column "wallet_address" text
---  null unique;
+-- alter table "public"."chains" add column "is_default" boolean
+--  null default 'false';

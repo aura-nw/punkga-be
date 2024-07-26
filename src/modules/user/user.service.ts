@@ -32,7 +32,17 @@ export class UserService {
     private redisClientService: RedisService,
     @InjectQueue('userWallet')
     private readonly userWalletQueue: Queue
-  ) {}
+  ) {
+    // const migrateWalletData = {
+    //   requestId: 9158,
+    //   userId: '6a9880ad-bb3d-4bbe-a11b-d41fc485e358',
+    // };
+    // const env = this.configService.get<string>('app.env') || 'prod';
+    // this.redisClientService.client.rPush(
+    //   `punkga-${env}:migrate-user-wallet`,
+    //   JSON.stringify(migrateWalletData)
+    // );
+  }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async triggerMigrateWallet() {
@@ -127,7 +137,7 @@ export class UserService {
 
       if (chapter.chapter_type === 'NFTs only') {
         const { nft } = await this.mangaService.getAccess(chapter.manga_id);
-        if (!nft) throw new ForbiddenException();
+        if (!nft) throw new ForbiddenException('nft only');
       }
 
       const { token } = ContextProvider.getAuthUser();
@@ -192,7 +202,7 @@ export class UserService {
     files: Array<Express.Multer.File>
   ) {
     try {
-      const { birthdate, gender, bio } = data;
+      const { birthdate, gender, bio, nickname } = data;
       const { token, userId } = ContextProvider.getAuthUser();
 
       const variables: IUpdateProfile = {
@@ -201,6 +211,7 @@ export class UserService {
           bio,
           gender,
           birthdate,
+          nickname,
         },
       };
 

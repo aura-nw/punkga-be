@@ -22,6 +22,8 @@ import { TasksModule } from './modules/task/task.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
 import { UserModule } from './modules/user/user.module';
 import { LaunchpadModule } from './modules/collection/launchpad.module';
+import { ChainModule } from './modules/chain/chain.module';
+import { ChainGateWayModule } from './chain-gateway/chain-gateway.module';
 
 @Module({
   imports: [
@@ -67,6 +69,8 @@ import { LaunchpadModule } from './modules/collection/launchpad.module';
     RedisModule,
     SystemCustodialWalletModule,
     LaunchpadModule,
+    ChainModule,
+    ChainGateWayModule,
   ],
   controllers: [],
   providers: [

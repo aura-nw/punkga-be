@@ -32,7 +32,12 @@ array_relationships:
           name: user_quest
           schema: public
 computed_fields:
-  - name: active_wallet_address
+  - name: active_address
+    definition:
+      function:
+        name: main_wallet_address_by_chain
+        schema: public
+  - name: active_evm_address
     definition:
       function:
         name: main_wallet_address
@@ -50,7 +55,8 @@ select_permissions:
         - picture
         - wallet_address
       computed_fields:
-        - active_wallet_address
+        - active_address
+        - active_evm_address
       filter: {}
       allow_aggregations: true
   - role: user
@@ -79,7 +85,8 @@ select_permissions:
         - updated_at
         - wallet_address
       computed_fields:
-        - active_wallet_address
+        - active_address
+        - active_evm_address
       filter:
         id:
           _eq: X-Hasura-User-Id

@@ -11,6 +11,9 @@ export class UpdateProfileRequestDto {
   @ApiPropertyOptional({ example: '' })
   bio: string;
 
+  @ApiPropertyOptional({ example: '' })
+  nickname: string;
+
   @ApiPropertyOptional({ type: 'string', format: 'binary' })
   picture: Express.Multer.File;
 }

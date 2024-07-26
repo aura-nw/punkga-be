@@ -12,6 +12,7 @@ import { RedisModule } from '../redis/redis.module';
 import { UserWalletProcessor } from './user.process';
 import { UserWalletModule } from '../user-wallet/user-wallet.module';
 import { SystemCustodialWalletModule } from '../system-custodial-wallet/system-custodial-wallet.module';
+import { ChainGateWayModule } from '../../chain-gateway/chain-gateway.module';
 
 @Module({
   imports: [
@@ -25,10 +26,11 @@ import { SystemCustodialWalletModule } from '../system-custodial-wallet/system-c
     QuestModule,
     RedisModule,
     UserWalletModule,
-    SystemCustodialWalletModule
+    SystemCustodialWalletModule,
+    ChainGateWayModule,
   ],
   providers: [UserService, UserGraphql, UserWalletProcessor],
   controllers: [UserController],
   exports: [UserGraphql],
 })
-export class UserModule { }
+export class UserModule {}

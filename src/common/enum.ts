@@ -33,3 +33,7 @@ export enum LaunchpadStatus {
   ReadyToMint = 'READY_TO_MINT',
   Published = 'PUBLISHED',
 }
+
+export enum AddressType {
+  EVM = 'evm',
+}

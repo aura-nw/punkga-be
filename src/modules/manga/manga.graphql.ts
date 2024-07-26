@@ -247,7 +247,7 @@ export class MangaGraphql {
       return result.data.authorizer_users[0]?.authorizer_users_user_wallet
         .address;
     } else {
-      throw new NotFoundException();
+      throw new NotFoundException('wallet address not found');
     }
   }
 
