@@ -7,6 +7,8 @@ import {
   PutObjectCommand,
   PutObjectCommandInput,
   S3Client,
+  GetObjectCommandOutput,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -168,6 +170,28 @@ export class FilesService implements OnModuleInit {
 
     // Create a promise on S3 service object
     const command = new PutObjectCommand(input);
+    return client.send(command);
+  }
+
+  async downloadFromS3(keyName: string): Promise<GetObjectCommandOutput> {
+    const client = new S3Client({
+      region: this.configService.get<string>('aws.region'),
+      credentials: {
+        accessKeyId: this.configService.get<string>('aws.keyid'),
+        secretAccessKey: this.configService.get<string>('aws.secretAccessKey'),
+      },
+    });
+
+    const bucketName = this.configService.get<string>('aws.bucketName');
+    this.logger.debug(`Download key: ${keyName} from bucket ${bucketName}`);
+
+    const input = {
+      Bucket: bucketName,
+      Key: keyName,
+    };
+
+    // Create a promise on S3 service object
+    const command = new GetObjectCommand(input);
     return client.send(command);
   }
 }

@@ -21,6 +21,7 @@ import { SystemCustodialWalletModule } from './modules/system-custodial-wallet/s
 import { TasksModule } from './modules/task/task.module';
 import { UserWalletModule } from './modules/user-wallet/user-wallet.module';
 import { UserModule } from './modules/user/user.module';
+import { LaunchpadModule } from './modules/collection/launchpad.module';
 import { ChainModule } from './modules/chain/chain.module';
 import { ChainGateWayModule } from './chain-gateway/chain-gateway.module';
 
@@ -67,6 +68,7 @@ import { ChainGateWayModule } from './chain-gateway/chain-gateway.module';
     RequestModule,
     RedisModule,
     SystemCustodialWalletModule,
+    LaunchpadModule,
     ChainModule,
     ChainGateWayModule,
   ],
