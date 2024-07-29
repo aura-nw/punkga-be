@@ -237,14 +237,12 @@ export class LaunchpadService {
   }
 
   async getListLaunchpad(
-    language_id: number,
     limit: number,
     offset: number,
     status?: string[]
   ) {
     // const { token } = ContextProvider.getAuthUser();
     const variables: any = {
-      language_id,
       limit,
       offset,
     };

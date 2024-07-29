@@ -81,9 +81,9 @@ export class LaunchpadController {
     return this.launchpadSvc.unpublish(param.id);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @Roles(Role.Admin, Role.User)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @ApiBearerAuth()
+  // @Roles(Role.Admin, Role.User)
   @Get(':launchpad_id')
   @UseInterceptors(AuthUserInterceptor)
   detailLaunchpadDetail(@Param() param: DetailLaunchpadRequestDtoParam) {
@@ -92,9 +92,9 @@ export class LaunchpadController {
     );
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @Roles(Role.Admin, Role.User)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @ApiBearerAuth()
+  // @Roles(Role.Admin, Role.User)
   @Get(':launchpad_id/:language_id')
   @UseInterceptors(AuthUserInterceptor)
   detailLaunchpadLanguageDetail(@Param() param: DetailLaunchpadLanguageRequestDtoParam) {
@@ -104,14 +104,13 @@ export class LaunchpadController {
     );
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @Roles(Role.Admin, Role.User)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @ApiBearerAuth()
+  // @Roles(Role.Admin, Role.User)
   @Get('')
   @UseInterceptors(AuthUserInterceptor)
   listLaunchpadDetail(@Query() params: ListLaunchpadRequestDtoParam) {
     return this.launchpadSvc.getListLaunchpad(
-      params.language_id,
       params.limit,
       params.offset,
       params.status
