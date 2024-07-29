@@ -97,24 +97,68 @@ export class LaunchpadGraphql {
       '',
       `query launchpad_by_pk($id: Int!) {
         launchpad_by_pk(id: $id) {
-          id
-          created_at
-          creator_id
-          featured_images
-          id
           status
-          updated_at
           contract_address
           fund
+          id
           slug
+          launchpad_creator {
+            avatar_url
+            bio
+            name
+            pen_name
+            slug
+            wallet_address
+          }
           launchpad_i18ns {
             id
             language_id
             data
           }
+          featured_images
+          creator_id
         }
       }`,
       'launchpad_by_pk',
+      variables,
+      headers
+    );
+  }
+
+  queryBySlug(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query launchpad($slug: String!) {
+        launchpad(where: {slug: {_eq: $slug}}) {
+          status
+          contract_address
+          fund
+          id
+          slug
+          launchpad_creator {
+            avatar_url
+            bio
+            name
+            pen_name
+            slug
+            wallet_address
+          }
+          launchpad_i18ns {
+            id
+            language_id
+            data
+          }
+          featured_images
+          creator_id
+        }
+      }`,
+      'launchpad',
       variables,
       headers
     );

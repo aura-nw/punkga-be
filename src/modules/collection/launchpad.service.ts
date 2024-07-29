@@ -213,6 +213,16 @@ export class LaunchpadService {
     );
   }
 
+  async launchpadDetailBySlug(launchpad_slug: string) {
+    // const { token } = ContextProvider.getAuthUser();
+    return this.launchpadGraphql.queryBySlug(
+      {
+        slug: launchpad_slug,
+      }
+      // token
+    );
+  }
+
   async launchpadLanguageDetail(launchpad_id: number, language_id: number) {
     // const { token } = ContextProvider.getAuthUser();
     return this.launchpadGraphql.getLaunchpadDetail(
