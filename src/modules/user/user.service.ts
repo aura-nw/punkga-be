@@ -81,6 +81,16 @@ export class UserService {
 
       const address = data.address;
 
+      // delete unverified email users
+      const deleteResult = await this.userGraphql.deleteUnverifiedEmailUser({
+        wallet_address: address,
+      });
+      this.logger.debug(
+        `Delete unverify users by wallet address ${address} result: ${JSON.stringify(
+          deleteResult
+        )}`
+      );
+
       const result = await this.userGraphql.setPersonalAddress(
         {
           wallet_address: address,

@@ -358,4 +358,25 @@ export class UserGraphql {
       variables
     );
   }
+
+  deleteUnverifiedEmailUser(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation delete_authorizer_users($wallet_address: String!) {
+        delete_authorizer_users(where: {wallet_address: {_eq: $wallet_address}, email_verified_at: {_is_null: true}}) {
+          affected_rows
+        }
+      }`,
+      'delete_authorizer_users',
+      variables,
+      headers
+    );
+  }
 }
