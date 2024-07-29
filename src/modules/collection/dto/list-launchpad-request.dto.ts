@@ -1,9 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ListLaunchpadRequestDtoParam {
-  @ApiProperty({ example: 2 })
-  language_id: number;
-
   @ApiProperty({ example: 10 })
   limit: number;
 

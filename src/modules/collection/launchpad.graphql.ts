@@ -191,7 +191,7 @@ export class LaunchpadGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query launchpad($offset: Int = 0, $limit: Int = 10, $language_id: Int = 2, $status: [String] = ["DRAFT","PUBLISHED","READY_TO_MINT"]) {
+      `query launchpad($offset: Int = 0, $limit: Int = 10, $status: [String] = ["DRAFT", "PUBLISHED", "READY_TO_MINT"]) {
         launchpad(offset: $offset, limit: $limit, order_by: {updated_at: desc}, where: {status: {_in: $status}}) {
           featured_images
           id
@@ -199,13 +199,13 @@ export class LaunchpadGraphql {
             name
             wallet_address
           }
-          launchpad_i18ns(where: {language_id: {_eq: $language_id}}) {
+          launchpad_i18ns {
             data
+            language_id
           }
           updated_at
           contract_address
           creator_id
-          fund
         }
       }
       `,
