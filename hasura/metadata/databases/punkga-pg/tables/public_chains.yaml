@@ -1,0 +1,32 @@
+table:
+  name: chains
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - is_default
+        - id
+        - contracts
+        - punkga_config
+        - address_type
+        - chain_id
+        - name
+        - rpc
+        - created_at
+        - updated_at
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - is_default
+        - id
+        - contracts
+        - punkga_config
+        - address_type
+        - chain_id
+        - name
+        - rpc
+        - created_at
+        - updated_at
+      filter: {}

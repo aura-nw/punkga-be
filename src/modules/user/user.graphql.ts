@@ -44,8 +44,9 @@ export class UserGraphql {
       '',
       `query queryAsset($owner_address: String!) {
         ${network} {
-          account(where: {evm_address: {_eq: $owner_address}}) {
-            balances
+          account_balance(where: {account: {evm_address: {_eq: $owner_address}}}) {
+            amount
+            denom
           }
           erc721_token(
             where: {owner: {_eq: $owner_address}}
@@ -64,18 +65,17 @@ export class UserGraphql {
       variables
     );
 
-    // if (result.data[network].account.length === 0) return {
-    //   balance: undefined,
-    //   cw721Tokens: []
-    // } as ICustodialWalletAsset;
+    this.logger.debug(`horoscope result ${address}: ${JSON.stringify(result)}`);
 
     const nativeDenom = this.configSvc.get<string>('network.denom');
-    const balance =
-      result.data[network].account.length === 0
-        ? undefined
-        : (result.data[network].account[0].balances.filter(
-            (balance) => balance.denom === nativeDenom
-          )[0] as IAccountBalance);
+    const accountBalance: any[] = result.data[network].account_balance;
+
+    this.logger.debug(
+      `balance denom ${nativeDenom}: ${JSON.stringify(accountBalance)}`
+    );
+    const balance = accountBalance.find(
+      (balance) => balance.denom === nativeDenom
+    ) as IAccountBalance;
     const cw721Tokens: ICw721Token[] = result.data[network].erc721_token.map(
       (token) => {
         return {
@@ -83,6 +83,13 @@ export class UserGraphql {
           contractAddress: token.erc721_contract.address,
         } as ICw721Token;
       }
+    );
+
+    this.logger.debug(
+      `migrate account asset ${address}: ${JSON.stringify({
+        balance,
+        cw721Tokens,
+      })}`
     );
 
     return {
@@ -128,6 +135,10 @@ export class UserGraphql {
       `query authorizer_users_by_pk($id: bpchar!) {
         authorizer_users_by_pk(id: $id) {
           wallet_address
+          levels {
+            xp
+            level
+          }
           authorizer_users_user_wallet {
             address
           }
@@ -140,10 +151,22 @@ export class UserGraphql {
     );
 
     if (result.data?.authorizer_users_by_pk) {
-      return result.data.authorizer_users_by_pk;
+      const user = result.data.authorizer_users_by_pk;
+
+      // throw error if personal address not set
+      if (!user.wallet_address || user.wallet_address === '')
+        throw new Error('User address is empty');
+
+      // throw error if custodial address not set
+      if (
+        !user.authorizer_users_user_wallet.address ||
+        user.authorizer_users_user_wallet.address === ''
+      )
+        throw new Error('User custodial address is empty');
+      return user;
     }
 
-    throw new NotFoundException();
+    throw new NotFoundException('user not found');
   }
 
   async insertRequestLog(variables: any) {
@@ -220,6 +243,21 @@ export class UserGraphql {
             campaign_quests(where: {status: {_eq: "Published"}}, order_by: {created_at: desc}) {
               id
               name
+              quests_campaign {
+                campaign_chain {
+                  id
+                  name
+                  punkga_config
+                }
+              }
+              quests_i18n {
+                data
+                i18n_language {
+                  id
+                  description
+                  is_main
+                }
+              }
               repeat
               quest_reward_claimed
               description
@@ -239,7 +277,8 @@ export class UserGraphql {
             }
           }
         }
-      }`,
+      }
+      `,
       'queryAvailableQuests',
       {
         now: new Date(),

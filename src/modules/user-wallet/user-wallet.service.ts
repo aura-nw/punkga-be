@@ -1,10 +1,4 @@
-import {
-  BaseContract,
-  Contract,
-  HDNodeWallet,
-  JsonRpcProvider,
-  Wallet,
-} from 'ethers';
+import { Contract, HDNodeWallet, JsonRpcProvider, Wallet } from 'ethers';
 
 import {
   HttpException,
@@ -30,7 +24,6 @@ import { UserWalletGraphql } from './user-wallet.graphql';
 export class UserWalletService {
   private readonly logger = new Logger(UserWalletService.name);
   private provider: JsonRpcProvider = null;
-  private levelingProxyContractAddress = '';
 
   constructor(
     private configService: ConfigService,
@@ -40,9 +33,6 @@ export class UserWalletService {
   ) {
     const providerUrl = this.configService.get<string>('network.rpcEndpoint');
     this.provider = new JsonRpcProvider(providerUrl);
-    this.levelingProxyContractAddress = this.configService.get<string>(
-      'network.contractAddress.leveling'
-    );
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
@@ -63,6 +53,7 @@ export class UserWalletService {
     }
   }
 
+  // webhook called from hasura when a new user created
   async generateWallet(headers: any, data: GenerateWalletRequestDto) {
     const webHookSecret = this.configService.get<string>('webhook.secret');
     if (!webHookSecret || headers['webhook-secret'] !== webHookSecret)
@@ -94,6 +85,7 @@ export class UserWalletService {
     };
   }
 
+  // script insert all evm user wallet
   async insertAllUserWallet() {
     let count = 0;
     let offset = 0;
@@ -137,6 +129,11 @@ export class UserWalletService {
     } while (count > 0);
   }
 
+  /**
+   * decrypt user wallet for given user id
+   * @param userId
+   * @returns
+   */
   async deserialize(userId: string) {
     const custodialUserWallet =
       await this.userWalletGraphql.getCustodialUserWallet(userId);
@@ -148,21 +145,25 @@ export class UserWalletService {
     );
     const wallet = Wallet.fromPhrase(phrase, this.provider);
 
-    // const account = await wallet.getAccounts();
     return {
       wallet,
       address: wallet.address,
     };
   }
 
-  getLevelingContract(wallet: HDNodeWallet): any {
+  /**
+   *
+   * @param wallet get evm leveling contract for given wallet
+   * @returns
+   */
+  getLevelingContract(
+    wallet: HDNodeWallet,
+    contractAddress: string,
+    provider: JsonRpcProvider
+  ): any {
     try {
       // Connecting to smart contract
-      const contract = new Contract(
-        this.levelingProxyContractAddress,
-        levelingAbi,
-        this.provider
-      );
+      const contract = new Contract(contractAddress, levelingAbi, provider);
 
       const levelingContract = contract.connect(wallet);
       return levelingContract;

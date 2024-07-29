@@ -13,8 +13,13 @@ import { RedisModule } from '../redis/redis.module';
 
 @Module({
   imports: [JwtModule, GraphqlModule, FilesModule, SysKeyModule, RedisModule],
-  providers: [UserWalletService, UserWalletGraphql, MasterWalletService, UserWalletProcessor],
+  providers: [
+    UserWalletService,
+    UserWalletGraphql,
+    MasterWalletService,
+    UserWalletProcessor,
+  ],
   controllers: [UserWalletController],
-  exports: [MasterWalletService, UserWalletService],
+  exports: [MasterWalletService, UserWalletService, UserWalletGraphql],
 })
-export class UserWalletModule { }
+export class UserWalletModule {}

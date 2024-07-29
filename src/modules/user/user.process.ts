@@ -1,14 +1,13 @@
 import { Process, Processor } from '@nestjs/bull';
-import { Logger } from '@nestjs/common';
+import { Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
 import { RedisService } from '../redis/redis.service';
-import { SystemCustodialWalletService } from '../system-custodial-wallet/system-custodial-wallet.service';
 import { UserWalletService } from '../user-wallet/user-wallet.service';
-import {
-  ICustodialWalletAsset,
-  ICw721Token,
-} from './interfaces/account-onchain.interface';
+import { ICustodialWalletAsset } from './interfaces/account-onchain.interface';
 import { UserGraphql } from './user.graphql';
+import { UserWalletGraphql } from '../user-wallet/user-wallet.graphql';
+import { ChainGatewayService } from '../../chain-gateway/chain-gateway.service';
 
 type MigrateWalletType = {
   requestId: number;
@@ -16,17 +15,29 @@ type MigrateWalletType = {
 };
 
 @Processor('userWallet')
-export class UserWalletProcessor {
+export class UserWalletProcessor implements OnModuleInit {
   private readonly logger = new Logger(UserWalletProcessor.name);
+  private chains: any[] = [];
 
   constructor(
     private configService: ConfigService,
     private redisClientService: RedisService,
     private userWalletService: UserWalletService,
     private userGraphql: UserGraphql,
-    private systemWalletSvc: SystemCustodialWalletService
+    private userWalletGraphql: UserWalletGraphql,
+    private chainGatewaySvc: ChainGatewayService
   ) {}
 
+  async onModuleInit() {
+    // get all chain
+    const result = await this.userWalletGraphql.getAllChains();
+    this.chains = result.data.chains;
+  }
+
+  /**
+   * migrate wallet data in all chain
+   * @returns
+   */
   @Process({ name: 'migrate-wallet', concurrency: 1 })
   async migrateWallet() {
     const env = this.configService.get<string>('app.env') || 'prod';
@@ -36,111 +47,110 @@ export class UserWalletProcessor {
     );
     if (redisData.length === 0) return true;
 
-    // const redisData = [
-    //   '{"userId": "9861ab99-66b4-4320-8a52-c0b0762261f2", "requestId": 10 }',
-    // ];
+    // parse redis data
     const { userId, requestId } = redisData.map(
       (dataStr) => JSON.parse(dataStr) as MigrateWalletType
     )[0];
 
     try {
-      // get user wallet
+      // get all user wallet address
       const user = await this.userGraphql.adminGetUserAddress({
         id: userId,
       });
-
-      if (!user.wallet_address || user.wallet_address === '')
-        throw new Error('User address is empty');
-      if (
-        !user.authorizer_users_user_wallet.address ||
-        user.authorizer_users_user_wallet.address === ''
-      )
-        throw new Error('User custodial address is empty');
       const custodialWalletAddress = user.authorizer_users_user_wallet.address;
-      // const granterAddress = this.systemWalletSvc.granterAddress;
+      const result: any[] = [];
 
-      // check asset in custodial wallet
-      const custodialWalletAsset =
-        await this.userGraphql.queryCustodialWalletAsset(
+      for (let i = 0; i < this.chains.length; i++) {
+        const currentChain = this.chains[i];
+        let chain = 'aura';
+
+        if (currentChain.name.toLocaleLowerCase().includes('klaytn')) {
+          this.chainGatewaySvc.configuaration(
+            'klaytn',
+            currentChain.rpc,
+            currentChain.contracts.leveling_contract
+          );
+          chain = 'klaytn';
+        } else if (currentChain.name.toLocaleLowerCase().includes('aura')) {
+          this.chainGatewaySvc.configuaration(
+            'aura',
+            currentChain.rpc,
+            currentChain.contracts.leveling_contract
+          );
+          chain = 'aura';
+        } else {
+          throw new Error('chain not support');
+        }
+
+        // check asset in custodial wallet
+        const custodialWalletAsset = await this.chainGatewaySvc.getWalletAsset(
+          chain,
           custodialWalletAddress
         );
-      if (!this.isEmptyWallet(custodialWalletAsset)) {
-        // fee grant
-        // transfer token from granter wallet to user custodial wallet
-        // check wallet balance
-        const fee = 0.1 * 10 ** 6;
-        const availableBalance =
-          Number(custodialWalletAsset.balance?.amount || 0) - fee;
 
-        if (availableBalance <= 0)
-          await this.systemWalletSvc.faucet(custodialWalletAddress);
-
-        // transfer asset
-        const txsPromise = [];
-        const { wallet } = await this.userWalletService.deserialize(userId);
-
-        // send native token
-        if (
-          !!custodialWalletAsset.balance &&
-          Number(custodialWalletAsset.balance.amount) > 0
-        ) {
-          const evmAvailableBalance = (availableBalance * 10 ** 12).toString();
-          const nonce = await wallet.getNonce();
-          const tx = await wallet.sendTransaction({
-            nonce,
-            to: user.wallet_address,
-            value: evmAvailableBalance,
-          });
-
-          txsPromise.push(tx.wait());
-        }
-
-        // send nft
-        if (custodialWalletAsset.cw721Tokens.length > 0) {
-          const contract = this.userWalletService.getLevelingContract(wallet);
-          const nftContractAddress = this.configService.get<string>(
-            'network.contractAddress.leveling'
-          );
-          const transferNftTxsPromises = [];
-          transferNftTxsPromises.push(
-            ...custodialWalletAsset.cw721Tokens
-              .filter((token) => token.contractAddress === nftContractAddress)
-              .map((token: ICw721Token) => {
-                return contract.dock(
-                  custodialWalletAddress,
-                  user.wallet_address,
-                  token.tokenId
-                );
-                // return tx.wait();
-              })
-          );
-          const transferNftTxs = await Promise.all(transferNftTxsPromises);
-          txsPromise.push(...transferNftTxs.map((tx) => tx.wait()));
-        }
-
-        // get result txs
-        const result = await Promise.all(txsPromise);
-        const txs = result.map((tx) => tx.hash);
-
-        // update request
-        await this.userGraphql.updateRequestLogs({
-          ids: [requestId],
-          log: JSON.stringify(txs),
-          status: 'SUCCEEDED',
-        });
-
-        this.logger.debug(`Migrate wallet success!!!`);
-      } else {
-        this.logger.debug(
-          `Wallet ${user.authorizer_users_user_wallet.address} empty`
+        const txs: string[] = [];
+        // update user xp
+        const updateXpHash = await this.chainGatewaySvc.updateUserXp(
+          chain,
+          user.wallet_address,
+          user.levels[0]?.level || 0,
+          user.levels[0]?.xp || 0
         );
-        // update request
-        await this.userGraphql.updateRequestLogs({
-          ids: [requestId],
-          log: 'Wallet empty',
-          status: 'SUCCEEDED',
+        if (updateXpHash) txs.push(updateXpHash);
+
+        if (this.isEmptyWallet(custodialWalletAsset)) {
+          this.logger.debug(
+            `chain ${chain} wallet ${user.authorizer_users_user_wallet.address}: empty`
+          );
+        } else {
+          // faucet
+          const custodialWalletBalance = Number(
+            custodialWalletAsset.balance?.amount || 0
+          );
+
+          const availableBalance = await this.chainGatewaySvc.faucet(
+            chain,
+            custodialWalletAddress,
+            custodialWalletBalance
+          );
+
+          // transfer asset
+          const { wallet } = await this.userWalletService.deserialize(userId);
+
+          // send native token
+          const sendTokenHash = await this.chainGatewaySvc.sendNativeToken(
+            chain,
+            custodialWalletAsset,
+            availableBalance,
+            wallet,
+            user.wallet_address
+          );
+          if (sendTokenHash) txs.push(sendTokenHash);
+
+          // send nft
+          const transferNftHashes = await this.chainGatewaySvc.sendNft(
+            chain,
+            custodialWalletAsset,
+            wallet,
+            custodialWalletAddress,
+            user.wallet_address
+          );
+          if (transferNftHashes.length > 0) txs.push(...transferNftHashes);
+        }
+
+        result.push({
+          chain,
+          txs,
         });
       }
+      // update request
+      await this.userGraphql.updateRequestLogs({
+        ids: [requestId],
+        log: JSON.stringify(result),
+        status: 'SUCCEEDED',
+      });
+
+      this.logger.debug(`Migrate wallet success!!!`);
     } catch (error) {
       this.logger.error(error.toString());
       await this.userGraphql.updateRequestLogs({

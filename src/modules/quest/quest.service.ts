@@ -65,7 +65,7 @@ export class QuestService {
         id: questId,
       });
 
-      if (!quest) throw new NotFoundException();
+      if (!quest) throw new NotFoundException('quest not found');
 
       const activity = {
         user_id: userId,
@@ -102,12 +102,17 @@ export class QuestService {
         file
       );
 
+      const ipfsDisplayUrl =
+        this.configService.get<string>('network.ipfsQuery');
+
+      const image = `${ipfsDisplayUrl}/${cid}/${originalname}`;
+
       // upload metadata to ipfs
       const metadata = {
         name,
         description: `Punkga Reward - ${name}`,
         attributes: [],
-        image: `ipfs://${cid}/${originalname}`,
+        image,
       };
       const { cid: metadataCID } = await this.filesService.uploadMetadataToIpfs(
         metadata,
@@ -117,7 +122,8 @@ export class QuestService {
       this.logger.debug(`uploading nft image ${file.originalname} success`);
       return {
         url,
-        ipfs: `ipfs://${metadataCID}`,
+        // ipfs: `ipfs://${metadataCID}`,
+        ipfs: `https://ipfs-gw.dev.aura.network/ipfs/${metadataCID}`,
       };
     } catch (errors) {
       return {
@@ -132,7 +138,7 @@ export class QuestService {
         id: questId,
       });
 
-      if (!quest) throw new NotFoundException();
+      if (!quest) throw new NotFoundException('quest not found');
 
       quest.reward_status = await this.checkRewardService.getClaimRewardStatus(
         quest,
@@ -151,13 +157,6 @@ export class QuestService {
     try {
       const { userId } = ContextProvider.getAuthUser();
 
-      const user = await this.questGraphql.queryPublicUserWalletData({
-        id: userId,
-      });
-      if (!user.authorizer_users_user_wallet?.address) {
-        throw new BadRequestException('User wallet address not found');
-      }
-
       const quest = await this.questGraphql.getQuestDetailWithUserCampaign({
         id: questId,
         user_id: userId,
@@ -170,12 +169,12 @@ export class QuestService {
         userId
       );
       if (rewardStatus !== RewardStatus.CanClaimReward)
-        throw new ForbiddenException();
+        throw new ForbiddenException('reward status invalid');
 
       // add unique key to db (duplicate item protection)
       let uniqueKey = `q-${userId}-${questId}`;
       if (quest.repeat === 'Daily' && quest.repeat_quests?.length > 0)
-        uniqueKey = `q-${userId}-${questId}-${quest.repeat_quests[0].id}`;
+        uniqueKey = `q-${userId}-${questId}-r${quest.repeat_quests[0].id}`;
 
       // insert new request
       const result = await this.questGraphql.insertRequestLog({
@@ -196,6 +195,7 @@ export class QuestService {
         userId,
         questId,
         userCampaignId,
+        chainId: quest.quests_campaign.chain_id,
       };
 
       const env = this.configService.get<string>('app.env') || 'prod';

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { SysKeyService } from '../keys/syskey.service';
@@ -6,10 +6,12 @@ import { RedisService } from '../redis/redis.service';
 import { IGenerateUserWallet } from './interfaces/generate-user-wallet.interface';
 import { UserWalletGraphql } from './user-wallet.graphql';
 import { ConfigService } from '@nestjs/config';
+import { Wallet } from 'ethers';
 
 @Injectable()
-export class UserWalletProcessor {
+export class UserWalletProcessor implements OnModuleInit {
   private readonly logger = new Logger(UserWalletProcessor.name);
+  private chains: any[] = [];
 
   constructor(
     private configService: ConfigService,
@@ -17,6 +19,12 @@ export class UserWalletProcessor {
     private redisClientService: RedisService,
     private userWalletGraphql: UserWalletGraphql
   ) {}
+
+  async onModuleInit() {
+    // get all chain
+    const result = await this.userWalletGraphql.getAllChains();
+    this.chains = result.data.chains;
+  }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async generateUserWallet() {

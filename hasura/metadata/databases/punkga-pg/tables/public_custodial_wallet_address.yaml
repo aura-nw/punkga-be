@@ -1,0 +1,28 @@
+table:
+  name: custodial_wallet_address
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - user_id
+        - chain_id
+        - custodial_wallet_id
+        - id
+        - address
+        - address_type
+        - created_at
+        - updated_at
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - user_id
+        - chain_id
+        - custodial_wallet_id
+        - id
+        - address
+        - address_type
+        - created_at
+        - updated_at
+      filter: {}

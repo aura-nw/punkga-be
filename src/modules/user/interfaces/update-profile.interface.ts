@@ -4,6 +4,7 @@ export interface IUpdateProfile {
     bio: string;
     gender: string;
     birthdate: string;
+    nickname: string;
     picture?: string;
   };
 }

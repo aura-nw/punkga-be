@@ -8,7 +8,27 @@ export class UserWalletGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
+
+  async getAllChains() {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query chains {
+        chains {
+          id
+          name
+          rpc
+          chain_id
+          address_type
+          contracts
+          is_default
+        }
+      }`,
+      'chains',
+      {}
+    );
+  }
 
   async getNullUserWallets() {
     return this.graphqlSvc.query(
@@ -22,7 +42,7 @@ export class UserWalletGraphql {
         }
       }`,
       'user_wallet',
-      {},
+      {}
     );
   }
 
@@ -72,7 +92,7 @@ export class UserWalletGraphql {
       }`,
       'query_user_wallet',
       {
-        offset
+        offset,
       },
       headers
     );
@@ -163,7 +183,7 @@ export class UserWalletGraphql {
       `,
       'query_user_wallet',
       {
-        user_id: userId
+        user_id: userId,
       },
       headers
     );
