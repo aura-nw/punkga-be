@@ -13,17 +13,10 @@ import { ContextProvider } from '../../providers/contex.provider';
 import { LaunchpadGraphql } from './launchpad.graphql';
 import { FilesService } from '../files/files.service';
 import { LaunchpadStatus } from '../../common/enum';
-// import { mkdirp } from '../chapter/utils';
-// import { GetObjectCommandOutput } from '@aws-sdk/client-s3';
-// import { writeFile } from 'fs/promises';
-// import { IPFSService } from '../files/ipfs.service';
-// import { IMetadata } from './interfaces/metadata';
-// import { Readable } from 'stream';
+import { generateSlug } from '../manga/util';
 import { EditDraftLaunchpadRequestDto } from './dto/edit-draft-launchpad-request.dto';
-// import { EditUnPublishLaunchpadRequestDto } from './dto/edit-unpublish-launchpad-request.dto';
 import { UserWalletService } from '../user-wallet/user-wallet.service';
 import { ethers } from 'ethers';
-// import * as ethers from 'hardhat';
 
 @Injectable()
 export class LaunchpadService {
@@ -60,20 +53,15 @@ export class LaunchpadService {
         fund,
         contract_address,
       } = data;
-
+      const slug = generateSlug(name);
       // insert db
       const result = await this.launchpadGraphql.insert({
         data: {
-          // name,
-          // name_in_vn,
-          // description,
-          // description_in_vn,
-          // seo_description,
-          // seo_description_in_vn,
           creator_id,
           status: LaunchpadStatus.Draft,
           fund,
           contract_address,
+          slug
         },
       });
 
@@ -220,6 +208,16 @@ export class LaunchpadService {
     return this.launchpadGraphql.queryByPk(
       {
         id: launchpad_id,
+      }
+      // token
+    );
+  }
+
+  async launchpadDetailBySlug(launchpad_slug: string) {
+    // const { token } = ContextProvider.getAuthUser();
+    return this.launchpadGraphql.queryBySlug(
+      {
+        slug: launchpad_slug,
       }
       // token
     );

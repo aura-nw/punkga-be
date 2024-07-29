@@ -24,6 +24,7 @@ export class LaunchpadGraphql {
           creator_id
           featured_images
           id
+          slug
           status
           updated_at
           launchpad_creator {
@@ -38,35 +39,6 @@ export class LaunchpadGraphql {
       }
       `,
       'launchpad_by_pk',
-      variables,
-      headers
-    );
-  }
-
-  listOwnedLaunchpad(variables: any) {
-    const headers = {
-      'x-hasura-admin-secret': this.configSvc.get<string>(
-        'graphql.adminSecret'
-      ),
-    };
-
-    return this.graphqlSvc.query(
-      this.configSvc.get<string>('graphql.endpoint'),
-      '',
-      `query launchpad($user_id: bpchar!) {
-        launchpad(where: {creator_id: {_eq: $user_id}}) {
-          id
-          name
-          license_token_id
-          status
-          start_date
-          end_date
-          created_at
-          updated_at
-        }
-      }
-      `,
-      'launchpad',
       variables,
       headers
     );
@@ -125,20 +97,26 @@ export class LaunchpadGraphql {
       '',
       `query launchpad_by_pk($id: Int!) {
         launchpad_by_pk(id: $id) {
-          id
-          created_at
-          creator_id
-          featured_images
-          id
           status
-          updated_at
           contract_address
           fund
+          id
+          slug
+          launchpad_creator {
+            avatar_url
+            bio
+            name
+            pen_name
+            slug
+            wallet_address
+          }
           launchpad_i18ns {
             id
             language_id
             data
           }
+          featured_images
+          creator_id
         }
       }`,
       'launchpad_by_pk',
@@ -147,17 +125,42 @@ export class LaunchpadGraphql {
     );
   }
 
-  queryCreatorAddress(variables: any) {
+  queryBySlug(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query authorizer_users_by_pk($id: bpchar = "") {
-        authorizer_users_by_pk(id: $id) {
-          wallet_address
+      `query launchpad($slug: String!) {
+        launchpad(where: {slug: {_eq: $slug}}) {
+          status
+          contract_address
+          fund
+          id
+          slug
+          launchpad_creator {
+            avatar_url
+            bio
+            name
+            pen_name
+            slug
+            wallet_address
+          }
+          launchpad_i18ns {
+            id
+            language_id
+            data
+          }
+          featured_images
+          creator_id
         }
       }`,
-      'authorizer_users_by_pk',
-      variables
+      'launchpad',
+      variables,
+      headers
     );
   }
 
@@ -207,6 +210,7 @@ export class LaunchpadGraphql {
             data
             language_id
           }
+          slug
           updated_at
           contract_address
           creator_id

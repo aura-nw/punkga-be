@@ -29,7 +29,7 @@ import {
 } from './dto/edit-draft-launchpad-request.dto';
 import { ListLaunchpadRequestDtoParam } from './dto/list-launchpad-request.dto';
 import { MintRequestDtoParam } from './dto/mint-nft-request.dto';
-import { DetailLaunchpadRequestDtoParam } from './dto/detail-launchpad-request.dto';
+import { DetailLaunchpadBySlugRequestDtoParam, DetailLaunchpadRequestDtoParam } from './dto/detail-launchpad-request.dto';
 
 @Controller('launchpad')
 @ApiTags('launchpad')
@@ -84,11 +84,22 @@ export class LaunchpadController {
   // @UseGuards(AuthGuard, RolesGuard)
   // @ApiBearerAuth()
   // @Roles(Role.Admin, Role.User)
-  @Get(':launchpad_id')
+  @Get('id/:launchpad_id')
   @UseInterceptors(AuthUserInterceptor)
   detailLaunchpadDetail(@Param() param: DetailLaunchpadRequestDtoParam) {
     return this.launchpadSvc.launchpadDetail(
       param.launchpad_id,
+    );
+  }
+ 
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @ApiBearerAuth()
+  // @Roles(Role.Admin, Role.User)
+  @Get('slug/:launchpad_slug')
+  @UseInterceptors(AuthUserInterceptor)
+  detailLaunchpadDetailBySlug(@Param() param: DetailLaunchpadBySlugRequestDtoParam) {
+    return this.launchpadSvc.launchpadDetailBySlug(
+      param.launchpad_slug,
     );
   }
 
