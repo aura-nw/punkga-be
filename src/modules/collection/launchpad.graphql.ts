@@ -196,8 +196,12 @@ export class LaunchpadGraphql {
           featured_images
           id
           launchpad_creator {
-            name
             wallet_address
+            name
+            avatar_url
+            bio
+            slug
+            pen_name
           }
           launchpad_i18ns {
             data
