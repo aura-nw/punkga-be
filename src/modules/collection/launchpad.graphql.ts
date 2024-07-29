@@ -24,6 +24,7 @@ export class LaunchpadGraphql {
           creator_id
           featured_images
           id
+          slug
           status
           updated_at
           launchpad_creator {
@@ -38,35 +39,6 @@ export class LaunchpadGraphql {
       }
       `,
       'launchpad_by_pk',
-      variables,
-      headers
-    );
-  }
-
-  listOwnedLaunchpad(variables: any) {
-    const headers = {
-      'x-hasura-admin-secret': this.configSvc.get<string>(
-        'graphql.adminSecret'
-      ),
-    };
-
-    return this.graphqlSvc.query(
-      this.configSvc.get<string>('graphql.endpoint'),
-      '',
-      `query launchpad($user_id: bpchar!) {
-        launchpad(where: {creator_id: {_eq: $user_id}}) {
-          id
-          name
-          license_token_id
-          status
-          start_date
-          end_date
-          created_at
-          updated_at
-        }
-      }
-      `,
-      'launchpad',
       variables,
       headers
     );
@@ -134,6 +106,7 @@ export class LaunchpadGraphql {
           updated_at
           contract_address
           fund
+          slug
           launchpad_i18ns {
             id
             language_id
@@ -144,20 +117,6 @@ export class LaunchpadGraphql {
       'launchpad_by_pk',
       variables,
       headers
-    );
-  }
-
-  queryCreatorAddress(variables: any) {
-    return this.graphqlSvc.query(
-      this.configSvc.get<string>('graphql.endpoint'),
-      '',
-      `query authorizer_users_by_pk($id: bpchar = "") {
-        authorizer_users_by_pk(id: $id) {
-          wallet_address
-        }
-      }`,
-      'authorizer_users_by_pk',
-      variables
     );
   }
 
@@ -207,6 +166,7 @@ export class LaunchpadGraphql {
             data
             language_id
           }
+          slug
           updated_at
           contract_address
           creator_id
