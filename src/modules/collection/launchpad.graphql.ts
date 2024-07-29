@@ -211,6 +211,11 @@ export class LaunchpadGraphql {
           contract_address
           creator_id
         }
+        launchpad_aggregate(where: {status: {_in: $status}}) {
+          aggregate {
+            count(columns: id)
+          }
+        }
       }
       `,
       'launchpad',
