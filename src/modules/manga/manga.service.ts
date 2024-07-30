@@ -236,7 +236,7 @@ export class MangaService {
         queryMangaResult.data.manga_by_pk.contract_addresses;
 
       // check data on horoscope
-      const getCw721TokenResult = await this.mangaGraphql.queryCw721Tokens(
+      const getCw721TokenResult = await this.mangaGraphql.queryErc721Tokens(
         token,
         network,
         {
@@ -246,9 +246,9 @@ export class MangaService {
       );
 
       if (
-        getCw721TokenResult.data[`${network}`].cw721_contract.length > 0 &&
-        getCw721TokenResult.data[`${network}`].cw721_contract.find(
-          (contract) => contract.cw721_tokens.length > 0
+        getCw721TokenResult.data[`${network}`].erc721_contract.length > 0 &&
+        getCw721TokenResult.data[`${network}`].erc721_contract.find(
+          (contract) => contract.erc721_tokens.length > 0
         )
       ) {
         nft = true;
