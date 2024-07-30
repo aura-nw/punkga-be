@@ -240,8 +240,10 @@ export class MangaService {
         token,
         network,
         {
-          smart_contracts: contract_addresses,
-          owner: walletAddress,
+          smart_contracts: contract_addresses.map((address) =>
+            address.toLowerCase()
+          ),
+          owner: walletAddress.toLowerCase(),
         }
       );
 
