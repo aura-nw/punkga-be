@@ -28,6 +28,12 @@ export enum RewardStatus {
   OutOfSlot = 'OUT_OF_SLOT',
 }
 
+export enum LaunchpadStatus {
+  Draft = 'DRAFT',
+  ReadyToMint = 'READY_TO_MINT',
+  Published = 'PUBLISHED',
+}
+
 export enum AddressType {
   EVM = 'evm',
 }
