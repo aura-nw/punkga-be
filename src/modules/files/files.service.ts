@@ -31,6 +31,12 @@ export class FilesService implements OnModuleInit {
     });
   }
 
+  getKeyName = (file: Express.Multer.File, folderName: string) => {
+    const s3SubFolder =
+      this.configService.get<string>('aws.s3SubFolder') || 'images';
+    return `${s3SubFolder}/${folderName}/${file.fieldname}-${file.originalname}`;
+  };
+
   unzipFile(file: string, outputPath: string): Promise<boolean> {
     this.logger.debug(`Unzip ${file}...`);
     return new Promise((resolve, reject) => {
