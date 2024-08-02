@@ -36,7 +36,7 @@ export class ArtworkService {
 
     const creatorArtworks = records.map((record: string[]) => ({
       creator: record[0].trim(),
-      artworks: [record[2].trim(), record[3].trim()],
+      artworks: [record[2].trim(), record[3]?.trim() || ''],
     }));
 
     creatorArtworks.forEach(async ({ creator, artworks }) => {
@@ -51,69 +51,82 @@ export class ArtworkService {
         },
         token
       );
-      if (insertCreatorResult.errors)
-        throw new InternalServerErrorException(
-          insertCreatorResult.errors.message
+      if (!insertCreatorResult.errors) {
+        const creatorId = insertCreatorResult.data.insert_creators_one.id;
+
+        // upload image to s3
+        const crawlPromises = artworks
+          .filter((str) => str !== '')
+          .map((artwork: string) => {
+            let url = artwork;
+            if (artwork.indexOf('imgur') > 0) url = artwork + '.jpg';
+            if (artwork.indexOf('drive.google.com') > 0)
+              url = `https://lh3.googleusercontent.com/d/${
+                artwork.split('/')?.[5]
+              }`;
+            return this.crawlImage(url);
+          });
+        const crawlImageResult = await Promise.all(crawlPromises);
+
+        const s3SubFolder =
+          this.configService.get<string>('aws.s3SubFolder') || 'images';
+
+        await Promise.all(
+          crawlImageResult.map((image, index) => {
+            const keyName = `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`;
+            return this.fileService.uploadToS3(
+              keyName,
+              image.buffer,
+              image.mimeType
+            );
+          })
         );
-      const creatorId = insertCreatorResult.data.insert_creators_one.id;
 
-      // upload image to s3
-      const crawlPromises = artworks
-        .filter((str) => str !== '')
-        .map((artwork: string) => {
-          const url = artwork.indexOf('imgur') > 0 ? artwork + '.jpg' : artwork;
-          return this.crawlImage(url);
-        });
-      const crawlImageResult = await Promise.all(crawlPromises);
+        const newArtworks = artworks
+          .filter((str) => str !== '')
+          .map((artwork: string, index: number) => ({
+            contest_id,
+            contest_round,
+            creator_id: creatorId,
+            source_url: artwork,
+            url: new URL(
+              `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`,
+              this.configService.get<string>('aws.queryEndpoint')
+            ).href,
+          }));
 
-      const s3SubFolder =
-        this.configService.get<string>('aws.s3SubFolder') || 'images';
+        const insertArtworkResult = await this.artworkGraphql.insertArtwork(
+          {
+            objects: newArtworks,
+          },
+          token
+        );
 
-      await Promise.all(
-        crawlImageResult.map((image, index) => {
-          const keyName = `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`;
-          return this.fileService.uploadToS3(
-            keyName,
-            image.buffer,
-            image.mimeType
-          );
-        })
-      );
-
-      const newArtworks = artworks
-        .filter((str) => str !== '')
-        .map((artwork: string, index: number) => ({
-          contest_id,
-          contest_round,
-          creator_id: creatorId,
-          source_url: artwork,
-          url: new URL(
-            `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`,
-            this.configService.get<string>('aws.queryEndpoint')
-          ).href,
-        }));
-
-      const insertArtworkResult = await this.artworkGraphql.insertArtwork(
-        {
-          objects: newArtworks,
-        },
-        token
-      );
-
-      this.logger.debug(insertArtworkResult);
+        this.logger.debug(insertArtworkResult);
+      } else {
+        console.log(creator);
+      }
     });
 
     return creatorArtworks;
   }
 
   private async crawlImage(url: string) {
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
-    const mimeType = response.headers['content-type'];
-    const buffer = Buffer.from(response.data, 'utf-8');
+    try {
+      const response = await axios.get(url, {
+        responseType: 'arraybuffer',
+        timeout: 10000,
+      });
+      const mimeType = response.headers['content-type'];
+      const buffer = Buffer.from(response.data, 'utf-8');
 
-    return {
-      mimeType,
-      buffer,
-    };
+      return {
+        mimeType,
+        buffer,
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }
