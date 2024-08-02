@@ -25,7 +25,7 @@ export class ArtworkService {
 
   async import(data: ImportArtworkDto, file: Express.Multer.File) {
     const { token } = ContextProvider.getAuthUser();
-    const { contest_id } = data;
+    const { contest_id, contest_round } = data;
 
     // validate file
 
@@ -71,7 +71,7 @@ export class ArtworkService {
 
       await Promise.all(
         crawlImageResult.map((image, index) => {
-          const keyName = `${s3SubFolder}/creator-${creatorId}/artworks/${index}.jpg`;
+          const keyName = `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`;
           return this.fileService.uploadToS3(
             keyName,
             image.buffer,
@@ -84,10 +84,11 @@ export class ArtworkService {
         .filter((str) => str !== '')
         .map((artwork: string, index: number) => ({
           contest_id,
+          contest_round,
           creator_id: creatorId,
           source_url: artwork,
           url: new URL(
-            `${s3SubFolder}/creator-${creatorId}/artworks/${index}.jpg`,
+            `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`,
             this.configService.get<string>('aws.queryEndpoint')
           ).href,
         }));
