@@ -1,0 +1,3 @@
+table:
+  name: artworks
+  schema: public

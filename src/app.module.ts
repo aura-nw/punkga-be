@@ -24,6 +24,7 @@ import { UserModule } from './modules/user/user.module';
 import { LaunchpadModule } from './modules/collection/launchpad.module';
 import { ChainModule } from './modules/chain/chain.module';
 import { ChainGateWayModule } from './chain-gateway/chain-gateway.module';
+import { ArtworkModule } from './modules/artwork/artwork.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { ChainGateWayModule } from './chain-gateway/chain-gateway.module';
     LaunchpadModule,
     ChainModule,
     ChainGateWayModule,
+    ArtworkModule,
   ],
   controllers: [],
   providers: [
