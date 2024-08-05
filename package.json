@@ -59,6 +59,7 @@
     "decompress": "^4.2.1",
     "ethers": "^6.12.0",
     "express-ctx": "^0.1.1",
+    "googleapis": "^140.0.1",
     "ipfs-http-client": "56.0.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
