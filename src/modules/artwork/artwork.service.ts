@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { parse } from 'csv-parse/sync';
@@ -16,14 +17,23 @@ import { ArtworkGraphql } from './artwork.graphql';
 import { generateSlug } from '../manga/util';
 
 @Injectable()
-export class ArtworkService {
+export class ArtworkService implements OnModuleInit {
   private readonly logger = new Logger(ArtworkService.name);
+  private googleService;
 
   constructor(
     private configService: ConfigService,
     private fileService: FilesService,
     private artworkGraphql: ArtworkGraphql
   ) {}
+
+  onModuleInit() {
+    const auth = new GoogleAuth({
+      scopes: 'https://www.googleapis.com/auth/drive',
+      keyFilename: this.configService.get<string>('google.analytics.keyFile'),
+    }) as any;
+    this.googleService = google.drive({ version: 'v3', auth });
+  }
 
   async import(data: ImportArtworkDto, file: Express.Multer.File) {
     const { token } = ContextProvider.getAuthUser();
@@ -143,15 +153,15 @@ export class ArtworkService {
   }
 
   private async crawlGoogleDriveImage(url: string) {
-    const auth = new GoogleAuth({
-      scopes: 'https://www.googleapis.com/auth/drive',
-      keyFilename: this.configService.get<string>('google.analytics.keyFile'),
-    }) as any;
-    const service = google.drive({ version: 'v3', auth });
+    // const auth = new GoogleAuth({
+    //   scopes: 'https://www.googleapis.com/auth/drive',
+    //   keyFilename: this.configService.get<string>('google.analytics.keyFile'),
+    // }) as any;
+    // const service = google.drive({ version: 'v3', auth });
 
     const fileId = url.split('/')?.[5];
     try {
-      const file = (await service.files.get(
+      const file = (await this.googleService.files.get(
         {
           fileId: fileId,
           alt: 'media',
@@ -168,6 +178,7 @@ export class ArtworkService {
         buffer,
       };
     } catch (error) {
+      this.logger.error(`cannot get image from url: ${url}`);
       return {
         errors: {
           message: JSON.stringify(error),
