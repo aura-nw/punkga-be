@@ -2,6 +2,13 @@ table:
   name: creators
   schema: public
 array_relationships:
+  - name: creators_artworks
+    using:
+      foreign_key_constraint_on:
+        column: creator_id
+        table:
+          name: artworks
+          schema: public
   - name: manga_creators
     using:
       foreign_key_constraint_on:

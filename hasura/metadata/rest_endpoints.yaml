@@ -263,6 +263,60 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - query artwork by creator
+  methods:
+    - GET
+  name: Public - query artwork by creator
+  url: public/creators/:creator_id/artworks
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get contest by creator id
+  methods:
+    - GET
+  name: Public - Get contest by creator id
+  url: public/creators/:creator_id/contests
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get creator launchpad
+  methods:
+    - GET
+  name: Public - Get creator launchpad
+  url: public/creators/:creator_id/launchpad
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get artwork by creator and contest
+  methods:
+    - GET
+  name: Public - Get artwork by creator and contest
+  url: public/creators/:id/contests/:contest_id/artworks
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get manga by creator and contest
+  methods:
+    - GET
+  name: Public - Get manga by creator and contest
+  url: public/creators/:id/contests/:contest_id/manga
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get manga by creator
+  methods:
+    - GET
+  name: Public - Get manga by creator
+  url: public/creators/:id/manga
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Query all languages
   methods:
     - GET

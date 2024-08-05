@@ -1218,3 +1218,137 @@
               }
             }
           }
+      - name: Public - Get manga by creator
+        query: |
+          query manga ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
+            manga(limit: $limit, offset: $offset, where: {manga_creators:{creator_id:{_eq:$id}},status:{_neq:"Removed"}}) {
+              id
+              slug
+              status
+              poster
+              banner
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                  id
+                  slug
+                }
+              }
+              manga_total_likes {
+                likes
+              }
+              manga_total_views {
+                views
+              }
+              manga_tags {
+                tag {
+                  tag_languages {
+                    language_id
+                    value
+                  }
+                  id
+                }
+              }
+              chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
+                id
+                chapter_number
+                chapter_name
+              }
+              contract_addresses
+              manga_languages {
+                id
+                is_main_language
+                title
+                description
+                language_id
+              }
+            }
+          }
+      - name: Public - query artwork by creator
+        query: |
+          query artworks ($creator_id: Int!, $limit: Int = 10, $offset: Int = 0) {
+            artworks(where: {creator_id:{_eq:$creator_id}}, limit: $limit, offset: $offset) {
+              id
+              url
+              contest_id
+              contest_round
+              source_url
+            }
+            artworks_aggregate(where: {creator_id:{_eq:$creator_id}}) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: Public - Get creator launchpad
+        query: |
+          query launchpad ($creator_id: Int!) {
+            launchpad(where: {creator_id:{_eq:$creator_id}}) {
+              id
+              slug
+              launchpad_i18ns {
+                data
+                i18n_language {
+                  is_main
+                  symbol
+                  id
+                }
+              }
+              featured_images
+              contract_address
+              created_at
+              launchpad_creator {
+                id
+                slug
+                pen_name
+                avatar_url
+              }
+            }
+          }
+      - name: Public - Get manga by creator and contest
+        query: |
+          query manga ($contest_id: Int!, $id: Int!, $limit: Int = 100, $offset: Int = 0) {
+            manga(where: {contest_id:{_eq:$contest_id},manga_creators:{creator_id:{_eq:$id}}}, limit: $limit, offset: $offset) {
+              banner
+              id
+              slug
+              poster
+            }
+            manga_aggregate(where: {contest_id:{_eq:$contest_id},manga_creators:{creator_id:{_eq:$id}}}, limit: $limit, offset: $offset) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: Public - Get contest by creator id
+        query: |
+          query contest ($creator_id: Int!, $limit: Int = 10, $offset: Int = 0) {
+            contest(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
+              id
+              start_date
+              end_date
+              slug
+              created_at
+            }
+            contest_aggregate(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: Public - Get artwork by creator and contest
+        query: |
+          query artwork ($contest_id: Int!, $id: Int!, $limit: Int = 100, $offset: Int = 0) {
+            artworks(where: {contest_id:{_eq:$contest_id},creator_id:{_eq:$id}}, limit: $limit, offset: $offset) {
+              id
+              url
+              source_url
+              created_at
+            }
+            artworks_aggregate(where: {contest_id:{_eq:$contest_id},creator_id:{_eq:$id}}, limit: $limit, offset: $offset) {
+              aggregate {
+                count
+              }
+            }
+          }

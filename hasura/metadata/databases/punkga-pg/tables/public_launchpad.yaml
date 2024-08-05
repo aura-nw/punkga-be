@@ -13,3 +13,32 @@ array_relationships:
         table:
           name: i18n
           schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - contract_address
+        - status
+        - creator_id
+        - id
+        - featured_images
+        - fund
+        - slug
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - contract_address
+        - status
+        - creator_id
+        - id
+        - featured_images
+        - fund
+        - slug
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
