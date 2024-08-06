@@ -211,6 +211,7 @@ export class LaunchpadGraphql {
             language_id
           }
           slug
+          status
           created_at
           updated_at
           contract_address
