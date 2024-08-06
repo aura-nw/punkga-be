@@ -194,8 +194,8 @@ export class LaunchpadGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query launchpad($offset: Int = 0, $limit: Int = 10, $status: [String] = ["DRAFT", "PUBLISHED", "READY_TO_MINT"]) {
-        launchpad(offset: $offset, limit: $limit, order_by: {updated_at: desc}, where: {status: {_in: $status}}) {
+      `query launchpad($offset: Int = 0, $limit: Int = 10, $status: [String] = ["DRAFT", "PUBLISHED", "READY_TO_MINT"], $keyword: String = "%%") {
+        launchpad(offset: $offset, limit: $limit, order_by: {updated_at: desc}, where: {status: {_in: $status}, relate_key_words: {_cast: {String: {_ilike: $keyword}}}}) {
           featured_images
           id
           launchpad_creator {
@@ -211,11 +211,12 @@ export class LaunchpadGraphql {
             language_id
           }
           slug
+          created_at
           updated_at
           contract_address
           creator_id
         }
-        launchpad_aggregate(where: {status: {_in: $status}}) {
+        launchpad_aggregate(where: {status: {_in: $status}, relate_key_words: {_cast: {String: {_ilike: $keyword}}}}) {
           aggregate {
             count(columns: id)
           }

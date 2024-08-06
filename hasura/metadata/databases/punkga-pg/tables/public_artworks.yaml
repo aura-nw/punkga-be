@@ -1,0 +1,30 @@
+table:
+  name: artworks
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - contest_id
+        - contest_round
+        - creator_id
+        - id
+        - source_url
+        - url
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - contest_id
+        - contest_round
+        - creator_id
+        - id
+        - source_url
+        - url
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true

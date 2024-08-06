@@ -1,13 +1,4 @@
-- comment: ''
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Public - Get user xp
-  methods:
-    - GET
-  name: Public - Get user xp
-  url: public/user-xp
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -16,7 +7,7 @@
     - GET
   name: Admin - Query all campaign
   url: admin/campaign
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -25,7 +16,7 @@
     - DELETE
   name: Admin - Delete campaign
   url: admin/campaign/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -34,7 +25,7 @@
     - PUT
   name: Admin - Update campaign
   url: admin/campaign/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -43,7 +34,7 @@
     - GET
   name: Admin - Query campaign detail
   url: admin/campaign/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -52,7 +43,7 @@
     - GET
   name: Admin - Query creators
   url: admin/creators
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -61,7 +52,7 @@
     - DELETE
   name: Admin - Deactive Creator By PK
   url: admin/creators/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -70,7 +61,7 @@
     - POST
   name: Admin - Create Manga
   url: admin/manga
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -79,7 +70,7 @@
     - GET
   name: Admin - Query List Manga
   url: admin/manga
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -88,7 +79,7 @@
     - DELETE
   name: Admin - Deactive Manga
   url: admin/manga/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -97,7 +88,7 @@
     - PUT
   name: Admin - Update manga status
   url: admin/manga/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -106,7 +97,7 @@
     - GET
   name: Admin - Get manga detail
   url: admin/manga/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -115,7 +106,7 @@
     - DELETE
   name: Admin - Delete chapter
   url: admin/manga/:manga_id/chapters/:chapter_number
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -124,7 +115,7 @@
     - GET
   name: Admin - Get chapter detail
   url: admin/manga/:manga_id/chapters/:chapter_number
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -133,7 +124,7 @@
     - POST
   name: Admin - Create Quest
   url: admin/quests
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -142,7 +133,7 @@
     - DELETE
   name: Admin - Delete quest
   url: admin/quests/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -151,7 +142,7 @@
     - PUT
   name: Admin - Update quest
   url: admin/quests/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -160,7 +151,7 @@
     - GET
   name: Admin - Get quest by id
   url: admin/quests/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -169,7 +160,7 @@
     - POST
   name: Admin - Create Tag
   url: admin/tags
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -178,7 +169,7 @@
     - GET
   name: Admin - Query all tags by main language
   url: admin/tags
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -187,7 +178,7 @@
     - DELETE
   name: Delete tag
   url: admin/tags/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -196,7 +187,7 @@
     - PUT
   name: Admin - Update tag by ID
   url: admin/tags/:tag_id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -205,7 +196,7 @@
     - DELETE
   name: Admin - Delete User
   url: admin/users
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -214,7 +205,7 @@
     - GET
   name: Admin - Get All Users
   url: admin/users
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -223,7 +214,7 @@
     - GET
   name: Admin - Search users
   url: admin/users/search
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -232,7 +223,7 @@
     - GET
   name: Public - Query creator by id
   url: creators/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -241,7 +232,7 @@
     - GET
   name: Public - Get leaderboard
   url: pubic/leaderboard
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -250,7 +241,7 @@
     - GET
   name: Public - Get campaign leaderboard
   url: public/campaign/:id/leaderboard
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -259,7 +250,7 @@
     - GET
   name: Public - Query all chain
   url: public/chains
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -268,7 +259,61 @@
     - GET
   name: Public - Get Chapter Comments
   url: public/chapters/:chapter_id/comments
-- comment: ''
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - query artwork by creator
+  methods:
+    - GET
+  name: Public - query artwork by creator
+  url: public/creators/:creator_id/artworks
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get contest by creator id
+  methods:
+    - GET
+  name: Public - Get contest by creator id
+  url: public/creators/:creator_id/contests
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get creator launchpad
+  methods:
+    - GET
+  name: Public - Get creator launchpad
+  url: public/creators/:creator_id/launchpad
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get artwork by creator and contest
+  methods:
+    - GET
+  name: Public - Get artwork by creator and contest
+  url: public/creators/:id/contests/:contest_id/artworks
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get manga by creator and contest
+  methods:
+    - GET
+  name: Public - Get manga by creator and contest
+  url: public/creators/:id/contests/:contest_id/manga
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get manga by creator
+  methods:
+    - GET
+  name: Public - Get manga by creator
+  url: public/creators/:id/manga
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -277,7 +322,7 @@
     - GET
   name: Public - Query all languages
   url: public/languages
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -286,7 +331,7 @@
     - GET
   name: Public - Query latest update manga
   url: public/latest
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -295,7 +340,7 @@
     - POST
   name: Public - Get manga list by list id
   url: public/list_manga
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -304,7 +349,7 @@
     - GET
   name: Public - Get all manga
   url: public/manga
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -313,7 +358,7 @@
     - GET
   name: Public - Get manga detail
   url: public/manga/:slug
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -322,7 +367,7 @@
     - GET
   name: Public - Get chapter detail
   url: public/manga/:slug/chapters/:chapter_number
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -331,7 +376,7 @@
     - GET
   name: Public - Get subscribe list
   url: public/profiles/:user_id/subscribe
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -340,7 +385,7 @@
     - GET
   name: Public - Get quest info
   url: public/quests/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -349,7 +394,7 @@
     - GET
   name: Public - Search manga
   url: public/search_manga
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -358,7 +403,7 @@
     - POST
   name: Public - Subscribe email
   url: public/subscribe
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -367,7 +412,7 @@
     - GET
   name: Public - Query all tags
   url: public/tags
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -376,7 +421,7 @@
     - GET
   name: Public - Query tag by ID
   url: public/tags/:id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -385,7 +430,7 @@
     - GET
   name: Public - Get trending manga
   url: public/trending
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -394,7 +439,16 @@
     - GET
   name: Public - Get user campaign xp
   url: public/user-campaign
-- comment: ''
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get user xp
+  methods:
+    - GET
+  name: Public - Get user xp
+  url: public/user-xp
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -403,7 +457,7 @@
     - GET
   name: Public - Query User
   url: public/users/:user_id
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -412,7 +466,7 @@
     - POST
   name: User - Set address
   url: user/address
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -421,7 +475,7 @@
     - GET
   name: User - Get user campaign rank
   url: user/campaign/:id/users/:user_id/rank
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -430,7 +484,7 @@
     - POST
   name: User - Add comment in chapter
   url: user/chapters/:chapter_id/comments
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -439,7 +493,7 @@
     - DELETE
   name: User - Unlike chapter
   url: user/chapters/:chapter_id/likes
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -448,7 +502,7 @@
     - POST
   name: User - Like chapter
   url: user/chapters/:chapter_id/likes
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -457,7 +511,7 @@
     - POST
   name: User - Subscribe manga
   url: user/manga/:manga_id/subscribe
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -466,7 +520,7 @@
     - DELETE
   name: User - Unsubscribe manga
   url: user/manga/:manga_id/subscribe
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries
@@ -475,7 +529,7 @@
     - GET
   name: User - Get Profile
   url: user/profile
-- comment: ''
+- comment: ""
   definition:
     query:
       collection_name: allowed-queries

@@ -78,15 +78,16 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
-        - banner
-        - contract_addresses
-        - created_at
+        - contest_id
         - id
+        - contract_addresses
+        - banner
         - poster
-        - publish_date
-        - release_date
         - slug
         - status
+        - created_at
+        - publish_date
+        - release_date
         - updated_at
       computed_fields:
         - latest_published
@@ -96,15 +97,16 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - banner
-        - contract_addresses
-        - created_at
+        - contest_id
         - id
+        - contract_addresses
+        - banner
         - poster
-        - publish_date
-        - release_date
         - slug
         - status
+        - created_at
+        - publish_date
+        - release_date
         - updated_at
       computed_fields:
         - latest_published

@@ -54,6 +54,7 @@ export class LaunchpadService {
         contract_address,
       } = data;
       const slug = generateSlug(name);
+      const relate_key_words = [name, name_in_vn];
       // insert db
       const result = await this.launchpadGraphql.insert({
         data: {
@@ -61,7 +62,8 @@ export class LaunchpadService {
           status: LaunchpadStatus.Draft,
           fund,
           contract_address,
-          slug
+          slug,
+          relate_key_words,
         },
       });
 
@@ -237,7 +239,8 @@ export class LaunchpadService {
   async getListLaunchpad(
     limit: number,
     offset: number,
-    status?: string[]
+    status?: string[],
+    keyword?: string
   ) {
     // const { token } = ContextProvider.getAuthUser();
     const variables: any = {
@@ -246,6 +249,9 @@ export class LaunchpadService {
     };
     if (status && status.length > 0) {
       variables.status = status;
+    }
+    if (keyword) {
+      variables.keyword = `%${keyword}%`;
     }
 
     return this.launchpadGraphql.getListLaunchpad(
@@ -256,7 +262,7 @@ export class LaunchpadService {
 
   /**
    * Admin can edit all field
-   * @param 
+   * @param
    */
   async editDraftLaunchpad(
     data: EditDraftLaunchpadRequestDto,
@@ -279,7 +285,7 @@ export class LaunchpadService {
       } = data;
 
       const launchpad = await this.getExistingLaunchpad(launchpad_id);
-      if(launchpad.status != LaunchpadStatus.Draft){
+      if (launchpad.status != LaunchpadStatus.Draft) {
         throw new BadRequestException('Launchpad status must be Draft');
       }
 
@@ -385,11 +391,11 @@ export class LaunchpadService {
 
     const { userId } = ContextProvider.getAuthUser();
     const launchpad = await this.getExistingLaunchpad(launchpadId);
-    if(launchpad.status != LaunchpadStatus.Published){
+    if (launchpad.status != LaunchpadStatus.Published) {
       throw new BadRequestException('Launchpad status must be Published!');
     }
     const userWallet = await this.userWalletService.deserialize(userId);
-    if(!userWallet){
+    if (!userWallet) {
       throw new BadRequestException('Can not get user wallet!');
     }
     const launchpadContract = await this.userWalletService.getLaunchpadContract(
