@@ -24,12 +24,13 @@ import { CreateLaunchpadRequestDto } from './dto/create-launchpad-request.dto';
 import { PublishLaunchpadRequestDtoParam } from './dto/publish-launchpad-request.dto';
 import { UnPublishLaunchpadRequestDtoParam } from './dto/unpublish-launchpad-request.dto';
 import { DetailLaunchpadLanguageRequestDtoParam } from './dto/detail-launchpad-language-request.dto';
-import {
-  EditDraftLaunchpadRequestDto,
-} from './dto/edit-draft-launchpad-request.dto';
+import { EditDraftLaunchpadRequestDto } from './dto/edit-draft-launchpad-request.dto';
 import { ListLaunchpadRequestDtoParam } from './dto/list-launchpad-request.dto';
 import { MintRequestDtoParam } from './dto/mint-nft-request.dto';
-import { DetailLaunchpadBySlugRequestDtoParam, DetailLaunchpadRequestDtoParam } from './dto/detail-launchpad-request.dto';
+import {
+  DetailLaunchpadBySlugRequestDtoParam,
+  DetailLaunchpadRequestDtoParam,
+} from './dto/detail-launchpad-request.dto';
 
 @Controller('launchpad')
 @ApiTags('launchpad')
@@ -42,7 +43,6 @@ export class LaunchpadController {
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
-  // @UseInterceptors( AnyFilesInterceptor())
   create(
     @Body() data: CreateLaunchpadRequestDto,
     @UploadedFiles() files: Array<Express.Multer.File>
@@ -87,20 +87,18 @@ export class LaunchpadController {
   @Get('id/:launchpad_id')
   @UseInterceptors(AuthUserInterceptor)
   detailLaunchpadDetail(@Param() param: DetailLaunchpadRequestDtoParam) {
-    return this.launchpadSvc.launchpadDetail(
-      param.launchpad_id,
-    );
+    return this.launchpadSvc.launchpadDetail(param.launchpad_id);
   }
- 
+
   // @UseGuards(AuthGuard, RolesGuard)
   // @ApiBearerAuth()
   // @Roles(Role.Admin, Role.User)
   @Get('slug/:launchpad_slug')
   @UseInterceptors(AuthUserInterceptor)
-  detailLaunchpadDetailBySlug(@Param() param: DetailLaunchpadBySlugRequestDtoParam) {
-    return this.launchpadSvc.launchpadDetailBySlug(
-      param.launchpad_slug,
-    );
+  detailLaunchpadDetailBySlug(
+    @Param() param: DetailLaunchpadBySlugRequestDtoParam
+  ) {
+    return this.launchpadSvc.launchpadDetailBySlug(param.launchpad_slug);
   }
 
   // @UseGuards(AuthGuard, RolesGuard)
@@ -108,7 +106,9 @@ export class LaunchpadController {
   // @Roles(Role.Admin, Role.User)
   @Get(':launchpad_id/:language_id')
   @UseInterceptors(AuthUserInterceptor)
-  detailLaunchpadLanguageDetail(@Param() param: DetailLaunchpadLanguageRequestDtoParam) {
+  detailLaunchpadLanguageDetail(
+    @Param() param: DetailLaunchpadLanguageRequestDtoParam
+  ) {
     return this.launchpadSvc.launchpadLanguageDetail(
       param.launchpad_id,
       param.language_id
@@ -120,11 +120,12 @@ export class LaunchpadController {
   // @Roles(Role.Admin, Role.User)
   @Get('')
   @UseInterceptors(AuthUserInterceptor)
-  listLaunchpadDetail(@Query() params: ListLaunchpadRequestDtoParam) {
+  listLaunchpad(@Query() params: ListLaunchpadRequestDtoParam) {
     return this.launchpadSvc.getListLaunchpad(
       params.limit,
       params.offset,
-      params.status
+      params.status,
+      params.keyword
     );
   }
 
@@ -136,5 +137,4 @@ export class LaunchpadController {
   mint(@Param() param: MintRequestDtoParam) {
     return this.launchpadSvc.mintNFT(param.launchpad_id, param.nft_amount);
   }
-
 }

@@ -9,4 +9,7 @@ export class ListLaunchpadRequestDtoParam {
 
   @ApiPropertyOptional({ type: [String], example: '' })
   status: string[];
+
+  @ApiPropertyOptional({ example: '' })
+  keyword: string;
 }
