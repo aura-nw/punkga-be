@@ -33,6 +33,7 @@ import {
   GetChapterByMangaQueryDto,
 } from './dto/get-chapter-by-manga-request.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { MangaCollection, MangaCollectionParamDto } from './dto/manage-manga-collection-request.dto';
 
 @Controller('manga')
 @ApiTags('manga')
@@ -66,7 +67,7 @@ export class MangaController {
   ) {
     // console.log(data);
     return this.mangaSvc.create(data, files);
-  }
+  } 
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -91,5 +92,18 @@ export class MangaController {
   getAccess(@Param() param: GetAccessMangaParamDto) {
     const { mangaId } = param;
     return this.mangaSvc.getAccess(mangaId);
+  }
+
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @ApiBearerAuth()
+  // @Roles(Role.Admin)
+  @Put('manga-collection/:mangaId')
+  // @UseInterceptors(AuthUserInterceptor)
+  addMangaCollection(
+    @Param() param:  MangaCollectionParamDto,
+    @Body() data: MangaCollection,
+  ) {
+    const { mangaId } = param;
+    return this.mangaSvc.addMangaCollection(mangaId, data.collectionIds);
   }
 }

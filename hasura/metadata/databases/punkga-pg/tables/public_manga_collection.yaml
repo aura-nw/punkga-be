@@ -1,3 +1,10 @@
 table:
   name: manga_collection
   schema: public
+object_relationships:
+  - name: collection_manga
+    using:
+      foreign_key_constraint_on: manga_id
+  - name: manga_collection
+    using:
+      foreign_key_constraint_on: launchpad_id
