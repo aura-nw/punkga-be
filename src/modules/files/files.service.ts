@@ -19,8 +19,20 @@ import { IFileInfo } from '../chapter/interfaces';
 export class FilesService implements OnModuleInit {
   private readonly logger = new Logger(FilesService.name);
   private ipfsClient: IPFSHTTPClient;
+  private s3Client: S3Client;
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService) {
+    this.s3Client = new S3Client({
+      endpoint:
+        this.configService.get<string>('aws.s3endpoint') ||
+        'https://s3.ap-southeast-1.amazonaws.com',
+      region: this.configService.get<string>('aws.region'),
+      credentials: {
+        accessKeyId: this.configService.get<string>('aws.keyid'),
+        secretAccessKey: this.configService.get<string>('aws.secretAccessKey'),
+      },
+    });
+  }
 
   onModuleInit() {
     const ipfsUrl = this.configService.get<string>('network.ipfsUrl');
@@ -153,17 +165,6 @@ export class FilesService implements OnModuleInit {
     const file =
       typeof filePath === 'string' ? readFileSync(filePath) : filePath;
 
-    const client = new S3Client({
-      endpoint:
-        this.configService.get<string>('aws.s3endpoint') ||
-        'https://s3.ap-southeast-1.amazonaws.com',
-      region: this.configService.get<string>('aws.region'),
-      credentials: {
-        accessKeyId: this.configService.get<string>('aws.keyid'),
-        secretAccessKey: this.configService.get<string>('aws.secretAccessKey'),
-      },
-    });
-
     const bucketName = this.configService.get<string>('aws.bucketName');
     this.logger.debug(`Upload key: ${keyName} to bucket ${bucketName}`);
 
@@ -176,7 +177,7 @@ export class FilesService implements OnModuleInit {
 
     // Create a promise on S3 service object
     const command = new PutObjectCommand(input);
-    return client.send(command);
+    return this.s3Client.send(command);
   }
 
   async downloadFromS3(keyName: string): Promise<GetObjectCommandOutput> {
