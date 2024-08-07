@@ -1,0 +1,3 @@
+table:
+  name: manga_collection
+  schema: public

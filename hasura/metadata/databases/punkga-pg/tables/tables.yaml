@@ -16,6 +16,7 @@
 - "!include public_launchpad.yaml"
 - "!include public_likes.yaml"
 - "!include public_manga.yaml"
+- "!include public_manga_collection.yaml"
 - "!include public_manga_creator.yaml"
 - "!include public_manga_languages.yaml"
 - "!include public_manga_tag.yaml"
