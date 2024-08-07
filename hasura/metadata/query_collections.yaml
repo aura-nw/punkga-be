@@ -1321,22 +1321,6 @@
               }
             }
           }
-      - name: Public - Get contest by creator id
-        query: |
-          query contest ($creator_id: Int!, $limit: Int = 10, $offset: Int = 0) {
-            contest(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
-              id
-              start_date
-              end_date
-              slug
-              created_at
-            }
-            contest_aggregate(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
-              aggregate {
-                count
-              }
-            }
-          }
       - name: Public - Get artwork by creator and contest
         query: |
           query artwork ($contest_id: Int!, $id: Int!, $limit: Int = 100, $offset: Int = 0) {
@@ -1347,6 +1331,30 @@
               created_at
             }
             artworks_aggregate(where: {contest_id:{_eq:$contest_id},creator_id:{_eq:$id}}, limit: $limit, offset: $offset) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: Public - Get contest by creator id
+        query: |
+          query contest ($creator_id: Int!, $limit: Int = 10, $offset: Int = 0) {
+            contest(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
+              id
+              start_date
+              end_date
+              slug
+              created_at
+              contest_i18ns {
+                data
+                i18n_language {
+                  id
+                  is_main
+                  symbol
+                }
+              }
+            }
+            contest_aggregate(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
               aggregate {
                 count
               }
