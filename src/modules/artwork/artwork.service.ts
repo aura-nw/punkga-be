@@ -106,10 +106,18 @@ export class ArtworkService implements OnModuleInit {
       const urls = [];
       vaidArtworks.forEach(async (artwork: string) => {
         if (artwork.indexOf('drive.google.com/drive/folders') > 0) {
-          // get all file in folder
+          // get all file in google drive folder
           const files = await this.crawlGoogleDriveFolder(artwork);
           files.forEach((file) => {
             const fileUrl = `https://drive.google.com/file/d/${file.id}`;
+            urls.push(fileUrl);
+            crawlPromises.push(this.crawlImage(fileUrl));
+          });
+        } else if (artwork.indexOf('imgur.com/a/') > 0) {
+          // get all file in imgur album
+          const files = await this.crawlImgurAlbum(artwork);
+          files.forEach((file) => {
+            const fileUrl = `https://i.imgur.com/${file.id}.jpg`;
             urls.push(fileUrl);
             crawlPromises.push(this.crawlImage(fileUrl));
           });
@@ -201,6 +209,27 @@ export class ArtworkService implements OnModuleInit {
         mimeType,
         buffer,
       };
+    } catch (error) {
+      return {
+        errors: {
+          message: JSON.stringify(error),
+        },
+      };
+    }
+  }
+
+  private async crawlImgurAlbum(url: string) {
+    const api = this.configService.get<string>('imgur.api');
+    const clientId = this.configService.get<string>('imgur.clientId');
+    const albumHash = url.split('/')?.[4];
+    try {
+      const response = await axios.get(`${api}/3/album/${albumHash}/images`, {
+        headers: {
+          Authorization: `Client-ID ${clientId}`,
+        },
+      });
+
+      return response.data?.data.map((data) => ({ id: data.id }));
     } catch (error) {
       return {
         errors: {
