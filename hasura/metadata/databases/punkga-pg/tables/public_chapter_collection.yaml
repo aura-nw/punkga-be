@@ -1,0 +1,10 @@
+table:
+  name: chapter_collection
+  schema: public
+object_relationships:
+  - name: chapter_collection
+    using:
+      foreign_key_constraint_on: launchpad_id
+  - name: collection_chapter
+    using:
+      foreign_key_constraint_on: chapter_id
