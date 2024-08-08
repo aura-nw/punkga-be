@@ -58,17 +58,21 @@ export class ArtworkService implements OnModuleInit {
       const chunked = creatorArtworks.slice(i, i + chunkSize);
       this.logger.debug(`Upload process: ${i}/${creatorArtworks.length}`);
 
-      await Promise.all(
-        chunked.map(({ creator, artworks }) => {
-          return this.importProcess(
-            token,
-            contest_id,
-            contest_round,
-            creator,
-            artworks
-          );
-        })
-      );
+      try {
+        await Promise.all(
+          chunked.map(({ creator, artworks }) => {
+            return this.importProcess(
+              token,
+              contest_id,
+              contest_round,
+              creator,
+              artworks
+            );
+          })
+        );
+      } catch (error) {
+        this.logger.error(error);
+      }
     }
 
     return creatorArtworks;
@@ -98,8 +102,21 @@ export class ArtworkService implements OnModuleInit {
       const creatorId = insertCreatorResult.data.insert_creators_one.id;
 
       // upload image to s3
-      const crawlPromises = vaidArtworks.map(async (artwork: string) => {
-        return this.crawlImage(artwork);
+      const crawlPromises = [];
+      const urls = [];
+      vaidArtworks.forEach(async (artwork: string) => {
+        if (artwork.indexOf('drive.google.com/drive/folders') > 0) {
+          // get all file in folder
+          const files = await this.crawlGoogleDriveFolder(artwork);
+          files.forEach((file) => {
+            const fileUrl = `https://drive.google.com/file/d/${file.id}`;
+            urls.push(fileUrl);
+            crawlPromises.push(this.crawlImage(fileUrl));
+          });
+        } else {
+          urls.push(artwork);
+          crawlPromises.push(this.crawlImage(artwork));
+        }
       });
       const crawlImageResult = (await Promise.all(crawlPromises)).filter(
         (result) => result.buffer
@@ -110,11 +127,16 @@ export class ArtworkService implements OnModuleInit {
 
       // resize
       const resizedArtworks = await Promise.all(
-        crawlImageResult.map(async (image) => {
+        crawlImageResult.map(async (image, index) => {
           return sharp(image.buffer)
             .resize(1366, 768, { fit: 'inside' })
             .png({ quality: 80 })
-            .toBuffer();
+            .toBuffer()
+            .catch(function (err) {
+              console.log('Error occured ', err);
+              console.log(urls[index]);
+              return image.buffer;
+            });
         })
       );
 
@@ -161,7 +183,7 @@ export class ArtworkService implements OnModuleInit {
       return this.crawlImgurImage(artWorkUrl + '.jpg');
     }
 
-    if (artWorkUrl.indexOf('drive.google.com') > 0) {
+    if (artWorkUrl.indexOf('drive.google.com/file') > 0) {
       return this.crawlGoogleDriveImage(artWorkUrl);
     }
   }
@@ -207,6 +229,33 @@ export class ArtworkService implements OnModuleInit {
         mimeType,
         buffer,
       };
+    } catch (error) {
+      this.logger.error(`cannot get image from url: ${url}`);
+      return {
+        errors: {
+          message: JSON.stringify(error),
+        },
+      };
+    }
+  }
+
+  private async crawlGoogleDriveFolder(url: string) {
+    const folderId = url.split('/')?.[5];
+    const files: any[] = [];
+    try {
+      const res: any = await this.googleService.files.list({
+        q: `'${folderId}' in parents`,
+        fields: 'nextPageToken, files(id, name)',
+        spaces: 'drive',
+      });
+
+      files.push(res.files);
+
+      res.data.files.forEach(function (file: any) {
+        console.log('Found file:', file.name, file.id);
+      });
+
+      return res.data.files;
     } catch (error) {
       this.logger.error(`cannot get image from url: ${url}`);
       return {
