@@ -70,6 +70,15 @@
     - GET
   name: Admin - Query List Manga
   url: admin/manga
+- comment: Delete Manga Collection
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete Manga Collection
+  methods:
+    - DELETE
+  name: Admin - Delete Manga Collection
+  url: admin/manga-collection/:id
 - comment: ""
   definition:
     query:

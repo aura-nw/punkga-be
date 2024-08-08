@@ -94,11 +94,11 @@ export class MangaController {
     return this.mangaSvc.getAccess(mangaId);
   }
 
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @ApiBearerAuth()
-  // @Roles(Role.Admin)
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
   @Put('manga-collection/:mangaId')
-  // @UseInterceptors(AuthUserInterceptor)
+  @UseInterceptors(AuthUserInterceptor)
   addMangaCollection(
     @Param() param:  MangaCollectionParamDto,
     @Body() data: MangaCollection,

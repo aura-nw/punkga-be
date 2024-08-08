@@ -1378,3 +1378,10 @@
               }
             }
           }
+      - name: Admin - Delete Manga Collection
+        query: |
+          mutation delete_manga_collection_by_pk ($id: Int!) {
+            delete_manga_collection_by_pk(id: $id) {
+              id
+            }
+          }
