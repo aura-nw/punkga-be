@@ -5,6 +5,7 @@
 - "!include public_banners.yaml"
 - "!include public_campaign.yaml"
 - "!include public_chains.yaml"
+- "!include public_chapter_collection.yaml"
 - "!include public_chapter_languages.yaml"
 - "!include public_chapter_total_likes.yaml"
 - "!include public_chapters.yaml"
