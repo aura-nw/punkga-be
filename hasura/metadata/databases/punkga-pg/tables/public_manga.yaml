@@ -28,6 +28,13 @@ array_relationships:
         table:
           name: chapters
           schema: public
+  - name: manga_collections
+    using:
+      foreign_key_constraint_on:
+        column: manga_id
+        table:
+          name: manga_collection
+          schema: public
   - name: manga_creators
     using:
       foreign_key_constraint_on:

@@ -286,4 +286,24 @@ export class MangaGraphql {
       variables
     );
   }
+
+  createMangaCollection(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      "",
+      `mutation insert_manga_collection($objects: [manga_collection_insert_input!] = {}) {
+        insert_manga_collection(objects: $objects, on_conflict: {constraint: manga_collection_manga_id_launchpad_id_key, update_columns: updated_at}) {
+          affected_rows
+        }
+      }`,
+      'insert_manga_collection',
+      variables,
+      headers
+    );
+  }
 }

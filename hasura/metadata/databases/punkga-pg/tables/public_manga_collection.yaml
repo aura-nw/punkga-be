@@ -1,36 +1,31 @@
 table:
-  name: i18n
+  name: manga_collection
   schema: public
 object_relationships:
-  - name: i18n_language
+  - name: collection_manga
     using:
-      foreign_key_constraint_on: language_id
+      foreign_key_constraint_on: manga_id
+  - name: manga_collection
+    using:
+      foreign_key_constraint_on: launchpad_id
 select_permissions:
   - role: anonymous
     permission:
       columns:
-        - banner_id
-        - campaign_id
-        - contest_id
         - id
-        - language_id
         - launchpad_id
-        - quest_id
-        - data
+        - manga_id
         - created_at
         - updated_at
       filter: {}
+      allow_aggregations: true
   - role: user
     permission:
       columns:
-        - banner_id
-        - campaign_id
-        - contest_id
         - id
-        - language_id
         - launchpad_id
-        - quest_id
-        - data
+        - manga_id
         - created_at
         - updated_at
       filter: {}
+      allow_aggregations: true
