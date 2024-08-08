@@ -1,0 +1,41 @@
+table:
+  name: contest
+  schema: public
+array_relationships:
+  - name: contest_artworks
+    using:
+      foreign_key_constraint_on:
+        column: contest_id
+        table:
+          name: artworks
+          schema: public
+  - name: contest_mangas
+    using:
+      foreign_key_constraint_on:
+        column: contest_id
+        table:
+          name: manga
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - slug
+        - created_at
+        - end_date
+        - start_date
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - id
+        - slug
+        - created_at
+        - end_date
+        - start_date
+        - updated_at
+      filter: {}
+      allow_aggregations: true

@@ -1,0 +1,44 @@
+table:
+  name: launchpad
+  schema: public
+object_relationships:
+  - name: launchpad_creator
+    using:
+      foreign_key_constraint_on: creator_id
+array_relationships:
+  - name: launchpad_i18ns
+    using:
+      foreign_key_constraint_on:
+        column: launchpad_id
+        table:
+          name: i18n
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - contract_address
+        - status
+        - creator_id
+        - id
+        - featured_images
+        - fund
+        - slug
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - contract_address
+        - status
+        - creator_id
+        - id
+        - featured_images
+        - fund
+        - slug
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true

@@ -12,6 +12,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 
 // import { Secp256k1HdWallet } from '@cosmjs/amino';
 import { abi as levelingAbi } from '../../abi/PunkgaReward.json';
+import { abi as launchpadAbi } from '../../abi/ERC721Drop.json';
 import { errorOrEmpty } from '../graphql/utils';
 // import { SysKeyService } from '../keys/syskey.service';
 import { RedisService } from '../redis/redis.service';
@@ -168,6 +169,19 @@ export class UserWalletService {
       return levelingContract;
     } catch (error) {
       this.logger.error('get leveling contract err', error);
+      throw error;
+    }
+  }
+
+  getLaunchpadContract(wallet: HDNodeWallet, address: string): any {
+    try {
+      // Connecting to smart contract
+      const contract = new Contract(address, launchpadAbi, this.provider);
+
+      const launchpadContract = contract.connect(wallet);
+      return launchpadContract;
+    } catch (error) {
+      this.logger.error('get launchpad contract err', error);
       throw error;
     }
   }

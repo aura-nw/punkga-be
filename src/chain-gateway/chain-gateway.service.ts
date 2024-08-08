@@ -71,6 +71,7 @@ export class ChainGatewayService {
    * @returns
    */
   updateUserXp(chain: string, walletAddress: string, level = 0, xp = 0) {
+    if (xp === 0) return undefined;
     switch (chain) {
       case 'aura':
         return this.auraClient.updateUserXp(walletAddress, level, xp);

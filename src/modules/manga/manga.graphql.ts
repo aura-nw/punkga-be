@@ -265,20 +265,23 @@ export class MangaGraphql {
     );
   }
 
-  queryCw721Tokens(token: string, network: string, variables: any) {
+  queryErc721Tokens(token: string, network: string, variables: any) {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('horosope.endpoint'),
       token,
       `query QueryCw721Tokens($owner: String = "", $smart_contracts: [String!] = "") {
-      ${network} {
-        cw721_contract(where: {smart_contract: {address: {_in: $smart_contracts}}}) {
-          id
-          cw721_tokens(where: {burned: {_eq: false}, owner: {_eq: $owner}}) {
-            token_id
+        ${network} {
+          erc721_contract(where: {evm_smart_contract: {address: {_in: $smart_contracts}}}) {
+            evm_smart_contract {
+              id
+            }
+            erc721_tokens(where: {owner: {_eq: $owner}}) {
+              owner
+              token_id
+            }
           }
         }
-      }
-    }`,
+      }`,
       'QueryCw721Tokens',
       variables
     );

@@ -7,7 +7,7 @@ export class CreatorGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
 
   queryCreatorByIdOrSlug(variables: any) {
     return this.graphqlSvc.query(
