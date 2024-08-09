@@ -150,9 +150,14 @@ export class ArtworkService implements OnModuleInit {
       );
 
       // upload images
+      const filenames: string[] = [];
       const uploadResult = await Promise.all(
         crawlImageResult.map((image, index) => {
-          const keyName = `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`;
+          const filename = `${contest_round}-${index}-${Number(
+            new Date()
+          ).toString()}.jpg`;
+          filenames.push(filename);
+          const keyName = `${s3SubFolder}/creator-${creatorId}/artworks/${filename}`;
           return this.fileService.uploadToS3(
             keyName,
             resizedArtworks[index],
@@ -161,13 +166,13 @@ export class ArtworkService implements OnModuleInit {
         })
       );
 
-      const newArtworks = uploadResult.map((data, index: number) => ({
+      const newArtworks = filenames.map((filename, index: number) => ({
         contest_id,
         contest_round,
         creator_id: creatorId,
         source_url: vaidArtworks.join(','),
         url: new URL(
-          `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`,
+          `${s3SubFolder}/creator-${creatorId}/artworks/${filename}`,
           this.configService.get<string>('aws.queryEndpoint')
         ).href,
       }));
