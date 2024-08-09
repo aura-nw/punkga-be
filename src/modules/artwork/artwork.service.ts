@@ -104,7 +104,8 @@ export class ArtworkService implements OnModuleInit {
       // upload image to s3
       const crawlPromises = [];
       const urls = [];
-      vaidArtworks.forEach(async (artwork: string) => {
+      for (const artwork of vaidArtworks) {
+        // vaidArtworks.forEach(async (artwork: string) => {
         if (artwork.indexOf('drive.google.com/drive/folders') > 0) {
           // get all file in google drive folder
           const files = await this.crawlGoogleDriveFolder(artwork);
@@ -125,7 +126,7 @@ export class ArtworkService implements OnModuleInit {
           urls.push(artwork);
           crawlPromises.push(this.crawlImage(artwork));
         }
-      });
+      }
       const crawlImageResult = (await Promise.all(crawlPromises)).filter(
         (result) => result.buffer
       );
@@ -149,7 +150,7 @@ export class ArtworkService implements OnModuleInit {
       );
 
       // upload images
-      await Promise.all(
+      const uploadResult = await Promise.all(
         crawlImageResult.map((image, index) => {
           const keyName = `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`;
           return this.fileService.uploadToS3(
@@ -160,18 +161,16 @@ export class ArtworkService implements OnModuleInit {
         })
       );
 
-      const newArtworks = vaidArtworks.map(
-        (artwork: string, index: number) => ({
-          contest_id,
-          contest_round,
-          creator_id: creatorId,
-          source_url: artwork,
-          url: new URL(
-            `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`,
-            this.configService.get<string>('aws.queryEndpoint')
-          ).href,
-        })
-      );
+      const newArtworks = uploadResult.map((data, index: number) => ({
+        contest_id,
+        contest_round,
+        creator_id: creatorId,
+        source_url: vaidArtworks.join(','),
+        url: new URL(
+          `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`,
+          this.configService.get<string>('aws.queryEndpoint')
+        ).href,
+      }));
 
       const insertArtworkResult = await this.artworkGraphql.insertArtwork(
         {
