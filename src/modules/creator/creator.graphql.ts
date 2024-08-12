@@ -9,6 +9,23 @@ export class CreatorGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  queryCreatorIdByUserId(variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query getCreatorIdByUserId($id: bpchar!) {
+          authorizer_users_by_pk(id: $id) {
+            creator {
+              id
+            }
+          }
+        }
+        `,
+      'getCreatorIdByUserId',
+      variables
+    );
+  }
+
   queryCreatorByIdOrSlug(variables: any) {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),

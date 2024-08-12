@@ -15,7 +15,7 @@ export class CreatorService {
   constructor(
     private filesService: FilesService,
     private creatorGraphql: CreatorGraphql
-  ) { }
+  ) {}
 
   async get(slug: string) {
     const { id, slug: mangaSlug } = detectSlugOrId(slug);
@@ -34,7 +34,8 @@ export class CreatorService {
   ) {
     try {
       const { token } = ContextProvider.getAuthUser();
-      const { name, bio, socials, pen_name, gender, dob, wallet_address } = data;
+      const { name, bio, socials, pen_name, gender, dob, wallet_address } =
+        data;
 
       // insert creator to DB
       const result = await this.creatorGraphql.addCreator(token, {
@@ -44,7 +45,7 @@ export class CreatorService {
         pen_name,
         gender,
         dob,
-        wallet_address
+        wallet_address,
       });
 
       if (result.errors && result.errors.length > 0) {
@@ -80,6 +81,20 @@ export class CreatorService {
     }
   }
 
+  async updateCreator(
+    data: UpdateCreatorRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
+    const { userId, token } = ContextProvider.getAuthUser();
+    const result = await this.creatorGraphql.queryCreatorIdByUserId({
+      id: userId,
+    });
+    if (result.errors) return result;
+
+    const creatorId = result.data.authorizer_users_by_pk.creator.id;
+    return this.update(creatorId, data, files);
+  }
+
   async update(
     creatorId: number,
     data: UpdateCreatorRequestDto,
@@ -87,7 +102,8 @@ export class CreatorService {
   ) {
     try {
       const { token } = ContextProvider.getAuthUser();
-      const { name, socials, pen_name, bio, gender, dob, wallet_address } = data;
+      const { name, socials, pen_name, bio, gender, dob, wallet_address } =
+        data;
 
       const result = await this.creatorGraphql.queryCreatorById(token, {
         id: creatorId,
@@ -121,7 +137,7 @@ export class CreatorService {
         gender,
         dob,
         avatar_url: avatarUrl,
-        wallet_address
+        wallet_address,
       });
 
       return updateResult;

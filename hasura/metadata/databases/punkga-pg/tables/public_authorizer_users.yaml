@@ -9,6 +9,15 @@ object_relationships:
         table:
           name: user_wallet
           schema: public
+  - name: creator
+    using:
+      manual_configuration:
+        column_mapping:
+          email: email
+        insertion_order: null
+        remote_table:
+          name: creators
+          schema: public
 array_relationships:
   - name: authorizer_users_social_activities
     using:

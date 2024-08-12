@@ -11,7 +11,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { AuthGuard } from '../../auth/auth.guard';
 import { Role } from '../../auth/role.enum';
@@ -26,11 +31,15 @@ import {
   UpdateCreatorRequestDto,
 } from './dto/update-creator-request.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { CreatorGraphql } from './creator.graphql';
 
 @Controller('creator')
 @ApiTags('creator')
 export class CreatorController {
-  constructor(private readonly creatorSvc: CreatorService) { }
+  constructor(
+    private readonly creatorSvc: CreatorService,
+    private readonly creatorGraphql: CreatorGraphql
+  ) {}
 
   @Get(':slug')
   @UseInterceptors(CacheInterceptor)
@@ -56,6 +65,7 @@ export class CreatorController {
   @Roles(Role.Admin)
   @Put(':creatorId')
   @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'for admin role' })
   @UseInterceptors(
     AuthUserInterceptor,
     ClassSerializerInterceptor,
@@ -68,5 +78,24 @@ export class CreatorController {
   ) {
     const { creatorId } = param;
     return this.creatorSvc.update(creatorId, data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Creator)
+  @Put()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'for creator role' })
+  @UseInterceptors(
+    AuthUserInterceptor,
+    ClassSerializerInterceptor,
+    AnyFilesInterceptor()
+  )
+  updateCreator(
+    @Param() param: UpdateCreatorParamDto,
+    @Body() data: UpdateCreatorRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.creatorSvc.updateCreator(data, files);
   }
 }
