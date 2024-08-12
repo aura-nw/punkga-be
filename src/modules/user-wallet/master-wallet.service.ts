@@ -19,7 +19,7 @@ import { IChainInfo } from '../quest/interface/ichain-info';
 export class MasterWalletService implements OnModuleInit {
   private readonly logger = new Logger(MasterWalletService.name);
   private masterHDWallet: HDNodeWallet = null;
-  private masterWalletAddress = '';
+  masterWalletAddress = '';
   private levelingContractMap: Map<string, Contract> = new Map();
   private chains: IChainInfo[] = [];
 
@@ -67,7 +67,7 @@ export class MasterWalletService implements OnModuleInit {
     }
   }
 
-  async getMasterWallet() {
+  getMasterWallet() {
     if (this.masterHDWallet && this.masterWalletAddress) {
       return {
         wallet: this.masterHDWallet,

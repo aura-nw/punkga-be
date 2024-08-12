@@ -1,9 +1,9 @@
 import { ConfigService } from '@nestjs/config';
-import { GraphqlService } from '../graphql/graphql.service';
 import { Injectable } from '@nestjs/common';
+import { GraphqlService } from '../modules/graphql/graphql.service';
 
 @Injectable()
-export class SystemCustodialWalletGraphql {
+export class ChainGatewayGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
@@ -54,7 +54,7 @@ export class SystemCustodialWalletGraphql {
     return result;
   }
 
-  async getGranterWallet() {
+  async getGranterWallet(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
@@ -63,8 +63,8 @@ export class SystemCustodialWalletGraphql {
     const result = await this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query system_custodial_wallet {
-        system_custodial_wallet(where: {type: {_eq: "GRANTER"}}) {
+      `query system_custodial_wallet($chain: String!) {
+        system_custodial_wallet(where: {type: {_eq: "GRANTER"}, chain: {_eq: $chain}}) {
           id
           address
           data
@@ -74,7 +74,7 @@ export class SystemCustodialWalletGraphql {
       }
       `,
       'system_custodial_wallet',
-      {},
+      variables,
       headers
     );
 

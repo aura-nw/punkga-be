@@ -9,7 +9,7 @@ export class KeysGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) { }
+  ) {}
 
   async queryEncryptedSeed() {
     const headers = {
@@ -59,7 +59,7 @@ export class KeysGraphql {
       headers
     );
 
-    this.logger.debug(result);
+    this.logger.debug(`Insert system key result: ${JSON.stringify(result)}`);
     if (result.data?.insert_system_key?.affected_rows > 0) {
       this.logger.debug(`Insert system key success`);
     } else {
@@ -85,7 +85,7 @@ export class KeysGraphql {
       'update_system_key_by_pk',
       {
         id,
-        encrypted_mnemonic: encryptedMnemonic
+        encrypted_mnemonic: encryptedMnemonic,
       },
       headers
     );
@@ -116,7 +116,7 @@ export class KeysGraphql {
       'insert_system_key',
       {
         encrypted_seed: encryptedSeed,
-        encrypted_mnemonic: encryptedMnemonic
+        encrypted_mnemonic: encryptedMnemonic,
       },
       headers
     );

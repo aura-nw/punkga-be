@@ -65,14 +65,14 @@ export class UserWalletProcessor implements OnModuleInit {
         let chain = 'aura';
 
         if (currentChain.name.toLocaleLowerCase().includes('klaytn')) {
-          this.chainGatewaySvc.configuaration(
+          this.chainGatewaySvc.configuration(
             'klaytn',
             currentChain.rpc,
             currentChain.contracts.leveling_contract
           );
           chain = 'klaytn';
         } else if (currentChain.name.toLocaleLowerCase().includes('aura')) {
-          this.chainGatewaySvc.configuaration(
+          this.chainGatewaySvc.configuration(
             'aura',
             currentChain.rpc,
             currentChain.contracts.leveling_contract

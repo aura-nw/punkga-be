@@ -1,0 +1,2 @@
+alter table "public"."system_custodial_wallet" add column "cipher_prv_key" text
+ null;

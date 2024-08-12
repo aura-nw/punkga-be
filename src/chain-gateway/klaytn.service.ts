@@ -1,38 +1,170 @@
 import axios from 'axios';
-import { Injectable } from '@nestjs/common';
+import { Contract, JsonRpcProvider } from 'ethers';
+
+import {
+  JsonRpcProvider as KlaytnJsonRpcProvider,
+  Wallet as KlaytnWallet,
+} from '@kaiachain/ethers-ext';
+import { formatKaiaUnits, TxType } from '@kaiachain/js-ext-core';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
+import { abi as levelingAbi } from '../abi/PunkgaReward.json';
+import { SysKeyService } from '../modules/keys/syskey.service';
+import { SystemCustodialWalletService } from '../modules/system-custodial-wallet/system-custodial-wallet.service';
+import { MasterWalletService } from '../modules/user-wallet/master-wallet.service';
+import { UserWalletService } from '../modules/user-wallet/user-wallet.service';
+import { ChainGatewayGraphql } from './chain-gateway.graphql';
 import {
   IAccountBalance,
   ICustodialWalletAsset,
   ICw721Token,
 } from './interfaces/account-onchain.interface';
-import { SystemCustodialWalletService } from '../modules/system-custodial-wallet/system-custodial-wallet.service';
-import { MasterWalletService } from '../modules/user-wallet/master-wallet.service';
-import { UserWalletService } from '../modules/user-wallet/user-wallet.service';
-import { JsonRpcProvider, formatUnits } from 'ethers';
 
 @Injectable()
 export class KlaytnClientService {
+  private readonly logger = new Logger(KlaytnClientService.name);
   private provider: JsonRpcProvider;
+  private klaytnProvider: KlaytnJsonRpcProvider;
   private levelingContractAddress: string;
+  private klaytnGranterWallet: KlaytnWallet = null;
+  private klaytnMasterWallet: KlaytnWallet = null;
 
   constructor(
     private configSvc: ConfigService,
-    private systemWalletSvc: SystemCustodialWalletService,
     private masterWalletService: MasterWalletService,
-    private userWalletService: UserWalletService
+    private chainGatewayGraphql: ChainGatewayGraphql,
+    private sysKeyService: SysKeyService,
+    private userWalletService: UserWalletService,
+    private systemWalletSvc: SystemCustodialWalletService
   ) {}
+
+  // async onModuleInit() {
+  //   await this.initKlaytnGranterWallet();
+  // }
+
+  // async initKlaytnGranterWallet() {
+  //   // get from db
+  //   const granterWalletData = await this.chainGatewayGraphql.getGranterWallet({
+  //     chain: 'klaytn',
+  //   });
+  //   if (granterWalletData) {
+  //     const privateKey = this.sysKeyService.decrypt(
+  //       granterWalletData.cipher_prv_key
+  //     );
+  //     const wallet = new Wallet(privateKey, this.provider);
+
+  //     this.granterWallet = wallet;
+
+  //     if (!granterWalletData.cipher_prv_key) {
+  //       const updateResult = this.chainGatewayGraphql.updateGranterWallet({
+  //         id: granterWalletData.id,
+  //         data: {
+  //           cipher_prv_key: this.sysKeyService.cipher(
+  //             this.granterWallet.privateKey
+  //           ),
+  //           public_key: wallet.publicKey,
+  //         },
+  //       });
+
+  //       this.logger.debug(
+  //         `Update granter wallet result: ${JSON.stringify(updateResult)}`
+  //       );
+  //     }
+  //   } else {
+  //     const wallet = Wallet.createRandom(this.provider);
+  //     // const { wallet, address, cipherPhrase, cipherPrvKey } =
+  //     //   await this.sysKeyService.randomWallet();
+
+  //     this.granterWallet = wallet;
+
+  //     // store db
+  //     const result = await this.chainGatewayGraphql.insertGranterWallet({
+  //       objects: [
+  //         {
+  //           address: wallet.address,
+  //           cipher_prv_key: this.sysKeyService.cipher(wallet.privateKey),
+  //           public_key: wallet.publicKey,
+  //           data: this.sysKeyService.cipher(wallet.mnemonic.phrase),
+  //           type: 'GRANTER',
+  //           chain: 'klaytn',
+  //         },
+  //       ],
+  //     });
+
+  //     this.logger.debug(`Insert granter wallet: ${JSON.stringify(result)}`);
+  //   }
+
+  //   this.logger.debug(`private: ${this.granterWallet.privateKey}`);
+  //   this.logger.debug(`public ${this.granterWallet.publicKey}`);
+  // }
 
   configuration(rpc: string, levelingContractAddress: string) {
     this.provider = new JsonRpcProvider(rpc);
+    this.klaytnProvider = new KlaytnJsonRpcProvider(rpc);
     this.levelingContractAddress = levelingContractAddress;
+
+    this.loadKlaytnWallet();
+  }
+
+  loadKlaytnWallet() {
+    if (!this.klaytnGranterWallet) {
+      this.klaytnGranterWallet = new KlaytnWallet(
+        this.systemWalletSvc.granterWallet.privateKey,
+        this.klaytnProvider
+      );
+    }
+
+    if (!this.klaytnMasterWallet) {
+      this.klaytnMasterWallet = new KlaytnWallet(
+        this.masterWalletService.getMasterWallet().wallet.privateKey,
+        this.klaytnProvider
+      );
+    }
+
+    // this.logger.debug(`private: ${this.granterWallet.privateKey}`);
+    this.logger.debug(`public ${this.klaytnGranterWallet.publicKey}`);
+  }
+
+  async feeDelegatedUpdateUserXp(
+    walletAddress: string,
+    level = 0,
+    xp = 0
+  ): Promise<string> {
+    const contract = new Contract(this.levelingContractAddress, levelingAbi);
+    const data = (
+      await contract.getFunction('updateUserInfo')(walletAddress, level, xp)
+    ).data;
+
+    let tx = {
+      type: TxType.FeeDelegatedSmartContractExecution,
+      from: this.klaytnMasterWallet.address,
+      to: this.levelingContractAddress,
+      value: 0,
+      data,
+    };
+
+    // Sign transaction by sender
+    const populatedTx = await this.klaytnMasterWallet.populateTransaction(tx);
+    const senderTxHashRLP = await this.klaytnMasterWallet.signTransaction(
+      populatedTx
+    );
+    console.log('senderTxHashRLP', senderTxHashRLP);
+
+    // Sign and send transaction by fee payer
+    const sentTx = await this.klaytnGranterWallet.sendTransactionAsFeePayer(
+      senderTxHashRLP
+    );
+    const receipt = await sentTx.wait();
+
+    return receipt.transactionHash;
   }
 
   async getWalletAsset(address: string) {
     // get native token balance
     const ethbalance = await this.provider.getBalance(address);
     const balance = {
-      amount: formatUnits(ethbalance, 'ether'),
+      amount: formatKaiaUnits(ethbalance, 'ether'),
       denom: '',
     } as IAccountBalance;
 

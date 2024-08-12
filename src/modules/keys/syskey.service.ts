@@ -66,12 +66,22 @@ export class SysKeyService implements OnModuleInit {
     const phrase = wallet.mnemonic.phrase;
 
     const cipherPhrase = Crypter.encrypt(phrase, this.originalSeed);
+    const cipherPrvKey = Crypter.encrypt(wallet.privateKey, this.originalSeed);
 
     return {
       wallet,
       cipherPhrase,
+      cipherPrvKey,
       address: wallet.address,
     };
+  }
+
+  cipher(value: string) {
+    return Crypter.encrypt(value, this.originalSeed);
+  }
+
+  decrypt(value: string) {
+    return Crypter.decrypt(value, this.originalSeed);
   }
 
   generateWallet() {

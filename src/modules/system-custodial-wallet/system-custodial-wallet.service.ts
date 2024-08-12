@@ -9,7 +9,7 @@ import { MasterWalletService } from '../user-wallet/master-wallet.service';
 @Injectable()
 export class SystemCustodialWalletService implements OnModuleInit {
   private readonly logger = new Logger(SystemCustodialWalletService.name);
-  private granterWallet: HDNodeWallet = null;
+  granterWallet: HDNodeWallet = null;
   private granterWalletAddress: string;
 
   constructor(
@@ -26,8 +26,6 @@ export class SystemCustodialWalletService implements OnModuleInit {
   async initGranterWallet() {
     // get from db
     const granterWalletData = await this.walletGraphql.getGranterWallet();
-    const providerUrl = this.configService.get<string>('network.rpcEndpoint');
-
     if (granterWalletData) {
       const phrase = this.masterWalletService.decryptPhrase(
         granterWalletData.data
@@ -36,8 +34,24 @@ export class SystemCustodialWalletService implements OnModuleInit {
 
       this.granterWallet = wallet;
       this.granterWalletAddress = wallet.address;
+
+      if (!granterWalletData.cipher_prv_key) {
+        const updateResult = this.walletGraphql.updateGranterWallet({
+          id: granterWalletData.id,
+          data: {
+            cipher_prv_key: this.sysKeyService.cipher(
+              this.granterWallet.privateKey
+            ),
+            public_key: wallet.publicKey,
+          },
+        });
+
+        this.logger.debug(
+          `Update granter wallet result: ${JSON.stringify(updateResult)}`
+        );
+      }
     } else {
-      const { wallet, address, cipherPhrase } =
+      const { wallet, address, cipherPhrase, cipherPrvKey } =
         await this.sysKeyService.randomWallet();
 
       this.granterWallet = wallet;
@@ -48,11 +62,14 @@ export class SystemCustodialWalletService implements OnModuleInit {
         objects: [
           {
             address,
+            cipher_prv_key: cipherPrvKey,
+            public_key: wallet.publicKey,
             data: cipherPhrase,
             type: 'GRANTER',
           },
         ],
       });
+
       this.logger.debug(`Insert granter wallet: ${JSON.stringify(result)}`);
     }
   }

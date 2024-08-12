@@ -6,6 +6,8 @@ import { UserWalletModule } from '../modules/user-wallet/user-wallet.module';
 import { SystemCustodialWalletModule } from '../modules/system-custodial-wallet/system-custodial-wallet.module';
 import { ChainGatewayService } from './chain-gateway.service';
 import { AuraClientService } from './aura.service';
+import { ChainGatewayGraphql } from './chain-gateway.graphql';
+import { SysKeyModule } from '../modules/keys/syskey.module';
 
 @Module({
   imports: [
@@ -13,8 +15,14 @@ import { AuraClientService } from './aura.service';
     GraphqlModule,
     UserWalletModule,
     SystemCustodialWalletModule,
+    SysKeyModule,
   ],
-  providers: [ChainGatewayService, KlaytnClientService, AuraClientService],
+  providers: [
+    ChainGatewayService,
+    KlaytnClientService,
+    AuraClientService,
+    ChainGatewayGraphql,
+  ],
   controllers: [],
   exports: [ChainGatewayService],
 })

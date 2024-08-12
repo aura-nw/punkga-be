@@ -15,7 +15,7 @@ export class ChainGatewayService {
    * @param rpc
    * @returns
    */
-  configuaration(chain: string, rpc: string, contractAddress: string) {
+  configuration(chain: string, rpc: string, contractAddress: string) {
     switch (chain) {
       case 'aura':
         return this.auraClient.configuration(rpc, contractAddress);
