@@ -1290,13 +1290,6 @@
               id
             }
           }
-      - name: Admin - Delete Chapter Collection
-        query: |
-          mutation delete_chapter_collection_by_pk ($id: Int!) {
-            delete_chapter_collection_by_pk(id: $id) {
-              id
-            }
-          }
       - name: Admin - Insert Chapter Collection
         query: |
           mutation MyMutation ($objects: [chapter_collection_insert_input!] = {}) {
@@ -1447,5 +1440,12 @@
                   created_at
                 }
               }
+            }
+          }
+      - name: Admin - Delete Chapter Collection
+        query: |
+          mutation delete_chapter_collection_by_pk ($id: Int!) {
+            delete_chapter_collection_by_pk(id: $id) {
+              id
             }
           }
