@@ -34,15 +34,6 @@
     - GET
   name: Admin - Query campaign detail
   url: admin/campaign/:id
-- comment: Delete Chapter Collection
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Admin - Delete Chapter Collection
-  methods:
-    - DELETE
-  name: Admin - Delete Chapter Collection
-  url: admin/chapter-collection
 - comment: "Insert Chapter Collection\nchapter_collection_insert_input:{\nchapter_id: Int!, \nlaunchpad_id: Int!\n}"
   definition:
     query:
@@ -52,6 +43,15 @@
     - POST
   name: Admin - Insert Chapter Collection
   url: admin/chapter-collection
+- comment: Delete Chapter Collection
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete Chapter Collection
+  methods:
+    - DELETE
+  name: Admin - Delete Chapter Collection
+  url: admin/chapter-collection/:id
 - comment: ""
   definition:
     query:
