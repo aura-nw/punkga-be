@@ -1360,9 +1360,16 @@
               }
             }
           }
+      - name: Admin - Delete Chapter Collection
+        query: |
+          mutation delete_chapter_collection_by_pk ($id: Int!) {
+            delete_chapter_collection_by_pk(id: $id) {
+              id
+            }
+          }
       - name: Admin - Get manga detail
         query: |
-          query GetMangaReadingDetail ($id: Int = 1) {
+          query GetMangaReadingDetail ($id: Int = 28) {
             manga_by_pk(id: $id) {
               id
               poster
@@ -1428,7 +1435,6 @@
                     slug
                     id
                   }
-                  id
                   launchpad_i18ns {
                     data(path: "name")
                     language_id
@@ -1439,13 +1445,7 @@
                   updated_at
                   created_at
                 }
+                id
               }
-            }
-          }
-      - name: Admin - Delete Chapter Collection
-        query: |
-          mutation delete_chapter_collection_by_pk ($id: Int!) {
-            delete_chapter_collection_by_pk(id: $id) {
-              id
             }
           }
