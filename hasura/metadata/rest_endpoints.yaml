@@ -115,7 +115,7 @@
     - PUT
   name: Admin - Update manga status
   url: admin/manga/:id
-- comment: ""
+- comment: Get manga detail
   definition:
     query:
       collection_name: allowed-queries

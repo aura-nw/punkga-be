@@ -53,7 +53,6 @@ export class LaunchpadService {
         fund,
         contract_address,
       } = data;
-      const slug = generateSlug(name);
       const relate_key_words = [name, name_in_vn];
       // insert db
       const result = await this.launchpadGraphql.insert({
@@ -62,11 +61,11 @@ export class LaunchpadService {
           status: LaunchpadStatus.Draft,
           fund,
           contract_address,
-          slug,
           relate_key_words,
         },
       });
-
+      const mangaId = result.data.insert_launchpad_one.id;
+      const slug = generateSlug(name,mangaId);
       if (result.errors) return result;
 
       const launchpadId = result.data.insert_launchpad_one.id;
@@ -123,6 +122,7 @@ export class LaunchpadService {
       const updateResult = await this.launchpadGraphql.update({
         id: launchpadId,
         data: {
+          slug,
           featured_images,
         },
       });
