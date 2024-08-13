@@ -92,6 +92,7 @@ export class ChapterService {
         chapter_type,
         pushlish_date,
         status,
+        collection_ids,
       } = data;
       const chapter_images = plainToInstance(
         ChapterImage,
@@ -171,7 +172,15 @@ export class ChapterService {
           return updateResult;
         }
       }
-
+      const collectionIdListStr = collection_ids.toString().split(',');
+      let collectionIdList = Array.from(collectionIdListStr,Number)
+      const updateResult = await this.addChapterCollection(
+        chapterId,
+        collectionIdList
+      );
+      if (updateResult.errors && updateResult.errors.length > 0) {
+        return updateResult;
+      }
       return result.data;
     } catch (errors) {
       return {
@@ -398,6 +407,31 @@ export class ChapterService {
       return result;
     } catch (errors) {
       this.logger.error(errors);
+      return {
+        errors,
+      };
+    }
+  }
+  async addChapterCollection(chapterId: Number, collectionIdList: number[]) {
+    try {
+      // const { token } = ContextProvider.getAuthUser();
+      const objects = [];
+      // update chapter collection in DB
+      await Promise.all(
+        collectionIdList.map((collectionId) => {
+          const o = {
+            chapter_id: chapterId,
+            launchpad_id: collectionId,
+          };
+          objects.push(o);
+        })
+      );
+      const updateResponse = await this.chapterGraphql.createChapterCollection({
+        objects,
+      });
+
+      return updateResponse;
+    } catch (errors) {
       return {
         errors,
       };
