@@ -15,7 +15,7 @@ export class ChapterGraphql {
       token,
       `query GetChapterInfo($id: Int!) {
         chapters_by_pk(id: $id) {
-          manga_id
+          chapter_id
           chapter_number
           thumbnail_url
           chapter_languages {
@@ -123,6 +123,32 @@ export class ChapterGraphql {
       {
         id: chapterId,
       }
+    );
+  }
+
+  createChapterCollection(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      "",
+      `mutation insert_chapter_collection($objects: [chapter_collection_insert_input!] = {}) {
+        insert_chapter_collection(objects: $objects, on_conflict: {constraint: chapter_collection_chapter_id_launchpad_id_key, update_columns: chapter_id}) {
+          affected_rows
+          returning {
+            chapter_id
+            created_at
+            id
+            launchpad_id
+          }
+        }
+      }`,
+      'insert_chapter_collection',
+      variables,
+      headers
     );
   }
 }
