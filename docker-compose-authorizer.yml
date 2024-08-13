@@ -22,7 +22,7 @@ services:
       DEFAULT_ROLES: user
       PROTECTED_ROLES: creator,admin
       ACCESS_TOKEN_EXPIRY_TIME: 3h
-      CUSTOM_ACCESS_TOKEN_SCRIPT: function(user,tokenPayload) {var data = tokenPayload;  data['https://hasura.io/jwt/claims'] = {'x-hasura-user-id':user.id,'x-hasura-default-role':tokenPayload.allowed_roles[0], 'x-hasura-allowed-roles':user.roles  };  return data;}
+      CUSTOM_ACCESS_TOKEN_SCRIPT: function(user,tokenPayload) {var data = tokenPayload;  data['https://hasura.io/jwt/claims'] = {'x-hasura-user-id':user.id,'x-hasura-default-role':tokenPayload.allowed_roles[0], 'x-hasura-allowed-roles':user.roles, 'x-hasura-user-email':user.email  };  return data;}
       ZALO_APP_ID: 2318977898294005000
       ZALO_APP_SECRET: JmS4L81B99c5cp2sbnSw
       PORT: 8090
