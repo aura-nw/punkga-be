@@ -66,3 +66,30 @@ select_permissions:
       filter: {}
       limit: 20
       allow_aggregations: true
+update_permissions:
+  - role: creator
+    permission:
+      columns:
+        - isActive
+        - id
+        - subcribers
+        - socials
+        - avatar_url
+        - bio
+        - dob
+        - email
+        - gender
+        - name
+        - pen_name
+        - slug
+        - wallet_address
+        - created_at
+        - updated_at
+      filter:
+        email:
+          _eq: X-Hasura-User-Email
+      check: null
+delete_permissions:
+  - role: creator
+    permission:
+      filter: {}
