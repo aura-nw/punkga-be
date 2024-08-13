@@ -43,8 +43,18 @@ export class CreatorController {
 
   @Get(':slug')
   @UseInterceptors(CacheInterceptor)
-  get(@Param() param: GetCreatorParamDto) {
+  getBySlug(@Param() param: GetCreatorParamDto) {
     return this.creatorSvc.get(param.slug);
+  }
+
+  @Get()
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Creator)
+  @ApiOperation({ summary: 'for creator role' })
+  @UseInterceptors(CacheInterceptor, AuthUserInterceptor)
+  get() {
+    return this.creatorSvc.getCreator();
   }
 
   @UseGuards(AuthGuard, RolesGuard)

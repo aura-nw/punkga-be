@@ -17,13 +17,28 @@ export class CreatorService {
     private creatorGraphql: CreatorGraphql
   ) {}
 
-  async get(slug: string) {
-    const { id, slug: mangaSlug } = detectSlugOrId(slug);
-
-    const result = await this.creatorGraphql.queryCreatorByIdOrSlug({
-      id,
-      slug: mangaSlug,
+  async getCreator() {
+    const { userId, token } = ContextProvider.getAuthUser();
+    const result = await this.creatorGraphql.queryCreatorIdByUserId({
+      id: userId,
     });
+    if (result.errors) return result;
+
+    const creatorId = result.data.authorizer_users_by_pk.creator.id;
+    return this.get(creatorId);
+  }
+
+  async get(keyword: string) {
+    const { id, slug } = detectSlugOrId(keyword);
+
+    const param = id > 0 ? '$id: Int!' : '$slug: String!';
+    const whereCondition = id > 0 ? 'id: {_eq: $id}' : 'slug: {_eq: $slug}';
+    const variables = id > 0 ? { id } : { slug };
+    const result = await this.creatorGraphql.queryCreatorByIdOrSlug(
+      param,
+      whereCondition,
+      variables
+    );
 
     return result;
   }

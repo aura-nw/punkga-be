@@ -26,12 +26,12 @@ export class CreatorGraphql {
     );
   }
 
-  queryCreatorByIdOrSlug(variables: any) {
+  queryCreatorByIdOrSlug(param: string, condition: string, variables: any) {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query QueryCreatorByIdOrSlug($id: Int = 0, $slug: String = "") {
-        creators(where: {_or: [{id: {_eq: $id}}, {slug: {_eq: $slug}}]}) {
+      `query QueryCreatorByIdOrSlug(${param}) {
+        creators(where: {${condition}}) {
           id
           slug
           avatar_url
