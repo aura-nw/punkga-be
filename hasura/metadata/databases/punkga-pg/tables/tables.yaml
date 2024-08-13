@@ -1,3 +1,4 @@
+- "!include public_albums.yaml"
 - "!include public_artworks.yaml"
 - "!include public_authorizer_sessions.yaml"
 - "!include public_authorizer_users.yaml"
