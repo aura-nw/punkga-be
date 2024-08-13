@@ -1290,19 +1290,6 @@
               id
             }
           }
-      - name: Admin - Insert Chapter Collection
-        query: |
-          mutation MyMutation ($objects: [chapter_collection_insert_input!] = {}) {
-            insert_chapter_collection(objects: $objects, on_conflict: {constraint:chapter_collection_chapter_id_launchpad_id_key,update_columns:chapter_id}) {
-              affected_rows
-              returning {
-                chapter_id
-                created_at
-                id
-                launchpad_id
-              }
-            }
-          }
       - name: Admin - Delete Chapter Collection
         query: |
           mutation delete_chapter_collection_by_pk ($id: Int!) {
@@ -1427,6 +1414,19 @@
                   created_at
                 }
                 chapter_id
+                launchpad_id
+              }
+            }
+          }
+      - name: Admin - Insert Chapter Collection
+        query: |
+          mutation insert_chapter_collection ($objects: [chapter_collection_insert_input!] = {}) {
+            insert_chapter_collection(objects: $objects, on_conflict: {constraint:chapter_collection_chapter_id_launchpad_id_key,update_columns:chapter_id}) {
+              affected_rows
+              returning {
+                chapter_id
+                created_at
+                id
                 launchpad_id
               }
             }
