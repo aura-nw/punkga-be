@@ -76,7 +76,7 @@ export class ChapterController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.User)
+  @Roles(Role.User,Role.Admin)
   @Get(':chapterId/protected')
   @UseInterceptors(AuthUserInterceptor)
   view(@Param() data: ViewProtectedChapterRequestDto) {

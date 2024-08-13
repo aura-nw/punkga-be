@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { GraphqlService } from '../graphql/graphql.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class ChapterGraphql {
@@ -15,12 +15,17 @@ export class ChapterGraphql {
       token,
       `query GetChapterInfo($id: Int!) {
         chapters_by_pk(id: $id) {
-          chapter_id
+          id
           chapter_number
           thumbnail_url
           chapter_languages {
             detail
             language_id
+          }
+          chapter_collections {
+            chapter_collection {
+              contract_address
+            }
           }
         }
       }`,
@@ -150,5 +155,105 @@ export class ChapterGraphql {
       variables,
       headers
     );
+  }
+
+  queryErc721Tokens(token: string, network: string, variables: any) {
+    return this.graphqlSvc.query(
+      this.configService.get<string>('horosope.endpoint'),
+      token,
+      `query QueryCw721Tokens($owner: String = "", $smart_contracts: [String!] = "") {
+        ${network} {
+          erc721_contract(where: {evm_smart_contract: {address: {_in: $smart_contracts}}}) {
+            evm_smart_contract {
+              id
+            }
+            erc721_tokens(where: {owner: {_eq: $owner}}) {
+              owner
+              token_id
+            }
+          }
+        }
+      }`,
+      'QueryCw721Tokens',
+      variables
+    );
+  }
+
+  async queryUserAddress(token: string): Promise<string> {
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      token,
+      `query GetUserProfile {
+        authorizer_users(limit: 1) {
+          id
+          email
+          email_verified_at
+          bio
+          birthdate
+          gender
+          active_wallet_address: active_evm_address
+          wallet_address
+          nickname
+          picture
+          signup_methods
+          levels {
+            xp
+            level
+            user_level_chain {
+              id
+              name
+              punkga_config
+            }
+          }
+          authorizer_users_user_wallet {
+            address
+          }
+          user_quests_aggregate {
+            aggregate {
+              count
+            }
+          }
+          user_quests(order_by: {created_at:desc}, limit: 20) {
+            created_at
+            status
+            user_quest_rewards {
+              tx_hash
+            }
+            quest {
+              id
+              name
+              quests_campaign {
+                campaign_chain {
+                  punkga_config
+                }
+              }
+              quests_i18n {
+                id
+                quest_id
+                language_id
+                data
+                i18n_language {
+                  id
+                  description
+                  icon
+                  is_main
+                  symbol
+                }
+              }
+              reward
+            }
+          }
+        }
+      }
+      `,
+      'GetUserProfile',
+      {}
+    );
+
+    if (result.data.authorizer_users[0]?.active_wallet_address) {
+      return result.data.authorizer_users[0]?.active_wallet_address;
+    } else {
+      throw new NotFoundException('wallet address not found');
+    }
   }
 }
