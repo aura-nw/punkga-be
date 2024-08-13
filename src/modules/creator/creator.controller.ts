@@ -102,7 +102,6 @@ export class CreatorController {
     AnyFilesInterceptor()
   )
   updateCreator(
-    @Param() param: UpdateCreatorParamDto,
     @Body() data: UpdateCreatorRequestDto,
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
