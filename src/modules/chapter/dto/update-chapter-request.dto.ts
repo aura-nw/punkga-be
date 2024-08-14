@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
 import { ChapterStatus, ChapterType } from '../../../common/enum';
 import { ChapterLanguage } from './create-chapter-request.dto';
@@ -42,6 +42,9 @@ export class UpdateChapterRequestDto {
 
   @ApiProperty({ type: ['string'], format: 'binary' })
   files: Express.Multer.File[];
+
+  @ApiPropertyOptional({ type: [Number], example: [1] })
+  collection_ids: number[];
 }
 
 export class UpdateChapterParamDto {

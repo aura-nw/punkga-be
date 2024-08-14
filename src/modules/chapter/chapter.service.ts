@@ -208,6 +208,7 @@ export class ChapterService {
         chapter_type,
         pushlish_date,
         status,
+        collection_ids,
       } = data;
 
       // get chapter info
@@ -252,6 +253,15 @@ export class ChapterService {
         JSON.parse(data.chapter_images)
       );
 
+      const collectionIdListStr = collection_ids.toString().split(',');
+      let collectionIdList = Array.from(collectionIdListStr, Number);
+      const updateResult = await this.addChapterCollection(
+        chapter_id,
+        collectionIdList
+      );
+      if (updateResult.errors && updateResult.errors.length > 0) {
+        return updateResult;
+      }
       // upload chapter languages
       const uploadChapterResult =
         await this.uploadChapterService.uploadChapterLanguagesFiles({
@@ -400,17 +410,21 @@ export class ChapterService {
       if (chapterInfor.errors && chapterInfor.errors.length > 0) {
         return chapterInfor;
       }
-      const chapterCollectionAddress =
-        chapterInfor.chapter_collections.map((c) => {
+      const chapterCollectionAddress = chapterInfor.chapter_collections.map(
+        (c) => {
           return c.chapter_collection.contract_address;
-        });
+        }
+      );
       const walletAddress = await this.chapterGraphql.queryUserAddress(token);
       if (walletAddress === null) {
         throw new NotFoundException('wallet address not found');
       }
 
       if (result.data.chapters[0].chapter_type === 'NFTs only') {
-        const access = await this.getAccess(walletAddress, chapterCollectionAddress);
+        const access = await this.getAccess(
+          walletAddress,
+          chapterCollectionAddress
+        );
 
         this.logger.debug(`Access ${JSON.stringify(access)}`);
 
