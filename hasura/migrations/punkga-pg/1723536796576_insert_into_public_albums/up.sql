@@ -1,0 +1,1 @@
+INSERT INTO "public"."albums"("id", "name", "description", "show", "storage_folder", "created_at", "updated_at", "creator_id") VALUES (1, E'ALL', null, true, null, E'2024-08-13T08:13:16.455164+00:00', E'2024-08-13T08:13:16.455164+00:00', null);

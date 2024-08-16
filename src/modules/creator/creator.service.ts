@@ -17,6 +17,17 @@ export class CreatorService {
     private creatorGraphql: CreatorGraphql
   ) {}
 
+  async getCreatorIdAuthToken(): Promise<number> {
+    const { userId } = ContextProvider.getAuthUser();
+    const result = await this.creatorGraphql.queryCreatorIdByUserId({
+      id: userId,
+    });
+    if (result.errors) return result;
+
+    const creatorId = result.data.authorizer_users_by_pk.creator.id;
+    return creatorId;
+  }
+
   async getCreator() {
     const { userId, token } = ContextProvider.getAuthUser();
     const result = await this.creatorGraphql.queryCreatorIdByUserId({
@@ -24,8 +35,8 @@ export class CreatorService {
     });
     if (result.errors) return result;
 
-    const creatorId = result.data.authorizer_users_by_pk.creator.id;
-    return this.get(creatorId);
+    const creatorId = await this.getCreatorIdAuthToken();
+    return this.get(creatorId.toString());
   }
 
   async get(keyword: string) {
@@ -100,13 +111,7 @@ export class CreatorService {
     data: UpdateCreatorRequestDto,
     files: Array<Express.Multer.File>
   ) {
-    const { userId, token } = ContextProvider.getAuthUser();
-    const result = await this.creatorGraphql.queryCreatorIdByUserId({
-      id: userId,
-    });
-    if (result.errors) return result;
-
-    const creatorId = result.data.authorizer_users_by_pk.creator.id;
+    const creatorId = await this.getCreatorIdAuthToken();
     return this.update(creatorId, data, files);
   }
 
