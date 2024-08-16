@@ -20,6 +20,7 @@ export class AlbumGraphql {
       '',
       `query list_album($creator_id: Int!, $limit: Int = 20, $offset: Int = 0) {
         default_album: albums_by_pk(id: 1) {
+          id
           name
           show
           disable
@@ -31,6 +32,7 @@ export class AlbumGraphql {
           }
         }
         albums(where: {creator_id: {_eq: $creator_id}}, limit: $limit, offset: $offset) {
+          id
           name
           show
           disable
@@ -44,6 +46,38 @@ export class AlbumGraphql {
       }
       `,
       'list_album',
+      variables,
+      headers
+    );
+  }
+
+  albumDetail(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query album_detail($id: Int!, $creator_id: Int!) {
+        albums(where: {id: {_eq: $id}, creator_id: {_eq: $creator_id}}) {
+          id
+          name
+          description
+          thumbnail_url
+          show
+          disable
+          artworks {
+            id
+            name
+            url
+            created_at
+          }
+        }
+      }
+      `,
+      'album_detail',
       variables,
       headers
     );
@@ -107,105 +141,6 @@ export class AlbumGraphql {
         }
       }`,
       'update_albums_by_pk',
-      variables,
-      headers
-    );
-  }
-
-  queryByPk(variables: any) {
-    const headers = {
-      'x-hasura-admin-secret': this.configSvc.get<string>(
-        'graphql.adminSecret'
-      ),
-    };
-    return this.graphqlSvc.query(
-      this.configSvc.get<string>('graphql.endpoint'),
-      '',
-      `query launchpad_by_pk($id: Int!) {
-        launchpad_by_pk(id: $id) {
-          status
-          contract_address
-          fund
-          id
-          slug
-          launchpad_creator {
-            avatar_url
-            bio
-            name
-            pen_name
-            slug
-            wallet_address
-          }
-          launchpad_i18ns {
-            id
-            language_id
-            data
-          }
-          featured_images
-          creator_id
-        }
-      }`,
-      'launchpad_by_pk',
-      variables,
-      headers
-    );
-  }
-
-  queryBySlug(variables: any) {
-    const headers = {
-      'x-hasura-admin-secret': this.configSvc.get<string>(
-        'graphql.adminSecret'
-      ),
-    };
-    return this.graphqlSvc.query(
-      this.configSvc.get<string>('graphql.endpoint'),
-      '',
-      `query launchpad($slug: String!) {
-        launchpad(where: {slug: {_eq: $slug}}) {
-          status
-          contract_address
-          fund
-          id
-          slug
-          launchpad_creator {
-            avatar_url
-            bio
-            name
-            pen_name
-            slug
-            wallet_address
-          }
-          launchpad_i18ns {
-            id
-            language_id
-            data
-          }
-          featured_images
-          creator_id
-        }
-      }`,
-      'launchpad',
-      variables,
-      headers
-    );
-  }
-
-  async insertI18n(variables: any) {
-    const headers = {
-      'x-hasura-admin-secret': this.configSvc.get<string>(
-        'graphql.adminSecret'
-      ),
-    };
-    console.log(variables);
-    return this.graphqlSvc.query(
-      this.configSvc.get<string>('graphql.endpoint'),
-      '',
-      `mutation insert_i18n($objects: [i18n_insert_input!] = {}) {
-          insert_i18n(on_conflict: {constraint: i18n_launchpad_id_language_id_key, update_columns: data}, objects: $objects) {
-          affected_rows
-        }
-        }`,
-      'insert_i18n',
       variables,
       headers
     );

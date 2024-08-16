@@ -127,4 +127,12 @@ export class AlbumService {
       offset,
     });
   }
+
+  async getDetail(id: number) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+    return this.albumGraphql.albumDetail({
+      id,
+      creator_id: creatorId,
+    });
+  }
 }
