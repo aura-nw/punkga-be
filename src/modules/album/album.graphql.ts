@@ -83,6 +83,26 @@ export class AlbumGraphql {
     );
   }
 
+  albumByPk(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query albums_by_pk($id: Int!) {
+        albums_by_pk(id: $id) {
+          creator_id
+        }
+      }`,
+      'albums_by_pk',
+      variables,
+      headers
+    );
+  }
+
   insert(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
@@ -135,11 +155,12 @@ export class AlbumGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation update_albums_by_pk($id: Int!, $data: albums_set_input = {}) {
-        update_albums_by_pk(pk_columns: {id: $id}, _set: $data) {
-          updated_at
+      `mutation update_albums_by_pk($id: Int!, $data: albums_set_input = {}, $creator_id: Int!) {
+        update_albums(where: {id: {_eq: $id}, creator_id: {_eq: $creator_id}}, _set: $data) {
+          affected_rows
         }
-      }`,
+      }
+      `,
       'update_albums_by_pk',
       variables,
       headers

@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   UploadedFiles,
   UseGuards,
@@ -26,6 +27,10 @@ import { AlbumService } from './album.service';
 import { CreateAlbumRequestDto } from './dto/create-album-request.dto';
 import { QueryAlbumDto } from './dto/query-album-query.dto';
 import { DetailAlbumParamDto } from './dto/detail-album-request.dto';
+import {
+  UpdateAlbumParamDto,
+  UpdateAlbumRequestDto,
+} from './dto/update-album-request.dto';
 
 @Controller('album')
 @ApiTags('album')
@@ -64,5 +69,20 @@ export class AlbumController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.albumSvc.create(data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Creator)
+  @Put(':id')
+  @ApiOperation({ summary: 'update album - creator role' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  update(
+    @Param() param: UpdateAlbumParamDto,
+    @Body() data: UpdateAlbumRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.albumSvc.update(param.id, data, files);
   }
 }

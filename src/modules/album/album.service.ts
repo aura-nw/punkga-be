@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { CreatorService } from '../creator/creator.service';
@@ -7,6 +7,7 @@ import { UserWalletService } from '../user-wallet/user-wallet.service';
 import { AlbumGraphql } from './album.graphql';
 import { CreateAlbumRequestDto } from './dto/create-album-request.dto';
 import { QueryAlbumDto } from './dto/query-album-query.dto';
+import { UpdateAlbumRequestDto } from './dto/update-album-request.dto';
 
 @Injectable()
 export class AlbumService {
@@ -134,5 +135,94 @@ export class AlbumService {
       id,
       creator_id: creatorId,
     });
+  }
+
+  async update(
+    id: number,
+    data: UpdateAlbumRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
+    try {
+      const { name, description, show } = data;
+      const creatorId = await this.creatorService.getCreatorIdAuthToken();
+
+      const albumCreatorId = await this.getAlbumCreatorByAlbumPk(id);
+      if (albumCreatorId !== creatorId)
+        throw new ForbiddenException('invalid creator');
+
+      let thumbnail_url = '';
+
+      const s3SubFolder =
+        this.configService.get<string>('aws.s3SubFolder') || 'images';
+      const s3Path = `${s3SubFolder}/creators/${creatorId}/albums/${id}`;
+
+      // map files
+      const uploadPromises = files.map((file) => {
+        if (file.mimetype.includes('image')) {
+          return this.fileService.uploadToS3(
+            `${s3Path}/${file.fieldname}-${file.originalname}`,
+            file.buffer,
+            file.mimetype
+          );
+        }
+
+        return undefined;
+      });
+
+      const uploadResult = await Promise.all(uploadPromises);
+      files.forEach((file, index) => {
+        // if have upload result
+        if (uploadResult[index]) {
+          // throw error if upload failed
+          if (uploadResult[index].$metadata.httpStatusCode !== 200)
+            throw new Error('Upload fail' + JSON.stringify(uploadResult));
+
+          // build uploaded url
+          const uploadedUrl = new URL(
+            `${s3Path}/${file.fieldname}-${file.originalname}`,
+            this.configService.get<string>('aws.queryEndpoint')
+          ).href;
+
+          switch (file.fieldname) {
+            case 'thumbnail':
+              thumbnail_url = uploadedUrl;
+              break;
+            default:
+              break;
+          }
+        }
+      });
+
+      const updateData = {
+        name,
+        description,
+        show,
+      };
+      if (thumbnail_url !== '') updateData['thumbnail_url'] = thumbnail_url;
+
+      // update
+      const updateResult = await this.albumGraphql.update({
+        id,
+        creator_id: creatorId,
+        data: updateData,
+      });
+
+      return updateResult;
+    } catch (error) {
+      return {
+        errors: [
+          {
+            message: error.message,
+          },
+        ],
+      };
+    }
+  }
+
+  private async getAlbumCreatorByAlbumPk(id: number) {
+    const result = await this.albumGraphql.albumByPk({
+      id,
+    });
+    return result.data?.albums_by_pk?.creator_id || undefined;
   }
 }
