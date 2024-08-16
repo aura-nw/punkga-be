@@ -143,12 +143,20 @@ export class AlbumService {
     files: Array<Express.Multer.File>
   ) {
     try {
-      const { name, description, show } = data;
+      const { name, description } = data;
+      let { show } = data;
       const creatorId = await this.creatorService.getCreatorIdAuthToken();
 
-      const albumCreatorId = await this.getAlbumCreatorByAlbumPk(id);
+      const getAlbumResult = await this.getAlbumByPk(id);
+      if (getAlbumResult.errors) return getAlbumResult;
+      const albumCreatorId = getAlbumResult.data?.albums_by_pk?.creator_id;
+
       if (albumCreatorId !== creatorId)
         throw new ForbiddenException('invalid creator');
+
+      const totalArtworks =
+        getAlbumResult.data.albums_by_pk.artworks_aggregate.aggregate.count;
+      if (show === true && Number(totalArtworks) === 0) show = false;
 
       let thumbnail_url = '';
 
@@ -219,10 +227,10 @@ export class AlbumService {
     }
   }
 
-  private async getAlbumCreatorByAlbumPk(id: number) {
+  private async getAlbumByPk(id: number) {
     const result = await this.albumGraphql.albumByPk({
       id,
     });
-    return result.data?.albums_by_pk?.creator_id || undefined;
+    return result;
   }
 }

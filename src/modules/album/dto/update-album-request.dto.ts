@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateAlbumParamDto {
   @ApiProperty()
@@ -12,7 +12,7 @@ export class UpdateAlbumRequestDto {
   @ApiProperty()
   description: string;
 
-  @ApiProperty({ type: 'string', format: 'binary' })
+  @ApiPropertyOptional({ type: 'string', format: 'binary' })
   thumbnail: Express.Multer.File;
 
   @ApiProperty()

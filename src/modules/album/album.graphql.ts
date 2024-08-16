@@ -95,6 +95,11 @@ export class AlbumGraphql {
       `query albums_by_pk($id: Int!) {
         albums_by_pk(id: $id) {
           creator_id
+          artworks_aggregate {
+            aggregate {
+              count
+            }
+          }
         }
       }`,
       'albums_by_pk',
