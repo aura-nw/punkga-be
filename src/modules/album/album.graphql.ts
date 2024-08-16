@@ -18,7 +18,7 @@ export class AlbumGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query list_album($creator_id: Int!, $limit: Int = 0, $offset: Int = 20) {
+      `query list_album($creator_id: Int!, $limit: Int = 20, $offset: Int = 0) {
         default_album: albums_by_pk(id: 1) {
           name
           show
