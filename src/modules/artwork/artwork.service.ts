@@ -16,6 +16,9 @@ import { FilesService } from '../files/files.service';
 import { ImportArtworkDto } from './dto/import-artwork.dto';
 import { ArtworkGraphql } from './artwork.graphql';
 import { generateSlug } from '../manga/util';
+import { UpdateArtworkDto } from './dto/update-artwork.dto';
+import { CreatorService } from '../creator/creator.service';
+import { DeleteArtworksDto } from './dto/delete-artworks.dto';
 
 @Injectable()
 export class ArtworkService implements OnModuleInit {
@@ -25,7 +28,8 @@ export class ArtworkService implements OnModuleInit {
   constructor(
     private configService: ConfigService,
     private fileService: FilesService,
-    private artworkGraphql: ArtworkGraphql
+    private artworkGraphql: ArtworkGraphql,
+    private creatorService: CreatorService
   ) {}
 
   onModuleInit() {
@@ -76,6 +80,25 @@ export class ArtworkService implements OnModuleInit {
     }
 
     return creatorArtworks;
+  }
+
+  async update(id: number, data: UpdateArtworkDto) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+    return this.artworkGraphql.updateArtwork({
+      id,
+      creator_id: creatorId,
+      data: {
+        name: data.name,
+      },
+    });
+  }
+
+  async deleteArtworks(data: DeleteArtworksDto) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+    return this.artworkGraphql.deleteArtworks({
+      ids: data.ids,
+      creator_id: creatorId,
+    });
   }
 
   private async importProcess(
