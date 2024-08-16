@@ -227,6 +227,31 @@ export class AlbumService {
     }
   }
 
+  async delete(id: number) {
+    try {
+      const creatorId = await this.creatorService.getCreatorIdAuthToken();
+
+      const getAlbumResult = await this.getAlbumByPk(id);
+      if (getAlbumResult.errors) return getAlbumResult;
+      const albumCreatorId = getAlbumResult.data?.albums_by_pk?.creator_id;
+
+      if (albumCreatorId !== creatorId)
+        throw new ForbiddenException('invalid creator');
+
+      return this.albumGraphql.delete({
+        id,
+      });
+    } catch (error) {
+      return {
+        errors: [
+          {
+            message: error.message,
+          },
+        ],
+      };
+    }
+  }
+
   private async getAlbumByPk(id: number) {
     const result = await this.albumGraphql.albumByPk({
       id,

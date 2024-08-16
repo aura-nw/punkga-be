@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -84,5 +85,16 @@ export class AlbumController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.albumSvc.update(param.id, data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Creator)
+  @Delete(':id')
+  @ApiOperation({ summary: 'delete album - creator role' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  delete(@Param() param: UpdateAlbumParamDto) {
+    return this.albumSvc.delete(param.id);
   }
 }

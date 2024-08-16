@@ -129,6 +129,27 @@ export class AlbumGraphql {
     );
   }
 
+  delete(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation delete_albums_by_pk($id: Int!) {
+        delete_albums_by_pk(id: $id) {
+          id
+        }
+      }`,
+      'delete_albums_by_pk',
+      variables,
+      headers
+    );
+  }
+
   insertArtworks(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
