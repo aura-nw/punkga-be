@@ -36,6 +36,8 @@ export class AlbumService {
         },
       });
 
+      if (result.errors) return result;
+
       const albumId = result.data.insert_albums_one.id;
 
       let thumbnail_url = '';
@@ -88,6 +90,7 @@ export class AlbumService {
       if (thumbnail_url !== '') {
         const updateResult = await this.albumGraphql.update({
           id: albumId,
+          creator_id: creatorId,
           data: {
             thumbnail_url,
           },
