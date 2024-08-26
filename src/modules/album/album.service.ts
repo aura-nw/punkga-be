@@ -127,8 +127,8 @@ export class AlbumService {
     const { limit, offset } = query;
     return this.albumGraphql.getListAlbum({
       creator_id: creatorId,
-      limit,
-      offset,
+      limit: Number(limit),
+      offset: Number(offset),
     });
   }
 
