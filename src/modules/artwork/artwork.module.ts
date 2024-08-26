@@ -6,9 +6,10 @@ import { FilesModule } from '../files/files.module';
 import { ArtworkService } from './artwork.service';
 import { ArtworkController } from './artwork.controller';
 import { ArtworkGraphql } from './artwork.graphql';
+import { CreatorModule } from '../creator/creator.module';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, FilesModule],
+  imports: [JwtModule, GraphqlModule, FilesModule, CreatorModule],
   providers: [ArtworkService, ArtworkGraphql],
   controllers: [ArtworkController],
 })
