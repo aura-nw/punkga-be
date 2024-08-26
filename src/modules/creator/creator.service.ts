@@ -112,20 +112,21 @@ export class CreatorService {
     files: Array<Express.Multer.File>
   ) {
     const creatorId = await this.getCreatorIdAuthToken();
-    return this.update(creatorId, data, files);
+    return this.update(creatorId, data, files, true);
   }
 
   async update(
     creatorId: number,
     data: UpdateCreatorRequestDto,
-    files: Array<Express.Multer.File>
+    files: Array<Express.Multer.File>,
+    creatorRole = false
   ) {
     try {
       const { token } = ContextProvider.getAuthUser();
       const { name, socials, pen_name, bio, gender, dob, wallet_address } =
         data;
 
-      const result = await this.creatorGraphql.queryCreatorById(token, {
+      const result = await this.creatorGraphql.queryCreatorById({
         id: creatorId,
       });
 
@@ -148,17 +149,21 @@ export class CreatorService {
         );
 
       // update creator in DB
-      const updateResult = await this.creatorGraphql.updateCreator(token, {
-        id: creatorId,
-        name,
-        bio: bio.toString(),
-        socials: JSON.parse(socials),
-        pen_name,
-        gender,
-        dob,
-        avatar_url: avatarUrl,
-        wallet_address,
-      });
+      const updateResult = await this.creatorGraphql.updateCreator(
+        token,
+        {
+          id: creatorId,
+          name,
+          bio: bio.toString(),
+          socials: JSON.parse(socials),
+          pen_name,
+          gender,
+          dob,
+          avatar_url: avatarUrl,
+          wallet_address,
+        },
+        creatorRole
+      );
 
       return updateResult;
     } catch (errors) {

@@ -132,10 +132,10 @@ export class CreatorGraphql {
     );
   }
 
-  queryCreatorById(token: string, variables: any) {
+  queryCreatorById(variables: any) {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
-      token,
+      '',
       `query QueryCreatorById($id: Int!) {
         creators_by_pk(id: $id) {
           id
@@ -148,7 +148,14 @@ export class CreatorGraphql {
     );
   }
 
-  updateCreator(token: string, variables: any) {
+  updateCreator(token: string, variables: any, creatorRole = false) {
+    const headers = creatorRole
+      ? {
+          'x-hasura-admin-secret': this.configSvc.get<string>(
+            'graphql.adminSecret'
+          ),
+        }
+      : {};
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       token,
@@ -167,7 +174,8 @@ export class CreatorGraphql {
       }      
       `,
       'UpdateCreator',
-      variables
+      variables,
+      headers
     );
   }
 }
