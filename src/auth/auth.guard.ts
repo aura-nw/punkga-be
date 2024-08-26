@@ -16,7 +16,16 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const token = this.extractBrearerTokenFromHeader(request);
+    if (token) {
+      return this.bearerAuth(request);
+    }
+  }
+
+  private async telegramAuth(request: Request) {}
+
+  private async bearerAuth(request: Request): Promise<boolean> {
+    const token = this.extractBrearerTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
     }
@@ -43,8 +52,12 @@ export class AuthGuard implements CanActivate {
     return true;
   }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
+  private extractBrearerTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+
+  private extractTelegramInitData(request: Request): string | undefined {
+    return request.headers.authorization;
   }
 }
