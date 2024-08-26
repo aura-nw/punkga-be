@@ -9,7 +9,7 @@ export class TelegramGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
-  insertTelegramUser(variables: any) {
+  getTelegramUser(variables) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
@@ -19,12 +19,48 @@ export class TelegramGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation insert_telegram_users_one($object: telegram_users_insert_input = {}) {
-        insert_telegram_users_one(object: $object, on_conflict: {constraint: telegram_users_telegram_id_key, update_columns: updated_at}) {
+      `query telegram_users_by_pk($id: Int!) {
+        telegram_user: telegram_users_by_pk(id: $id) {
           id
+          telegram_id
+          username
+          created_at
+          authorizer_user {
+            id
+            nickname
+            email
+          }
         }
       }`,
-      'insert_telegram_users_one',
+      'telegram_users_by_pk',
+      variables,
+      headers
+    );
+  }
+
+  updateTelegramUser(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_telegram_users_by_pk($id: Int!, $user_id: bpchar!) {
+        telegram_user: update_telegram_users_by_pk(pk_columns: {id: $id}, _set: {user_id: $user_id}) {
+          id
+          telegram_id
+          username
+          authorizer_user {
+            id
+            nickname
+            email
+          }
+        }
+      }`,
+      'update_telegram_users_by_pk',
       variables,
       headers
     );

@@ -12,6 +12,7 @@ import { readFile } from 'fs/promises';
 import * as path from 'path';
 import { ITelegramUser } from './interfaces/telegram-user.interface';
 import { GraphqlService } from '../modules/graphql/graphql.service';
+import { Role } from './role.enum';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -46,7 +47,7 @@ export class AuthGuard implements CanActivate {
 
     const insertResult = await this.insertTelegramUser({
       object: {
-        telegram_id: user.id,
+        telegram_id: user.id.toString(),
         username: user.username,
       },
     });
@@ -55,7 +56,7 @@ export class AuthGuard implements CanActivate {
 
     request['user'] = {
       userId: insertResult.data.insert_telegram_users_one.authorizer_user?.id,
-      roles: ['telegram-user'],
+      roles: [Role.TelegramUser],
       telegramUserId: insertResult.data.insert_telegram_users_one.id,
     };
 
@@ -90,7 +91,7 @@ export class AuthGuard implements CanActivate {
 
     // if hash are equal the data may be used on your server.
     // Complex data types are represented as JSON-serialized objects.
-    if (_hash === hash) throw new UnauthorizedException();
+    if (_hash !== hash) throw new UnauthorizedException();
 
     const userIndex = arr.findIndex((str) => str.startsWith('user='));
     const user = JSON.parse(arr.splice(userIndex)[0].split('=')[1]);
