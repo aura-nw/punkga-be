@@ -24,6 +24,7 @@ export class AlbumGraphql {
           name
           show
           disable
+          thumbnail_url
           created_at
           artworks_aggregate(where: {creator_id: {_eq: $creator_id}}) {
             aggregate {
@@ -36,6 +37,7 @@ export class AlbumGraphql {
           name
           show
           disable
+          thumbnail_url
           created_at
           artworks_aggregate {
             aggregate {
@@ -43,7 +45,7 @@ export class AlbumGraphql {
             }
           }
         }
-      }
+      }      
       `,
       'list_album',
       variables,
