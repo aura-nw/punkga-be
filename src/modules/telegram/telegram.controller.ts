@@ -24,11 +24,11 @@ export class TelegramController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.TelegramUser)
-  @Get('profile')
+  @Post('connect')
   @UseInterceptors(AuthUserInterceptor)
   @ApiOperation({ summary: '' })
-  profile() {
-    return this.telegramSvc.profile();
+  connect() {
+    return this.telegramSvc.connect();
   }
 
   @UseGuards(AuthGuard, RolesGuard)

@@ -14,7 +14,7 @@ export class TelegramService {
     private telegramGraphql: TelegramGraphql
   ) {}
 
-  profile() {
+  connect() {
     const { telegramUserId } = ContextProvider.getAuthUser();
     return this.telegramGraphql.getTelegramUser({
       id: telegramUserId,
