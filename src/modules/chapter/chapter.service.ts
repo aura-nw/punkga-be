@@ -174,14 +174,18 @@ export class ChapterService {
           return updateResult;
         }
       }
-      const collectionIdListStr = collection_ids.toString().split(',');
-      let collectionIdList = Array.from(collectionIdListStr, Number);
-      const updateResult = await this.addChapterCollection(
-        chapterId,
-        collectionIdList
-      );
-      if (updateResult.errors && updateResult.errors.length > 0) {
-        return updateResult;
+      if (collection_ids) {
+        const collectionIdListStr = collection_ids.toString().split(',');
+        let collectionIdList = Array.from(collectionIdListStr, Number);
+        if (collectionIdList.length > 0) {
+          const updateResult = await this.addChapterCollection(
+            chapterId,
+            collectionIdList
+          );
+          if (updateResult.errors && updateResult.errors.length > 0) {
+            return updateResult;
+          }
+        }
       }
       return result.data;
     } catch (errors) {
@@ -252,15 +256,18 @@ export class ChapterService {
         UpdateChapterImage,
         JSON.parse(data.chapter_images)
       );
-
-      const collectionIdListStr = collection_ids.toString().split(',');
-      let collectionIdList = Array.from(collectionIdListStr, Number);
-      const updateResult = await this.addChapterCollection(
-        chapter_id,
-        collectionIdList
-      );
-      if (updateResult.errors && updateResult.errors.length > 0) {
-        return updateResult;
+      if (collection_ids) {
+        const collectionIdListStr = collection_ids.toString().split(',');
+        let collectionIdList = Array.from(collectionIdListStr, Number);
+        if (collectionIdList.length > 0) {
+          const updateResult = await this.addChapterCollection(
+            chapter_id,
+            collectionIdList
+          );
+          if (updateResult.errors && updateResult.errors.length > 0) {
+            return updateResult;
+          }
+        }
       }
       // upload chapter languages
       const uploadChapterResult =
