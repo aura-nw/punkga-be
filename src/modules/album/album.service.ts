@@ -78,7 +78,10 @@ export class AlbumService {
               thumbnail_url = uploadedUrl;
               break;
             case 'artworks':
-              artworks.push(uploadedUrl);
+              artworks.push({
+                url: uploadedUrl,
+                name: file.originalname,
+              });
               break;
             default:
               break;
@@ -99,9 +102,10 @@ export class AlbumService {
         if (updateResult.errors) return updateResult;
       }
 
-      const artworkData = artworks.map((artworkUrl) => ({
+      const artworkData = artworks.map((artwork) => ({
         album_id: albumId,
-        url: artworkUrl,
+        url: artwork.url,
+        name: artwork.name,
         creator_id: creatorId,
       }));
       // insert

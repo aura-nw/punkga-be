@@ -4,6 +4,7 @@ import { createHmac } from 'crypto';
 import { ContextProvider } from '../../providers/contex.provider';
 import { TelegramGraphql } from './telegram.graphql';
 import { Authorizer } from '@authorizerdev/authorizer-js';
+import { SaveDonateTxDto } from './dto/save-donate-tx.dto';
 
 @Injectable()
 export class TelegramService {
@@ -69,5 +70,19 @@ export class TelegramService {
     } catch (error) {
       throw new UnauthorizedException(error.message);
     }
+  }
+
+  async saveTx(data: SaveDonateTxDto) {
+    const { telegramId } = ContextProvider.getAuthUser();
+    const { creator_id, txn, value } = data;
+
+    return this.telegramGraphql.saveDonateHistory({
+      object: {
+        telegram_id: telegramId,
+        creator_id,
+        txn,
+        value: Number(value),
+      },
+    });
   }
 }

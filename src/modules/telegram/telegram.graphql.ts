@@ -38,6 +38,44 @@ export class TelegramGraphql {
     );
   }
 
+  saveDonateHistory(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_donate_history_one($object: donate_history_insert_input = {}) {
+        insert_donate_history_one(object: $object) {
+          telegram_user {
+            telegram_id
+            username
+            authorizer_user {
+              id
+              nickname
+            }
+          }
+          creator {
+            id
+            gender
+            name
+            avatar_url
+            pen_name
+            email
+          }
+          value
+        }
+      }
+      `,
+      'insert_donate_history_one',
+      variables,
+      headers
+    );
+  }
+
   updateTelegramUser(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(

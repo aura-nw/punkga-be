@@ -58,6 +58,7 @@ export class AuthGuard implements CanActivate {
       userId: insertResult.data.insert_telegram_users_one.authorizer_user?.id,
       roles: [Role.TelegramUser],
       telegramUserId: insertResult.data.insert_telegram_users_one.id,
+      telegramId: user.id.toString(),
     };
 
     return true;
