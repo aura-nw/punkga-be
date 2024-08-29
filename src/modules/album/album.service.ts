@@ -163,7 +163,7 @@ export class AlbumService {
 
       const totalArtworks =
         getAlbumResult.data.albums_by_pk.artworks_aggregate.aggregate.count;
-      if (show === true && Number(totalArtworks) === 0) show = false;
+      if (Boolean(show) === true && Number(totalArtworks) === 0) show = 'false';
 
       let thumbnail_url = '';
 
