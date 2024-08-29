@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -80,6 +81,93 @@ export class ArtworkService implements OnModuleInit {
     }
 
     return creatorArtworks;
+  }
+
+  async upload(albumId: number, files: Array<Express.Multer.File>) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+
+    // get creator album
+    const result = await this.artworkGraphql.getCreatorAlbum({
+      id: albumId,
+      creator_id: creatorId,
+    });
+    if (result.errors) return result;
+    if (result.data.albums.length === 0)
+      throw new NotFoundException('album not found');
+
+    // resize
+    const resizedArtworks = await Promise.all(
+      files.map(async (file, index) => {
+        return sharp(file.buffer)
+          .resize(1366, 768, { fit: 'inside' })
+          .png({ quality: 80 })
+          .toBuffer()
+          .catch(function (err) {
+            console.log('Error occured ', err);
+            return file.buffer;
+          });
+      })
+    );
+
+    const artworks = [];
+    const s3SubFolder =
+      this.configService.get<string>('aws.s3SubFolder') || 'images';
+    const s3Path = `${s3SubFolder}/creators/${creatorId}/albums/${albumId}`;
+
+    // map files
+    const uploadPromises = files.map((file, index) => {
+      if (file.mimetype.includes('image')) {
+        return this.fileService.uploadToS3(
+          `${s3Path}/${file.fieldname}-${file.originalname}`,
+          resizedArtworks[index],
+          file.mimetype
+        );
+      }
+
+      return undefined;
+    });
+
+    const uploadResult = await Promise.all(uploadPromises);
+    for (let index in files) {
+      const file = files[index];
+      if (uploadResult[index]) {
+        // throw error if upload failed
+        if (uploadResult[index].$metadata.httpStatusCode !== 200)
+          throw new Error('Upload fail' + JSON.stringify(uploadResult));
+
+        // build uploaded url
+        const uploadedUrl = new URL(
+          `${s3Path}/${file.fieldname}-${file.originalname}`,
+          this.configService.get<string>('aws.queryEndpoint')
+        ).href;
+
+        switch (file.fieldname) {
+          case 'artworks':
+            artworks.push({
+              url: uploadedUrl,
+              name: file.originalname,
+            });
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    const artworkData = artworks.map((artwork) => ({
+      album_id: albumId,
+      url: artwork.url,
+      name: artwork.name,
+      creator_id: creatorId,
+    }));
+
+    // insert
+    const insertArtworksResult = await this.artworkGraphql.insertArtworks({
+      objects: artworkData,
+    });
+
+    if (insertArtworksResult.errors) return insertArtworksResult;
+    return result;
   }
 
   async update(id: number, data: UpdateArtworkDto) {
