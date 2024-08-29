@@ -8,6 +8,7 @@ COPY package.json yarn.lock ./
 
 RUN yarn install --ignore-scripts
 RUN yarn add mmmagic
+RUN yarn add sharp@^0.33.4 --ignore-engines 
 RUN yarn global add pm2
 
 COPY . .

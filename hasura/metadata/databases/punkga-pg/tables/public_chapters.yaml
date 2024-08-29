@@ -15,6 +15,13 @@ object_relationships:
     using:
       foreign_key_constraint_on: manga_id
 array_relationships:
+  - name: chapter_collections
+    using:
+      foreign_key_constraint_on:
+        column: chapter_id
+        table:
+          name: chapter_collection
+          schema: public
   - name: chapter_languages
     using:
       foreign_key_constraint_on:

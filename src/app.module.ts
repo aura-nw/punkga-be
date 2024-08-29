@@ -25,6 +25,8 @@ import { LaunchpadModule } from './modules/collection/launchpad.module';
 import { ChainModule } from './modules/chain/chain.module';
 import { ChainGateWayModule } from './chain-gateway/chain-gateway.module';
 import { ArtworkModule } from './modules/artwork/artwork.module';
+import { AlbumModule } from './modules/album/album.module';
+import { TelegramModule } from './modules/telegram/telegram.module';
 
 @Module({
   imports: [
@@ -73,6 +75,8 @@ import { ArtworkModule } from './modules/artwork/artwork.module';
     ChainModule,
     ChainGateWayModule,
     ArtworkModule,
+    AlbumModule,
+    TelegramModule,
   ],
   controllers: [],
   providers: [

@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import md5 from 'md5';
 import rimraf from 'rimraf';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { ContextProvider } from '../../providers/contex.provider';
 import { MangaService } from '../manga/manga.service';
@@ -13,6 +13,7 @@ import {
   ChapterImage,
   CreateChapterRequestDto,
 } from './dto/create-chapter-request.dto';
+import { ConfigService } from '@nestjs/config';
 import {
   UpdateChapterImage,
   UpdateChapterParamDto,
@@ -30,7 +31,8 @@ export class ChapterService {
   constructor(
     private mangaService: MangaService,
     private chapterGraphql: ChapterGraphql,
-    private uploadChapterService: UploadChapterService
+    private uploadChapterService: UploadChapterService,
+    private configSvc: ConfigService
   ) {}
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
@@ -92,6 +94,7 @@ export class ChapterService {
         chapter_type,
         pushlish_date,
         status,
+        collection_ids,
       } = data;
       const chapter_images = plainToInstance(
         ChapterImage,
@@ -171,7 +174,19 @@ export class ChapterService {
           return updateResult;
         }
       }
-
+      if (collection_ids) {
+        const collectionIdListStr = collection_ids.toString().split(',');
+        let collectionIdList = Array.from(collectionIdListStr, Number);
+        if (collectionIdList.length > 0) {
+          const updateResult = await this.addChapterCollection(
+            chapterId,
+            collectionIdList
+          );
+          if (updateResult.errors && updateResult.errors.length > 0) {
+            return updateResult;
+          }
+        }
+      }
       return result.data;
     } catch (errors) {
       return {
@@ -197,6 +212,7 @@ export class ChapterService {
         chapter_type,
         pushlish_date,
         status,
+        collection_ids,
       } = data;
 
       // get chapter info
@@ -240,7 +256,19 @@ export class ChapterService {
         UpdateChapterImage,
         JSON.parse(data.chapter_images)
       );
-
+      if (collection_ids) {
+        const collectionIdListStr = collection_ids.toString().split(',');
+        let collectionIdList = Array.from(collectionIdListStr, Number);
+        if (collectionIdList.length > 0) {
+          const updateResult = await this.addChapterCollection(
+            chapter_id,
+            collectionIdList
+          );
+          if (updateResult.errors && updateResult.errors.length > 0) {
+            return updateResult;
+          }
+        }
+      }
       // upload chapter languages
       const uploadChapterResult =
         await this.uploadChapterService.uploadChapterLanguagesFiles({
@@ -382,10 +410,27 @@ export class ChapterService {
       if (result.errors && result.errors.length > 0) {
         return result;
       }
+      const chapterInfor = await this.chapterGraphql.getChapterInfo(
+        token,
+        chapterId
+      );
+      if (chapterInfor.errors && chapterInfor.errors.length > 0) {
+        return chapterInfor;
+      }
+      const chapterCollectionAddress = chapterInfor.chapter_collections.map(
+        (c) => {
+          return c.chapter_collection.contract_address;
+        }
+      );
+      const walletAddress = await this.chapterGraphql.queryUserAddress(token);
+      if (walletAddress === null) {
+        throw new NotFoundException('wallet address not found');
+      }
 
       if (result.data.chapters[0].chapter_type === 'NFTs only') {
-        const access = await this.mangaService.getAccess(
-          result.data.chapters[0].manga_id
+        const access = await this.getAccess(
+          walletAddress,
+          chapterCollectionAddress
         );
 
         this.logger.debug(`Access ${JSON.stringify(access)}`);
@@ -398,6 +443,69 @@ export class ChapterService {
       return result;
     } catch (errors) {
       this.logger.error(errors);
+      return {
+        errors,
+      };
+    }
+  }
+
+  async addChapterCollection(chapterId: Number, collectionIdList: number[]) {
+    try {
+      // const { token } = ContextProvider.getAuthUser();
+      const objects = [];
+      // update chapter collection in DB
+      await Promise.all(
+        collectionIdList.map((collectionId) => {
+          const o = {
+            chapter_id: chapterId,
+            launchpad_id: collectionId,
+          };
+          objects.push(o);
+        })
+      );
+      const updateResponse = await this.chapterGraphql.createChapterCollection({
+        objects,
+      });
+
+      return updateResponse;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async getAccess(walletAddress: string, contractAddresses: string[]) {
+    try {
+      const network = this.configSvc.get<string>('horosope.network');
+      let nft = false;
+      const { token } = ContextProvider.getAuthUser();
+
+      // check data on horoscope
+      const getCw721TokenResult = await this.chapterGraphql.queryErc721Tokens(
+        token,
+        network,
+        {
+          smart_contracts: contractAddresses.map((address) =>
+            address.toLowerCase()
+          ),
+          owner: walletAddress.toLowerCase(),
+        }
+      );
+
+      if (
+        getCw721TokenResult.data[`${network}`].erc721_contract.length > 0 &&
+        getCw721TokenResult.data[`${network}`].erc721_contract.find(
+          (contract) => contract.erc721_tokens.length > 0
+        )
+      ) {
+        nft = true;
+      }
+
+      return {
+        nft,
+      };
+    } catch (errors) {
       return {
         errors,
       };

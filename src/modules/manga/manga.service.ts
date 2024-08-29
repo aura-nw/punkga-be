@@ -265,4 +265,30 @@ export class MangaService {
       };
     }
   }
+
+  async addMangaCollection(mangaId: Number, collectionIdList: number[]) {
+    try {
+      // const { token } = ContextProvider.getAuthUser();
+      const objects = [];
+      // update manga collection in DB
+      await Promise.all(
+        collectionIdList.map((collectionId) => {
+          const o = {
+            manga_id: mangaId,
+            launchpad_id: collectionId,
+          };
+          objects.push(o);
+        })
+      );
+      const updateResponse = await this.mangaGraphql.createMangaCollection({
+        objects,
+      });
+
+      return updateResponse;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
 }

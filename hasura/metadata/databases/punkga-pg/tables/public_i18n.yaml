@@ -9,9 +9,12 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
+        - banner_id
         - campaign_id
+        - contest_id
         - id
         - language_id
+        - launchpad_id
         - quest_id
         - data
         - created_at
@@ -20,9 +23,12 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - banner_id
         - campaign_id
+        - contest_id
         - id
         - language_id
+        - launchpad_id
         - quest_id
         - data
         - created_at

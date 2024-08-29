@@ -10,5 +10,6 @@ import { CreatorGraphql } from './creator.graphql';
   imports: [JwtModule, FilesModule, GraphqlModule],
   providers: [CreatorService, CreatorGraphql],
   controllers: [CreatorController],
+  exports: [CreatorService],
 })
 export class CreatorModule {}

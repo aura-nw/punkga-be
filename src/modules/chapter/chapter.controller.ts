@@ -30,7 +30,7 @@ import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
 @Controller('chapter')
 @ApiTags('chapter')
 export class ChapterController {
-  constructor(private readonly chapterSvc: ChapterService) { }
+  constructor(private readonly chapterSvc: ChapterService) {}
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -76,7 +76,7 @@ export class ChapterController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.User)
+  @Roles(Role.User,Role.Admin)
   @Get(':chapterId/protected')
   @UseInterceptors(AuthUserInterceptor)
   view(@Param() data: ViewProtectedChapterRequestDto) {

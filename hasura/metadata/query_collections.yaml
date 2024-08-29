@@ -197,23 +197,6 @@
               }
             }
           }
-      - name: Admin - Get chapter detail
-        query: |
-          query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
-            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{id:{_eq:$manga_id}}}}) {
-              id
-              chapter_number
-              chapter_name
-              chapter_type
-              thumbnail_url
-              status
-              pushlish_date
-              chapter_languages {
-                language_id
-                detail
-              }
-            }
-          }
       - name: Public - Get Chapter Comments
         query: |
           query GetChapterComments ($chapter_id: Int!) {
@@ -265,66 +248,6 @@
             }
             delete_authorizer_users(where: {id:{_eq:$id}}) {
               affected_rows
-            }
-          }
-      - name: Admin - Get manga detail
-        query: |
-          query GetMangaReadingDetail ($id: Int = 1) {
-            manga_by_pk(id: $id) {
-              id
-              poster
-              banner
-              status
-              contract_addresses
-              publish_date
-              release_date
-              created_at
-              manga_languages {
-                title
-                description
-                is_main_language
-                language_id
-              }
-              chapters_aggregate {
-                aggregate {
-                  sum {
-                    views
-                    likes
-                  }
-                  count
-                }
-              }
-              manga_subscribers_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              manga_tags {
-                tag {
-                  tag_languages {
-                    tag_id
-                    language_id
-                    value
-                  }
-                }
-              }
-              chapters(order_by: {chapter_number:desc_nulls_last}) {
-                id
-                chapter_number
-                chapter_name
-                chapter_type
-                thumbnail_url
-                pushlish_date
-                status
-              }
-              manga_creators {
-                creator {
-                  id
-                  slug
-                  name
-                  pen_name
-                }
-              }
             }
           }
       - name: Public - Query User
@@ -1321,22 +1244,6 @@
               }
             }
           }
-      - name: Public - Get contest by creator id
-        query: |
-          query contest ($creator_id: Int!, $limit: Int = 10, $offset: Int = 0) {
-            contest(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
-              id
-              start_date
-              end_date
-              slug
-              created_at
-            }
-            contest_aggregate(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
-              aggregate {
-                count
-              }
-            }
-          }
       - name: Public - Get artwork by creator and contest
         query: |
           query artwork ($contest_id: Int!, $id: Int!, $limit: Int = 100, $offset: Int = 0) {
@@ -1349,6 +1256,178 @@
             artworks_aggregate(where: {contest_id:{_eq:$contest_id},creator_id:{_eq:$id}}, limit: $limit, offset: $offset) {
               aggregate {
                 count
+              }
+            }
+          }
+      - name: Public - Get contest by creator id
+        query: |
+          query contest ($creator_id: Int!, $limit: Int = 10, $offset: Int = 0) {
+            contest(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
+              id
+              start_date
+              end_date
+              slug
+              created_at
+              contest_i18ns {
+                data
+                i18n_language {
+                  id
+                  is_main
+                  symbol
+                }
+              }
+            }
+            contest_aggregate(where: {_or:[{contest_artworks:{creator_id:{_eq:$creator_id}}},{contest_mangas:{manga_creators:{creator_id:{_eq:$creator_id}}}}]}, limit: $limit, offset: $offset) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: Admin - Delete Manga Collection
+        query: |
+          mutation delete_manga_collection_by_pk ($id: Int!) {
+            delete_manga_collection_by_pk(id: $id) {
+              id
+            }
+          }
+      - name: Admin - Delete Chapter Collection
+        query: |
+          mutation delete_chapter_collection_by_pk ($id: Int!) {
+            delete_chapter_collection_by_pk(id: $id) {
+              id
+            }
+          }
+      - name: Admin - Get manga detail
+        query: |
+          query GetMangaReadingDetail ($id: Int = 28) {
+            manga_by_pk(id: $id) {
+              id
+              poster
+              banner
+              status
+              contract_addresses
+              publish_date
+              release_date
+              created_at
+              manga_languages {
+                title
+                description
+                is_main_language
+                language_id
+              }
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    views
+                    likes
+                  }
+                  count
+                }
+              }
+              manga_subscribers_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              manga_tags {
+                tag {
+                  tag_languages {
+                    tag_id
+                    language_id
+                    value
+                  }
+                }
+              }
+              chapters(order_by: {chapter_number:desc_nulls_last}) {
+                id
+                chapter_number
+                chapter_name
+                chapter_type
+                thumbnail_url
+                pushlish_date
+                status
+              }
+              manga_creators {
+                creator {
+                  id
+                  slug
+                  name
+                  pen_name
+                }
+              }
+              manga_collections {
+                launchpad_id
+                manga_id
+                manga_collection {
+                  contract_address
+                  launchpad_creator {
+                    name
+                    slug
+                    id
+                  }
+                  launchpad_i18ns {
+                    data(path: "name")
+                    language_id
+                    id
+                  }
+                  slug
+                  status
+                  updated_at
+                  created_at
+                }
+                id
+              }
+            }
+          }
+      - name: Admin - Get chapter detail
+        query: |
+          query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
+            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{id:{_eq:$manga_id}}}}) {
+              id
+              chapter_number
+              chapter_name
+              chapter_type
+              thumbnail_url
+              status
+              pushlish_date
+              chapter_languages {
+                language_id
+                detail
+              }
+              chapter_collections {
+                id
+                chapter_collection {
+                  contract_address
+                  launchpad_creator {
+                    name
+                    slug
+                    id
+                  }
+                  launchpad_i18ns {
+                    data(path: "name")
+                    language_id
+                    id
+                  }
+                  slug
+                  status
+                  updated_at
+                  created_at
+                }
+                chapter_id
+                launchpad_id
+              }
+            }
+          }
+      - name: Admin - Insert Chapter Collection
+        query: |
+          mutation insert_chapter_collection ($objects: [chapter_collection_insert_input!] = {}) {
+            insert_chapter_collection(objects: $objects, on_conflict: {constraint:chapter_collection_chapter_id_launchpad_id_key,update_columns:chapter_id}) {
+              affected_rows
+              returning {
+                chapter_id
+                created_at
+                id
+                launchpad_id
               }
             }
           }

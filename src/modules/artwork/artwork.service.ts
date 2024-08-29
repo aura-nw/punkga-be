@@ -9,12 +9,16 @@ import { parse } from 'csv-parse/sync';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
 import { google } from 'googleapis';
+import sharp from 'sharp';
 
 import { ContextProvider } from '../../providers/contex.provider';
 import { FilesService } from '../files/files.service';
 import { ImportArtworkDto } from './dto/import-artwork.dto';
 import { ArtworkGraphql } from './artwork.graphql';
 import { generateSlug } from '../manga/util';
+import { UpdateArtworkDto } from './dto/update-artwork.dto';
+import { CreatorService } from '../creator/creator.service';
+import { DeleteArtworksDto } from './dto/delete-artworks.dto';
 
 @Injectable()
 export class ArtworkService implements OnModuleInit {
@@ -24,7 +28,8 @@ export class ArtworkService implements OnModuleInit {
   constructor(
     private configService: ConfigService,
     private fileService: FilesService,
-    private artworkGraphql: ArtworkGraphql
+    private artworkGraphql: ArtworkGraphql,
+    private creatorService: CreatorService
   ) {}
 
   onModuleInit() {
@@ -51,73 +56,161 @@ export class ArtworkService implements OnModuleInit {
       artworks: [record[2].trim(), record[3]?.trim() || ''],
     }));
 
-    creatorArtworks.forEach(async ({ creator, artworks }) => {
-      // insert creator
-      const insertCreatorResult = await this.artworkGraphql.insertCreator(
+    // chunk array to small array
+    const chunkSize = 20;
+    for (let i = 0; i < creatorArtworks.length; i += chunkSize) {
+      const chunked = creatorArtworks.slice(i, i + chunkSize);
+      this.logger.debug(`Upload process: ${i}/${creatorArtworks.length}`);
+
+      try {
+        await Promise.all(
+          chunked.map(({ creator, artworks }) => {
+            return this.importProcess(
+              token,
+              contest_id,
+              contest_round,
+              creator,
+              artworks
+            );
+          })
+        );
+      } catch (error) {
+        this.logger.error(error);
+      }
+    }
+
+    return creatorArtworks;
+  }
+
+  async update(id: number, data: UpdateArtworkDto) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+    return this.artworkGraphql.updateArtwork({
+      id,
+      creator_id: creatorId,
+      data: {
+        name: data.name,
+      },
+    });
+  }
+
+  async deleteArtworks(data: DeleteArtworksDto) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+    return this.artworkGraphql.deleteArtworks({
+      ids: data.ids,
+      creator_id: creatorId,
+    });
+  }
+
+  private async importProcess(
+    token: string,
+    contest_id: number,
+    contest_round: number,
+    creator: string,
+    artworks: string[]
+  ) {
+    const insertCreatorResult = await this.artworkGraphql.insertCreator(
+      {
+        object: {
+          name: creator,
+          pen_name: creator,
+          slug: generateSlug(creator),
+        },
+      },
+      token
+    );
+
+    const vaidArtworks = artworks.filter((str) => str !== '');
+
+    if (!insertCreatorResult.errors) {
+      const creatorId = insertCreatorResult.data.insert_creators_one.id;
+
+      // upload image to s3
+      const crawlPromises = [];
+      const urls = [];
+      for (const artwork of vaidArtworks) {
+        // vaidArtworks.forEach(async (artwork: string) => {
+        if (artwork.indexOf('drive.google.com/drive/folders') > 0) {
+          // get all file in google drive folder
+          const files = await this.crawlGoogleDriveFolder(artwork);
+          files.forEach((file) => {
+            const fileUrl = `https://drive.google.com/file/d/${file.id}`;
+            urls.push(fileUrl);
+            crawlPromises.push(this.crawlImage(fileUrl));
+          });
+        } else if (artwork.indexOf('imgur.com/a/') > 0) {
+          // get all file in imgur album
+          const files = await this.crawlImgurAlbum(artwork);
+          files.forEach((file) => {
+            const fileUrl = `https://i.imgur.com/${file.id}.jpg`;
+            urls.push(fileUrl);
+            crawlPromises.push(this.crawlImage(fileUrl));
+          });
+        } else {
+          urls.push(artwork);
+          crawlPromises.push(this.crawlImage(artwork));
+        }
+      }
+      const crawlImageResult = (await Promise.all(crawlPromises)).filter(
+        (result) => result.buffer
+      );
+
+      const s3SubFolder =
+        this.configService.get<string>('aws.s3SubFolder') || 'images';
+
+      // resize
+      const resizedArtworks = await Promise.all(
+        crawlImageResult.map(async (image, index) => {
+          return sharp(image.buffer)
+            .resize(1366, 768, { fit: 'inside' })
+            .png({ quality: 80 })
+            .toBuffer()
+            .catch(function (err) {
+              console.log('Error occured ', err);
+              console.log(urls[index]);
+              return image.buffer;
+            });
+        })
+      );
+
+      // upload images
+      const filenames: string[] = [];
+      const uploadResult = await Promise.all(
+        crawlImageResult.map((image, index) => {
+          const filename = `${contest_round}-${index}-${Number(
+            new Date()
+          ).toString()}.jpg`;
+          filenames.push(filename);
+          const keyName = `${s3SubFolder}/creator-${creatorId}/artworks/${filename}`;
+          return this.fileService.uploadToS3(
+            keyName,
+            resizedArtworks[index],
+            image.mimeType
+          );
+        })
+      );
+
+      const newArtworks = filenames.map((filename, index: number) => ({
+        contest_id,
+        contest_round,
+        creator_id: creatorId,
+        source_url: vaidArtworks.join(','),
+        url: new URL(
+          `${s3SubFolder}/creator-${creatorId}/artworks/${filename}`,
+          this.configService.get<string>('aws.queryEndpoint')
+        ).href,
+      }));
+
+      const insertArtworkResult = await this.artworkGraphql.insertArtwork(
         {
-          object: {
-            name: creator,
-            pen_name: creator,
-            slug: generateSlug(creator),
-          },
+          objects: newArtworks,
         },
         token
       );
-      if (!insertCreatorResult.errors) {
-        const creatorId = insertCreatorResult.data.insert_creators_one.id;
 
-        // upload image to s3
-        const crawlImageResult = artworks
-          .filter((str) => str !== '')
-          .map(async (artwork: string) => {
-            const result = await this.crawlImage(artwork);
-            return result;
-          });
-        // const crawlImageResult = await Promise.all(crawlPromises);
-
-        const s3SubFolder =
-          this.configService.get<string>('aws.s3SubFolder') || 'images';
-
-        await Promise.all(
-          crawlImageResult
-            .filter((result) => result.buffer)
-            .map((image, index) => {
-              const keyName = `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`;
-              return this.fileService.uploadToS3(
-                keyName,
-                image.buffer,
-                image.mimeType
-              );
-            })
-        );
-
-        const newArtworks = artworks
-          .filter((str) => str !== '')
-          .map((artwork: string, index: number) => ({
-            contest_id,
-            contest_round,
-            creator_id: creatorId,
-            source_url: artwork,
-            url: new URL(
-              `${s3SubFolder}/creator-${creatorId}/artworks/${contest_round}-${index}.jpg`,
-              this.configService.get<string>('aws.queryEndpoint')
-            ).href,
-          }));
-
-        const insertArtworkResult = await this.artworkGraphql.insertArtwork(
-          {
-            objects: newArtworks,
-          },
-          token
-        );
-
-        this.logger.debug(insertArtworkResult);
-      } else {
-        console.log(creator);
-      }
-    });
-
-    return creatorArtworks;
+      this.logger.debug(insertArtworkResult);
+    } else {
+      console.log(creator);
+    }
   }
 
   private async crawlImage(artWorkUrl: string) {
@@ -125,7 +218,7 @@ export class ArtworkService implements OnModuleInit {
       return this.crawlImgurImage(artWorkUrl + '.jpg');
     }
 
-    if (artWorkUrl.indexOf('drive.google.com') > 0) {
+    if (artWorkUrl.indexOf('drive.google.com/file') > 0) {
       return this.crawlGoogleDriveImage(artWorkUrl);
     }
   }
@@ -152,13 +245,28 @@ export class ArtworkService implements OnModuleInit {
     }
   }
 
-  private async crawlGoogleDriveImage(url: string) {
-    // const auth = new GoogleAuth({
-    //   scopes: 'https://www.googleapis.com/auth/drive',
-    //   keyFilename: this.configService.get<string>('google.analytics.keyFile'),
-    // }) as any;
-    // const service = google.drive({ version: 'v3', auth });
+  private async crawlImgurAlbum(url: string) {
+    const api = this.configService.get<string>('imgur.api');
+    const clientId = this.configService.get<string>('imgur.clientId');
+    const albumHash = url.split('/')?.[4];
+    try {
+      const response = await axios.get(`${api}/3/album/${albumHash}/images`, {
+        headers: {
+          Authorization: `Client-ID ${clientId}`,
+        },
+      });
 
+      return response.data?.data.map((data) => ({ id: data.id }));
+    } catch (error) {
+      return {
+        errors: {
+          message: JSON.stringify(error),
+        },
+      };
+    }
+  }
+
+  private async crawlGoogleDriveImage(url: string) {
     const fileId = url.split('/')?.[5];
     try {
       const file = (await this.googleService.files.get(
@@ -177,6 +285,33 @@ export class ArtworkService implements OnModuleInit {
         mimeType,
         buffer,
       };
+    } catch (error) {
+      this.logger.error(`cannot get image from url: ${url}`);
+      return {
+        errors: {
+          message: JSON.stringify(error),
+        },
+      };
+    }
+  }
+
+  private async crawlGoogleDriveFolder(url: string) {
+    const folderId = url.split('/')?.[5];
+    const files: any[] = [];
+    try {
+      const res: any = await this.googleService.files.list({
+        q: `'${folderId}' in parents`,
+        fields: 'nextPageToken, files(id, name)',
+        spaces: 'drive',
+      });
+
+      files.push(res.files);
+
+      res.data.files.forEach(function (file: any) {
+        console.log('Found file:', file.name, file.id);
+      });
+
+      return res.data.files;
     } catch (error) {
       this.logger.error(`cannot get image from url: ${url}`);
       return {

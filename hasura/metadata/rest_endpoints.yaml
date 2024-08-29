@@ -34,6 +34,24 @@
     - GET
   name: Admin - Query campaign detail
   url: admin/campaign/:id
+- comment: "Insert Chapter Collection\nchapter_collection_insert_input:{\nchapter_id: Int!, \nlaunchpad_id: Int!\n}"
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Insert Chapter Collection
+  methods:
+    - POST
+  name: Admin - Insert Chapter Collection
+  url: admin/chapter-collection
+- comment: Delete Chapter Collection
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete Chapter Collection
+  methods:
+    - DELETE
+  name: Admin - Delete Chapter Collection
+  url: admin/chapter-collection/:id
 - comment: ""
   definition:
     query:
@@ -70,6 +88,15 @@
     - GET
   name: Admin - Query List Manga
   url: admin/manga
+- comment: Delete Manga Collection
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Admin - Delete Manga Collection
+  methods:
+    - DELETE
+  name: Admin - Delete Manga Collection
+  url: admin/manga-collection/:id
 - comment: ""
   definition:
     query:
@@ -88,7 +115,7 @@
     - PUT
   name: Admin - Update manga status
   url: admin/manga/:id
-- comment: ""
+- comment: Get manga detail
   definition:
     query:
       collection_name: allowed-queries

@@ -9,6 +9,13 @@ array_relationships:
         table:
           name: artworks
           schema: public
+  - name: contest_i18ns
+    using:
+      foreign_key_constraint_on:
+        column: contest_id
+        table:
+          name: i18n
+          schema: public
   - name: contest_mangas
     using:
       foreign_key_constraint_on:
@@ -20,6 +27,7 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
+        - isLive
         - id
         - slug
         - created_at
@@ -31,6 +39,7 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - isLive
         - id
         - slug
         - created_at
