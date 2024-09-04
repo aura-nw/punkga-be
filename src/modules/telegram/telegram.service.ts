@@ -1,6 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHmac } from 'crypto';
 import { ContextProvider } from '../../providers/contex.provider';
 import { TelegramGraphql } from './telegram.graphql';
 import { Authorizer } from '@authorizerdev/authorizer-js';
@@ -14,6 +13,21 @@ export class TelegramService {
     private configService: ConfigService,
     private telegramGraphql: TelegramGraphql
   ) {}
+
+  async readChapter(manga_slug: string, chapter_number: number) {
+    try {
+      const result = await this.telegramGraphql.getChapterDetail({
+        manga_slug,
+        chapter_number,
+      });
+
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
 
   connect() {
     const { telegramUserId } = ContextProvider.getAuthUser();
