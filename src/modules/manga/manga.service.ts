@@ -266,7 +266,7 @@ export class MangaService {
     }
   }
 
-  async addMangaCollection(mangaId: Number, collectionIdList: number[]) {
+  async addMangaCollection(mangaId: number, collectionIdList: number[]) {
     try {
       // const { token } = ContextProvider.getAuthUser();
       const objects = [];
