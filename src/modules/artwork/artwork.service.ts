@@ -1,6 +1,5 @@
 import {
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
   OnModuleInit,
@@ -97,7 +96,7 @@ export class ArtworkService implements OnModuleInit {
 
     // resize
     const resizedArtworks = await Promise.all(
-      files.map(async (file, index) => {
+      files.map(async (file) => {
         return sharp(file.buffer)
           .resize(1366, 768, { fit: 'inside' })
           .png({ quality: 80 })
@@ -128,7 +127,7 @@ export class ArtworkService implements OnModuleInit {
     });
 
     const uploadResult = await Promise.all(uploadPromises);
-    for (let index in files) {
+    for (const index in files) {
       const file = files[index];
       if (uploadResult[index]) {
         // throw error if upload failed
@@ -262,7 +261,7 @@ export class ArtworkService implements OnModuleInit {
 
       // upload images
       const filenames: string[] = [];
-      const uploadResult = await Promise.all(
+      await Promise.all(
         crawlImageResult.map((image, index) => {
           const filename = `${contest_round}-${index}-${Number(
             new Date()
@@ -277,7 +276,7 @@ export class ArtworkService implements OnModuleInit {
         })
       );
 
-      const newArtworks = filenames.map((filename, index: number) => ({
+      const newArtworks = filenames.map((filename) => ({
         contest_id,
         contest_round,
         creator_id: creatorId,
