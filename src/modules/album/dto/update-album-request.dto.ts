@@ -15,6 +15,6 @@ export class UpdateAlbumRequestDto {
   @ApiPropertyOptional({ type: 'string', format: 'binary' })
   thumbnail: Express.Multer.File;
 
-  @ApiProperty()
-  show: boolean;
+  @ApiProperty({ default: 'true' })
+  show: string;
 }

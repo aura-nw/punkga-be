@@ -9,6 +9,49 @@ export class TelegramGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  getChapterDetail(variables) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query GetChapterReadingDetail($manga_slug: String = "", $chapter_number: Int!) {
+        chapters(where: {_and: {chapter_number: {_eq: $chapter_number}, manga: {_and: {slug: {_eq: $manga_slug}, status: {_in: ["On-Going", "Finished"]}}}}}) {
+          id
+          chapter_number
+          chapter_name
+          chapter_type
+          thumbnail_url
+          status
+          pushlish_date
+          chapter_languages(where: {chapter: {status: {_eq: "Published"}}}) {
+            language_id
+            detail
+          }
+          comments: social_activities_aggregate {
+            aggregate {
+              count
+            }
+          }
+          views
+          chapters_likes_aggregate {
+            aggregate {
+              count
+            }
+          }
+        }
+      }
+      `,
+      'GetChapterReadingDetail',
+      variables,
+      headers
+    );
+  }
+
   getTelegramUser(variables) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
@@ -33,6 +76,44 @@ export class TelegramGraphql {
         }
       }`,
       'telegram_users_by_pk',
+      variables,
+      headers
+    );
+  }
+
+  saveDonateHistory(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_donate_history_one($object: donate_history_insert_input = {}) {
+        insert_donate_history_one(object: $object) {
+          telegram_user {
+            telegram_id
+            username
+            authorizer_user {
+              id
+              nickname
+            }
+          }
+          creator {
+            id
+            gender
+            name
+            avatar_url
+            pen_name
+            email
+          }
+          value
+        }
+      }
+      `,
+      'insert_donate_history_one',
       variables,
       headers
     );

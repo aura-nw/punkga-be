@@ -45,7 +45,12 @@ export class AlbumGraphql {
             }
           }
         }
-      }      
+        albums_aggregate(where: {creator_id: {_eq: $creator_id}}) {
+          aggregate {
+            count
+          }
+        }
+      }
       `,
       'list_album',
       variables,

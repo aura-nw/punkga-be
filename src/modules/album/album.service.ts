@@ -78,7 +78,10 @@ export class AlbumService {
               thumbnail_url = uploadedUrl;
               break;
             case 'artworks':
-              artworks.push(uploadedUrl);
+              artworks.push({
+                url: uploadedUrl,
+                name: file.originalname,
+              });
               break;
             default:
               break;
@@ -99,9 +102,10 @@ export class AlbumService {
         if (updateResult.errors) return updateResult;
       }
 
-      const artworkData = artworks.map((artworkUrl) => ({
+      const artworkData = artworks.map((artwork) => ({
         album_id: albumId,
-        url: artworkUrl,
+        url: artwork.url,
+        name: artwork.name,
         creator_id: creatorId,
       }));
       // insert
@@ -159,7 +163,7 @@ export class AlbumService {
 
       const totalArtworks =
         getAlbumResult.data.albums_by_pk.artworks_aggregate.aggregate.count;
-      if (show === true && Number(totalArtworks) === 0) show = false;
+      if (Boolean(show) === true && Number(totalArtworks) === 0) show = 'false';
 
       let thumbnail_url = '';
 

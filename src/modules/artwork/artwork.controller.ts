@@ -24,7 +24,7 @@ import { Role } from '../../auth/role.enum';
 import { RolesGuard } from '../../auth/role.guard';
 import { Roles } from '../../auth/roles.decorator';
 import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { ArtworkService } from './artwork.service';
 import { SetRequestTimeout } from '../../decorators/set-timeout.decorator';
 import { ImportArtworkDto } from './dto/import-artwork.dto';
@@ -33,6 +33,7 @@ import {
   UpdateArtworkParamDto,
 } from './dto/update-artwork.dto';
 import { DeleteArtworksDto } from './dto/delete-artworks.dto';
+import { UploadArtworkDto } from './dto/upload-artwork.dto';
 
 @Controller('artwork')
 @ApiTags('artwork')
@@ -51,6 +52,20 @@ export class ArtworkController {
     @UploadedFile() file: Express.Multer.File
   ) {
     return this.artworkSvc.import(body, file);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Post()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @SetRequestTimeout()
+  @Roles(Role.Creator)
+  upload(
+    @Body() body: UploadArtworkDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.artworkSvc.upload(body.album_id, files);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

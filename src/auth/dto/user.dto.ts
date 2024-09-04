@@ -3,4 +3,5 @@ export class UserDto {
   roles: string[];
   token: string;
   telegramUserId?: string;
+  telegramId?: string;
 }
