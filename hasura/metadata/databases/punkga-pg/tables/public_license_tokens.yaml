@@ -1,3 +1,80 @@
 table:
   name: license_tokens
   schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        owner:
+          _eq: X-Hasura-User-Id
+      columns:
+        - owner
+        - id
+        - ip_asset_id
+        - license_id
+        - license_template_address
+        - term_id
+        - created_at
+        - updated_at
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - owner
+        - id
+        - ip_asset_id
+        - license_id
+        - license_template_address
+        - term_id
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: creator
+    permission:
+      columns:
+        - owner
+        - id
+        - ip_asset_id
+        - license_id
+        - license_template_address
+        - term_id
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - owner
+        - id
+        - ip_asset_id
+        - license_id
+        - license_template_address
+        - term_id
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - owner
+        - id
+        - ip_asset_id
+        - license_id
+        - license_template_address
+        - term_id
+        - created_at
+        - updated_at
+      filter:
+        owner:
+          _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        owner:
+          _eq: X-Hasura-User-Id

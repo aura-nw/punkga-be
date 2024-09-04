@@ -344,6 +344,33 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Public - Query IP Assets
+  methods:
+    - GET
+  name: Public - Query IP Assets
+  url: public/ip-assets
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get IP launchpad
+  methods:
+    - GET
+  name: Public - Get IP launchpad
+  url: public/ip-launchpad
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - IP Launchpad by id
+  methods:
+    - GET
+  name: Public - IP Launchpad by id
+  url: public/ip-launchpad/:id
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Public - Query all languages
   methods:
     - GET
@@ -358,6 +385,15 @@
     - GET
   name: Public - Query latest update manga
   url: public/latest
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: Public - Get license tokens by ip asset id
+  methods:
+    - GET
+  name: Public - Get license tokens by ip asset id
+  url: public/license-token
 - comment: ""
   definition:
     query:
@@ -533,6 +569,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: User - Insert license token
+  methods:
+    - POST
+  name: User - Insert license token
+  url: user/license-token
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: User - Subscribe manga
   methods:
     - POST
@@ -565,3 +610,21 @@
     - GET
   name: User - Query rank
   url: user/rank
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Create IP Asset
+  methods:
+    - POST
+  name: User - Create IP Asset
+  url: users/ip-assets
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Delete ip launchpad
+  methods:
+    - DELETE
+  name: User - Delete ip launchpad
+  url: users/ip-launchpad/:id

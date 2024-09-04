@@ -27,6 +27,7 @@ import { ChainGateWayModule } from './chain-gateway/chain-gateway.module';
 import { ArtworkModule } from './modules/artwork/artwork.module';
 import { AlbumModule } from './modules/album/album.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
+import { IPLaunchpadModule } from './modules/ip-launchpad/ip-launchpad.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { TelegramModule } from './modules/telegram/telegram.module';
     ArtworkModule,
     AlbumModule,
     TelegramModule,
+    IPLaunchpadModule,
   ],
   controllers: [],
   providers: [

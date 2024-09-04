@@ -1,3 +1,75 @@
 table:
   name: ip_asset
   schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - user_id
+        - id
+        - ip_asset_id
+        - nft_contract_address
+        - nft_token_id
+        - created_at
+        - updated_at
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - user_id
+        - id
+        - ip_asset_id
+        - nft_contract_address
+        - nft_token_id
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: creator
+    permission:
+      columns:
+        - user_id
+        - id
+        - ip_asset_id
+        - nft_contract_address
+        - nft_token_id
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - user_id
+        - id
+        - ip_asset_id
+        - nft_contract_address
+        - nft_token_id
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - user_id
+        - id
+        - ip_asset_id
+        - nft_contract_address
+        - nft_token_id
+        - created_at
+        - updated_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
