@@ -1,0 +1,3 @@
+table:
+  name: ip_asset
+  schema: public
