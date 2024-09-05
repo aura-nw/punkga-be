@@ -47,8 +47,8 @@ export class IPLaunchpadService {
 
       const {
         name,
-        license_token_id,
-        license_token_address,
+        // license_token_id,
+        // license_token_address,
         mint_price,
         royalties,
         max_supply,
@@ -57,14 +57,15 @@ export class IPLaunchpadService {
         end_date,
         description,
         creator_address,
+        license_info,
       } = data;
 
       // insert db
       const result = await this.iplaunchpadGraphql.insert({
         data: {
           name,
-          license_token_id,
-          license_token_address,
+          // license_token_id,
+          // license_token_address,
           mint_price,
           royalties,
           max_supply,
@@ -75,6 +76,7 @@ export class IPLaunchpadService {
           creator_address,
           creator_id: userId,
           status: LaunchpadStatus.Draft,
+          license_info: JSON.parse(license_info),
         },
       });
 
@@ -364,7 +366,7 @@ export class IPLaunchpadService {
 
     const {
       name,
-      license_token_id,
+      // license_token_id,
       mint_price,
       // royalties,
       max_supply,
@@ -376,7 +378,8 @@ export class IPLaunchpadService {
       thumbnail_url,
       featured_images_url,
       nft_images_url,
-      license_token_address,
+      // license_token_address,
+      license_info,
     } = data;
 
     let new_thumbnail_url = thumbnail_url;
@@ -436,7 +439,7 @@ export class IPLaunchpadService {
       id: iplaunchpadId,
       data: {
         name,
-        license_token_id,
+        // license_token_id,
         mint_price,
         // royalties,
         max_supply,
@@ -446,10 +449,11 @@ export class IPLaunchpadService {
         description,
         creator_address,
         // creator_id: userId,
-        license_token_address,
+        // license_token_address,
         thumbnail_url: new_thumbnail_url,
         featured_images: featured_images_url_arr,
         nft_images: nft_images_url_arr,
+        license_info: JSON.parse(license_info),
       },
     });
 

@@ -45,6 +45,9 @@ export class EditDraftIpLaunchpadRequestDto {
   @ApiPropertyOptional()
   creator_address: string;
 
+  @ApiPropertyOptional()
+  license_info: any;
+
   @ApiProperty()
   thumbnail_url: string;
 

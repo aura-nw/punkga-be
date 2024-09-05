@@ -4,11 +4,11 @@ export class CreateIPLaunchpadRequestDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty()
-  license_token_id: string;
+  // @ApiProperty()
+  // license_token_id: string;
 
-  @ApiProperty()
-  license_token_address: string;
+  // @ApiProperty()
+  // license_token_address: string;
 
   @ApiProperty()
   mint_price: string;
@@ -45,4 +45,7 @@ export class CreateIPLaunchpadRequestDto {
 
   @ApiPropertyOptional()
   creator_address: string;
+
+  @ApiPropertyOptional()
+  license_info: any;
 }
