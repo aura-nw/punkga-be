@@ -4,6 +4,7 @@ on:
     branches:
       - dev
       - staging
+      - story
     paths:
       - hasura/**
 jobs:
