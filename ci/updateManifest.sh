@@ -18,18 +18,10 @@ elif [ ${GITHUB_REF_NAME} = "staging" ]
 then
   echo 'This is staging branch'
   cd ${REPO_MANIFEST_ENV_STAGING}
-elif [ ${GITHUB_REF_NAME} = "hackathon" ]
+elif [ ${GITHUB_REF_NAME} = "story" ]
 then
   echo 'This is euphoria branch'
-  cd ${REPO_MANIFEST_ENV_HACKATHON}
-elif [ ${GITHUB_REF_NAME} = "serenity" ]
-then
-  echo 'This is serenity branch'
-  cd ${REPO_MANIFEST_ENV_SERENITY}
-elif [ ${GITHUB_REF_NAME} = "halo" ]
-then
-  echo 'This is halo branch'
-  cd ${REPO_MANIFEST_ENV_HALO}
+  cd ${REPO_MANIFEST_ENV_STORY}
 else
   exit
 fi
