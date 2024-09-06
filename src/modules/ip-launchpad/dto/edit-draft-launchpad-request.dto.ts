@@ -9,8 +9,8 @@ export class EditDraftIpLaunchpadRequestDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty()
-  license_token_id: string;
+  // @ApiProperty()
+  // license_token_id: string;
 
   @ApiProperty()
   mint_price: string;
@@ -46,13 +46,16 @@ export class EditDraftIpLaunchpadRequestDto {
   creator_address: string;
 
   @ApiPropertyOptional()
+  ip_asset_id: string;
+
+  @ApiPropertyOptional()
   license_info: any;
 
   @ApiProperty()
   thumbnail_url: string;
 
-  @ApiProperty()
-  license_token_address: string;
+  // @ApiProperty()
+  // license_token_address: string;
 
   @ApiProperty({ type: [String] })
   featured_images_url: string;

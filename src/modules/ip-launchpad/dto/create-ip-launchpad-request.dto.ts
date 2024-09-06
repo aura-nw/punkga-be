@@ -47,5 +47,8 @@ export class CreateIPLaunchpadRequestDto {
   creator_address: string;
 
   @ApiPropertyOptional()
+  ip_asset_id: string;
+
+  @ApiPropertyOptional()
   license_info: any;
 }

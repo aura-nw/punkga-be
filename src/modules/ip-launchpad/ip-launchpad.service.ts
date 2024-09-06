@@ -57,6 +57,7 @@ export class IPLaunchpadService {
         end_date,
         description,
         creator_address,
+        ip_asset_id,
         license_info,
       } = data;
 
@@ -74,6 +75,7 @@ export class IPLaunchpadService {
           end_date,
           description,
           creator_address,
+          ip_asset_id,
           creator_id: userId,
           status: LaunchpadStatus.Draft,
           license_info: JSON.parse(license_info),
@@ -375,6 +377,7 @@ export class IPLaunchpadService {
       end_date,
       description,
       creator_address,
+      ip_asset_id,
       thumbnail_url,
       featured_images_url,
       nft_images_url,
@@ -448,6 +451,7 @@ export class IPLaunchpadService {
         end_date,
         description,
         creator_address,
+        ip_asset_id,
         // creator_id: userId,
         // license_token_address,
         thumbnail_url: new_thumbnail_url,
