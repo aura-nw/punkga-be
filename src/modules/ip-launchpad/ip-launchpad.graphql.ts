@@ -38,6 +38,8 @@ export class IPLaunchpadGraphql {
           status
           thumbnail_url
           updated_at
+          license_info
+          ip_asset_id
         }
       }
       `,
