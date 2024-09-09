@@ -1514,6 +1514,13 @@
               updated_at
             }
           }
+      - name: User - Delete ip launchpad
+        query: |
+          mutation delete_ip_launchpad ($id: Int!) {
+            delete_ip_launchpad(where: {id:{_eq:$id},status:{_eq:"DRAFT"}}) {
+              affected_rows
+            }
+          }
       - name: Public - IP Launchpad by id
         query: |
           query ip_launchpad ($id: Int!) {
@@ -1542,6 +1549,8 @@
               created_at
               updated_at
               tx_hash
+              license_info
+              ip_asset_id
               license {
                 ip_asset_id
                 license_id
@@ -1550,12 +1559,5 @@
                 owner
                 created_at
               }
-            }
-          }
-      - name: User - Delete ip launchpad
-        query: |
-          mutation delete_ip_launchpad ($id: Int!) {
-            delete_ip_launchpad(where: {id:{_eq:$id},status:{_eq:"DRAFT"}}) {
-              affected_rows
             }
           }
