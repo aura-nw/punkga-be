@@ -126,6 +126,26 @@ export class MangaGraphql {
           thumbnail_url
           status
           pushlish_date
+          chapter_collections {
+            chapter_collection {
+              featured_images
+              contract_address
+              launchpad_creator {
+                name
+                slug
+                id
+              }
+              launchpad_i18ns {
+                data(path: "name")
+                language_id
+                id
+              }
+              slug
+              status
+              updated_at
+              created_at
+            }
+          }
           chapter_languages(where: {chapter: {status: {_eq: "Published"}}}) {
             language_id
             detail
