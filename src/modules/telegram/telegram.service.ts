@@ -1,9 +1,15 @@
+import { readFile } from 'fs/promises';
+import * as path from 'path';
+
+import { Authorizer } from '@authorizerdev/authorizer-js';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+
 import { ContextProvider } from '../../providers/contex.provider';
-import { TelegramGraphql } from './telegram.graphql';
-import { Authorizer } from '@authorizerdev/authorizer-js';
 import { SaveDonateTxDto } from './dto/save-donate-tx.dto';
+import { TelegramGraphql } from './telegram.graphql';
+import { Role } from '../../auth/role.enum';
 
 @Injectable()
 export class TelegramService {
@@ -11,7 +17,8 @@ export class TelegramService {
 
   constructor(
     private configService: ConfigService,
-    private telegramGraphql: TelegramGraphql
+    private telegramGraphql: TelegramGraphql,
+    private jwtService: JwtService
   ) {}
 
   async readChapter(manga_slug: string, chapter_number: number) {
@@ -29,11 +36,32 @@ export class TelegramService {
     }
   }
 
-  connect() {
+  async connect() {
     const { telegramUserId } = ContextProvider.getAuthUser();
-    return this.telegramGraphql.getTelegramUser({
+    const result = await this.telegramGraphql.getTelegramUser({
       id: telegramUserId,
     });
+
+    if (result.data?.telegram_user?.authorizer_user !== null) {
+      const payload = {
+        'https://hasura.io/jwt/claims': {
+          'x-hasura-allowed-roles': [Role.User],
+          'x-hasura-default-role': Role.User,
+          'x-hasura-user-email':
+            result.data.telegram_user.authorizer_user.email,
+          'x-hasura-user-id': result.data.telegram_user.authorizer_user.id,
+        },
+      };
+      const privateKey = await readFile(
+        path.resolve(__dirname, '../../../private.pem')
+      );
+      const access_token = await this.jwtService.signAsync(payload, {
+        algorithm: 'RS256',
+        privateKey,
+      });
+      result.data.telegram_user.authorizer_user.token = access_token;
+    }
+    return result;
   }
 
   async link(email: string, password: string) {
@@ -77,10 +105,30 @@ export class TelegramService {
       if (result.errors) return result;
 
       const userId = result.login.user.id;
-      return this.telegramGraphql.updateTelegramUser({
+      const updateResult = await this.telegramGraphql.updateTelegramUser({
         id: telegramUserId,
         user_id: userId,
       });
+      const payload = {
+        'https://hasura.io/jwt/claims': {
+          'x-hasura-allowed-roles': [Role.User],
+          'x-hasura-default-role': Role.User,
+          'x-hasura-user-email':
+            updateResult.data.telegram_user.authorizer_user.email,
+          'x-hasura-user-id':
+            updateResult.data.telegram_user.authorizer_user.id,
+        },
+      };
+      const privateKey = await readFile(
+        path.resolve(__dirname, '../../../private.pem')
+      );
+      const access_token = await this.jwtService.signAsync(payload, {
+        algorithm: 'RS256',
+        privateKey,
+      });
+      updateResult.data.telegram_user.authorizer_user.token = access_token;
+
+      return updateResult;
     } catch (error) {
       throw new UnauthorizedException(error.message);
     }
