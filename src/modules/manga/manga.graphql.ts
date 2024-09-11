@@ -19,9 +19,30 @@ export class MangaGraphql {
           slug
           poster
           banner
-          contract_addresses
           status
           release_date
+          manga_collections {
+            launchpad_id
+            manga_id
+            manga_collection {
+              contract_address
+              launchpad_creator {
+                name
+                slug
+                id
+              }
+              launchpad_i18ns {
+                data(path: "name")
+                language_id
+                id
+              }
+              slug
+              status
+              updated_at
+              created_at
+            }
+            id
+          }
           manga_creators {
             creator {
               id
@@ -295,7 +316,7 @@ export class MangaGraphql {
     };
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
-      "",
+      '',
       `mutation insert_manga_collection($objects: [manga_collection_insert_input!] = {}) {
         insert_manga_collection(objects: $objects, on_conflict: {constraint: manga_collection_manga_id_launchpad_id_key, update_columns: updated_at}) {
           affected_rows
