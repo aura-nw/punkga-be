@@ -90,7 +90,7 @@ export class AlbumGraphql {
     );
   }
 
-  defaultalbumDetail(variables: any) {
+  defaultAlbumDetail(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
