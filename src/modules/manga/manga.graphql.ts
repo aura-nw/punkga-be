@@ -25,6 +25,7 @@ export class MangaGraphql {
             launchpad_id
             manga_id
             manga_collection {
+              featured_images
               contract_address
               launchpad_creator {
                 name
