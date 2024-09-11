@@ -90,6 +90,38 @@ export class AlbumGraphql {
     );
   }
 
+  defaultalbumDetail(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query album_detail($id: Int!, $creator_id: Int!) {
+        albums(where: {id: {_eq: $id}}) {
+          id
+          name
+          description
+          thumbnail_url
+          show
+          disable
+          artworks(where: {creator_id: {_eq: $creator_id}}) {
+            id
+            name
+            url
+            created_at
+          }
+        }
+      }      
+      `,
+      'album_detail',
+      variables,
+      headers
+    );
+  }
+
   albumByPk(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
