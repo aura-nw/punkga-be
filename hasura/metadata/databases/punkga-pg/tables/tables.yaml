@@ -35,6 +35,8 @@
 - "!include public_system_key.yaml"
 - "!include public_tag_languages.yaml"
 - "!include public_tags.yaml"
+- "!include public_telegram_quest_history.yaml"
+- "!include public_telegram_quests.yaml"
 - "!include public_telegram_users.yaml"
 - "!include public_user_campaign.yaml"
 - "!include public_user_campaign_reward.yaml"

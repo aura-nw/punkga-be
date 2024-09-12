@@ -18,6 +18,7 @@ import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { LinkUserDto } from './dto/link-user.dto';
 import { SaveDonateTxDto } from './dto/save-donate-tx.dto';
 import { ReadChapterDto } from './dto/read-chapter.dto';
+import { SaveQuestDto } from './dto/save-quest.dto';
 
 @Controller('telegram')
 @ApiTags('telegram')
@@ -62,5 +63,25 @@ export class TelegramController {
   @ApiOperation({ summary: '' })
   saveTx(@Body() body: SaveDonateTxDto) {
     return this.telegramSvc.saveTx(body);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.TelegramUser)
+  @Post('get-quest')
+  @UseInterceptors(AuthUserInterceptor)
+  @ApiOperation({ summary: '' })
+  getQuest() {
+    return this.telegramSvc.getQuest();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.TelegramUser)
+  @Post('save-quest')
+  @UseInterceptors(AuthUserInterceptor)
+  @ApiOperation({ summary: '' })
+  saveQuest(@Body() body: SaveQuestDto) {
+    return this.telegramSvc.saveQuest(body.id);
   }
 }

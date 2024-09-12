@@ -1,0 +1,10 @@
+table:
+  name: telegram_quest_history
+  schema: public
+object_relationships:
+  - name: telegram_quest
+    using:
+      foreign_key_constraint_on: quest_id
+  - name: telegram_user
+    using:
+      foreign_key_constraint_on: telegram_user_id

@@ -7,8 +7,14 @@ import { TelegramService } from './telegram.service';
 import { TelegramGraphql } from './telegram.graphql';
 
 @Module({
-  imports: [JwtModule, GraphqlModule],
-  providers: [TelegramService, TelegramGraphql],
+  imports: [
+    JwtModule,
+    GraphqlModule
+  ],
+  providers: [
+    TelegramService, 
+    TelegramGraphql
+  ],
   controllers: [TelegramController],
 })
-export class TelegramModule {}
+export class TelegramModule { }

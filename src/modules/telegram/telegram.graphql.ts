@@ -7,7 +7,7 @@ export class TelegramGraphql {
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
-  ) {}
+  ) { }
 
   getChapterDetail(variables) {
     const headers = {
@@ -68,6 +68,7 @@ export class TelegramGraphql {
           telegram_id
           username
           created_at
+          chip
           authorizer_user {
             id
             nickname
@@ -109,6 +110,7 @@ export class TelegramGraphql {
             pen_name
             email
           }
+          txn
           value
         }
       }
@@ -142,6 +144,178 @@ export class TelegramGraphql {
         }
       }`,
       'update_telegram_users_by_pk',
+      variables,
+      headers
+    );
+  }
+
+  getTelegramQuest(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query telegram_quests($telegram_user_id: Int!) {
+        telegram_quests {
+          id
+          quest_name
+          quest_url
+          reward
+          social_source
+          type
+          claim_after
+          active_from
+          active_to
+          activated
+          deleted
+          telegram_quest_histories(where: {telegram_user: {id: {_eq: $telegram_user_id}}}) {
+            id
+            quest_id
+            created_date
+            is_claim
+            telegram_user {
+              id
+              telegram_id
+              chip
+              authorizer_user {
+                email
+              }
+            }
+          }
+        }
+      }`,
+      'telegram_quests',
+      variables,
+      headers
+    );
+  }
+
+  getTelegramQuestById(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query telegram_quests($id: bigint!, $telegram_user_id: Int!) {
+        telegram_quests(where: {id: {_eq: $id}}) {
+          id
+          quest_name
+          quest_url
+          reward
+          social_source
+          type
+          claim_after
+          active_from
+          active_to
+          activated
+          deleted
+          telegram_quest_histories(where: {telegram_user: {id: {_eq: $telegram_user_id}}}) {
+            id
+            quest_id
+            created_date
+            is_claim
+            telegram_user {
+              id
+              telegram_id
+              chip
+              authorizer_user {
+                email
+              }
+            }
+          }
+        }
+      }`,
+      'telegram_quests',
+      variables,
+      headers
+    );
+  }
+  insertTelegramQuestHistory(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_telegram_quest_history($quest_id: bigint!, $telegram_user_id: Int!, $is_claim: Boolean!) {
+        insert_telegram_quest_history(objects: {quest_id: $quest_id, telegram_user_id: $telegram_user_id, is_claim: $is_claim}) {
+          returning {
+            id
+            quest_id
+            telegram_user_id
+            is_claim
+            created_date
+          }
+        }
+      }`,
+      'insert_telegram_quest_history',
+      variables,
+      headers
+    );
+  }
+  updateTelegramQuestHistory(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_telegram_quest_history($quest_id: bigint!, $telegram_user_id: Int!) {
+        update_telegram_quest_history(where: {quest_id: {_eq: $quest_id}, telegram_user_id: {_eq: $telegram_user_id}}, _set: {is_claim: true}) {
+          returning {
+            id
+            quest_id
+            telegram_user_id
+            is_claim
+            created_date
+          }
+        }
+      }`,
+      'update_telegram_quest_history',
+      variables,
+      headers
+    );
+  }
+  updateTelegramUserChip(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_telegram_users($telegram_user_id: Int!, $chip: bigint!) {
+         update_telegram_users(where: {id: {_eq: $telegram_user_id}}, _set: {chip: $chip}) {
+         returning {
+            id
+            telegram_id
+            username
+            created_at
+            chip
+            authorizer_user {
+              id
+              nickname
+              email
+            }
+          }
+         }
+      }`,
+      'update_telegram_users',
       variables,
       headers
     );
