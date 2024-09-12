@@ -138,6 +138,13 @@ export class AlbumService {
 
   async getDetail(id: number) {
     const creatorId = await this.creatorService.getCreatorIdAuthToken();
+
+    if (id === 1) {
+      return this.albumGraphql.defaultAlbumDetail({
+        id,
+        creator_id: creatorId,
+      });
+    }
     return this.albumGraphql.albumDetail({
       id,
       creator_id: creatorId,
