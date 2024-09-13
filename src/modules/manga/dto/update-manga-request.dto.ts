@@ -43,9 +43,6 @@ export class UpdateMangaRequestDto {
   @ApiProperty()
   release_date: string;
 
-  @ApiProperty()
-  contract_addresses: string;
-
   @ApiProperty({ type: [MangaTag] })
   manga_tags: string;
 

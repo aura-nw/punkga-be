@@ -67,7 +67,7 @@ export class MangaService {
   async create(data: CreateMangaRequestDto, files: Array<Express.Multer.File>) {
     try {
       const { token } = ContextProvider.getAuthUser();
-      const { status, contract_addresses, release_date } = data;
+      const { status, release_date } = data;
       const manga_tags = plainToInstance(
         MangaTag,
         JSON.parse(data.manga_tags) as any[]
@@ -88,7 +88,7 @@ export class MangaService {
         manga_creators,
         manga_languages,
         release_date,
-        contract_addresses: JSON.parse(contract_addresses),
+        contract_addresses: [],
       });
 
       if (result.errors && result.errors.length > 0) {
@@ -129,9 +129,11 @@ export class MangaService {
       });
 
       return updateResponse;
-    } catch (errors) {
+    } catch (error) {
       return {
-        errors,
+        errors: {
+          message: error.message,
+        },
       };
     }
   }
@@ -149,7 +151,6 @@ export class MangaService {
         manga_tags,
         manga_creators,
         manga_languages,
-        contract_addresses,
       } = data;
 
       const result = await this.mangaGraphql.queryMangaById(token, {
@@ -188,7 +189,7 @@ export class MangaService {
         poster: posterUrl,
         status,
         release_date,
-        contract_addresses: JSON.parse(contract_addresses),
+        contract_addresses: [],
         manga_tags: plainToInstance(MangaTag, JSON.parse(manga_tags)),
         manga_creators: plainToInstance(
           MangaCreator,
