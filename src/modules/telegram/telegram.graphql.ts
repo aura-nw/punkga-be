@@ -320,4 +320,27 @@ export class TelegramGraphql {
       headers
     );
   }
+  insertTempAuthorizedUser(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_authorizer_users($id: bpchar!, $key: String!, $email: String!, $email_verified_at: bigint!, $nickname: String!, $signup_methods: String!) {
+          insert_authorizer_users(objects: {id: $id, key: $key, email: $email, email_verified_at: $email_verified_at, signup_methods: $signup_methods, nickname: $nickname}) {
+            returning {
+              id
+            }
+          }
+        }
+        `,
+      'insert_authorizer_users',
+      variables,
+      headers
+    );
+  }
 }

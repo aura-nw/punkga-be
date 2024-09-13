@@ -10,6 +10,7 @@ import { ContextProvider } from '../../providers/contex.provider';
 import { SaveDonateTxDto } from './dto/save-donate-tx.dto';
 import { TelegramGraphql } from './telegram.graphql';
 import { Role } from '../../auth/role.enum';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class TelegramService {
@@ -109,6 +110,51 @@ export class TelegramService {
         id: telegramUserId,
         user_id: userId,
       });
+      const payload = {
+        'https://hasura.io/jwt/claims': {
+          'x-hasura-allowed-roles': [Role.User],
+          'x-hasura-default-role': Role.User,
+          'x-hasura-user-email':
+            updateResult.data.telegram_user.authorizer_user.email,
+          'x-hasura-user-id':
+            updateResult.data.telegram_user.authorizer_user.id,
+        },
+      };
+      const privateKey = await readFile(
+        path.resolve(__dirname, '../../../private.pem')
+      );
+      const access_token = await this.jwtService.signAsync(payload, {
+        algorithm: 'RS256',
+        privateKey,
+      });
+      updateResult.data.telegram_user.authorizer_user.token = access_token;
+
+      return updateResult;
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
+    }
+  }
+  async createAndLink(){
+    const { telegramId, telegramUserId } = ContextProvider.getAuthUser();
+    const email = `tele_${telegramId}_${(new Date()).getTime()}@punkga.me`;
+    const username = `tele_${telegramId}_${(new Date()).getTime()}`;
+    const uuidTemp = uuidv4();
+    const insertedUser = await this.telegramGraphql.insertTempAuthorizedUser({
+      id: uuidTemp,
+      key: uuidTemp,
+      email: email,
+      nickname: username,
+      email_verified_at: (new Date()).getTime(),
+      signup_methods: 'telegram'
+    })
+    if (insertedUser.errors) return insertedUser;
+    try {      
+      const userId = insertedUser.data?.insert_authorizer_users?.returning[0].id;
+      const updateResult = await this.telegramGraphql.updateTelegramUser({
+        id: telegramUserId,
+        user_id: userId,
+      });
+      if (updateResult.errors) return insertedUser;
       const payload = {
         'https://hasura.io/jwt/claims': {
           'x-hasura-allowed-roles': [Role.User],

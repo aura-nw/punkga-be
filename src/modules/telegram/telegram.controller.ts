@@ -84,4 +84,14 @@ export class TelegramController {
   saveQuest(@Body() body: SaveQuestDto) {
     return this.telegramSvc.saveQuest(body.id);
   }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.TelegramUser)
+  @Post('create-and-link')
+  @UseInterceptors(AuthUserInterceptor)
+  @ApiOperation({ summary: '' })
+  createAndLink() {
+    return this.telegramSvc.createAndLink();
+  }
 }
