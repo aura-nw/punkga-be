@@ -187,7 +187,7 @@ export class IPLaunchpadService {
       const folderPath = `./uploads/iplaunchpad-${iplaunchpadId}`;
       mkdirp(folderPath);
       convertedDataFiles.map(async (data, index) => {
-        const tokenId = 1370000000000 + index;
+        const tokenId = 1 + index;
         const localFilePath = `${folderPath}/${tokenId}`;
         return writeFile(localFilePath, data.body);
       });
@@ -202,13 +202,11 @@ export class IPLaunchpadService {
       const ipfsMetadataFolder = `/punkga-iplaunchpad-${iplaunchpadId}/metadata`;
       const metadataObjects: IMetadata[] = filenames.map(
         (filename, index: number) => ({
-          token_id: 1370000000000 + index,
-          name: (1370000000000 + index).toString(),
+          token_id: 1 + index,
+          name: (1 + index).toString(),
           description: 'punkga nft',
           attributes: [],
-          image: `https://ipfs-gw.dev.aura.network/ipfs/${cid}/${
-            1370000000000 + index
-          }`,
+          image: `https://ipfs-gw.dev.aura.network/ipfs/${cid}/${1 + index}`,
         })
       );
       const medatadaFolderCid =
