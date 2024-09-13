@@ -20,7 +20,7 @@ export class TelegramService {
     private configService: ConfigService,
     private telegramGraphql: TelegramGraphql,
     private jwtService: JwtService
-  ) { }
+  ) {}
 
   async readChapter(manga_slug: string, chapter_number: number) {
     try {
@@ -110,6 +110,8 @@ export class TelegramService {
         id: telegramUserId,
         user_id: userId,
       });
+      if (updateResult.errors) return updateResult;
+
       const payload = {
         'https://hasura.io/jwt/claims': {
           'x-hasura-allowed-roles': [Role.User],
@@ -192,21 +194,22 @@ export class TelegramService {
       },
     });
     if (saveDonate) {
-      const user = await this.telegramGraphql.getTelegramUser({ id: telegramUserId });
+      const user = await this.telegramGraphql.getTelegramUser({
+        id: telegramUserId,
+      });
       const chip = data.value * 20000 + user?.data?.telegram_user.chip;
       var res = await this.telegramGraphql.updateTelegramUserChip({
         telegram_user_id: telegramUserId,
-        chip: chip
-      })
+        chip: chip,
+      });
     }
-    
   }
 
   async getQuest() {
     try {
       const { telegramUserId } = ContextProvider.getAuthUser();
       const quests = await this.telegramGraphql.getTelegramQuest({
-        telegram_user_id: telegramUserId
+        telegram_user_id: telegramUserId,
       });
 
       return quests;
@@ -223,7 +226,7 @@ export class TelegramService {
       let quest;
       const quests = await this.telegramGraphql.getTelegramQuestById({
         id: id,
-        telegram_user_id: telegramUserId
+        telegram_user_id: telegramUserId,
       });
 
       if (quests?.data?.telegram_quests.length > 0) {
@@ -231,9 +234,9 @@ export class TelegramService {
         if (!quest) {
           return {
             errors: {
-              message: JSON.stringify("Quest not found.")
+              message: JSON.stringify('Quest not found.'),
             },
-          }
+          };
         }
         if (quest) {
           var history = quest.telegram_quest_histories;
@@ -241,28 +244,36 @@ export class TelegramService {
             var r = await this.telegramGraphql.insertTelegramQuestHistory({
               quest_id: id,
               telegram_user_id: telegramUserId,
-              is_claim: false
+              is_claim: false,
             });
           } else {
             var h = history[0];
             if (h.is_claim) {
               return {
                 errors: {
-                  message: JSON.stringify("Quest already claimed.")
+                  message: JSON.stringify('Quest already claimed.'),
                 },
-              }
+              };
             } else {
-              if (quest.claim_after <= 0 || (Date.parse(new Date().toISOString()) - Date.parse(h.created_date + 'Z')) / 1000 >= quest.claim_after * 60) {
+              if (
+                quest.claim_after <= 0 ||
+                (Date.parse(new Date().toISOString()) -
+                  Date.parse(h.created_date + 'Z')) /
+                  1000 >=
+                  quest.claim_after * 60
+              ) {
                 var r = await this.telegramGraphql.updateTelegramQuestHistory({
                   quest_id: id,
-                  telegram_user_id: telegramUserId
+                  telegram_user_id: telegramUserId,
                 });
-                const user = await this.telegramGraphql.getTelegramUser({ id: telegramUserId });
+                const user = await this.telegramGraphql.getTelegramUser({
+                  id: telegramUserId,
+                });
                 const chip = quest?.reward + user?.data?.telegram_user.chip;
                 var res = await this.telegramGraphql.updateTelegramUserChip({
                   telegram_user_id: telegramUserId,
-                  chip: chip
-                })
+                  chip: chip,
+                });
               }
             }
           }
@@ -270,13 +281,13 @@ export class TelegramService {
       } else {
         return {
           errors: {
-            message: JSON.stringify("Quest not found.")
+            message: JSON.stringify('Quest not found.'),
           },
-        }
+        };
       }
       var lastResponse = await this.telegramGraphql.getTelegramQuestById({
         id: id,
-        telegram_user_id: telegramUserId
+        telegram_user_id: telegramUserId,
       });
       return lastResponse?.data?.telegram_quests[0];
     } catch (errors) {
