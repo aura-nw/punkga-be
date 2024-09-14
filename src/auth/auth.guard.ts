@@ -42,11 +42,11 @@ export class AuthGuard implements CanActivate {
     // insert user
 
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('invalid token');
     }
 
     const username =
-      user.username || user.username === null
+      !user.username || user.username === null
         ? `tele_${user.id.toString()}`
         : user.username;
 
