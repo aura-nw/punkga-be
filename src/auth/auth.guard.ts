@@ -45,10 +45,15 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
+    const username =
+      user.username || user.username === null
+        ? `tele_${user.id.toString()}`
+        : user.username;
+
     const insertResult = await this.insertTelegramUser({
       object: {
         telegram_id: user.id.toString(),
-        username: user.username,
+        username,
       },
     });
     if (insertResult.errors)
