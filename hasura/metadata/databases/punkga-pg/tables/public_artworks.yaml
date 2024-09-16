@@ -9,23 +9,41 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
+        - album_id
+        - contest_id
+        - contest_round
+        - created_at
+        - creator_id
+        - id
+        - name
+        - source_url
+        - updated_at
+        - url
+      filter: {}
+      allow_aggregations: true
+  - role: creator
+    permission:
+      columns:
+        - album_id
         - contest_id
         - contest_round
         - creator_id
         - id
+        - name
         - source_url
         - url
         - created_at
         - updated_at
       filter: {}
-      allow_aggregations: true
   - role: user
     permission:
       columns:
+        - album_id
         - contest_id
         - contest_round
         - creator_id
         - id
+        - name
         - source_url
         - url
         - created_at
