@@ -32,6 +32,12 @@ export class AlbumGraphql {
             }
           }
         }
+        albums_aggregate(where: {where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}}) {
+            aggregate {
+              count
+            }
+          }
+        }
         albums(where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}, offset: $offset, limit: $limit) {
           id
           name
