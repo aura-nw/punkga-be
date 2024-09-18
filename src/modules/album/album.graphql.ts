@@ -19,38 +19,39 @@ export class AlbumGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query list_album($name: String = "%%", $limit: Int = 100, $offset: Int = 0, $creator_id: Int!) {
-              default_album: albums_by_pk(id: 1) {
-                id
-                name
-                show
-                disable
-                thumbnail_url
-                created_at
-                artworks_aggregate(where: {creator_id: {_eq: $creator_id}}) {
-                  aggregate {
-                    count
-                  }
-                }
-              }
-              albums_aggregate(where: {where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}}) {
-                aggregate {
-                  count
-                }
-              }
-              albums(where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}, offset: $offset, limit: $limit) {
-                id
-                name
-                show
-                disable
-                thumbnail_url
-                created_at
-                artworks_aggregate(where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}) {
-                  aggregate {
-                    count
-                  }
-                }
-              }
-            }`,
+        default_album: albums_by_pk(id: 1) {
+          id
+          name
+          show
+          disable
+          thumbnail_url
+          created_at
+          artworks_aggregate(where: {creator_id: {_eq: $creator_id}}) {
+            aggregate {
+              count
+            }
+          }
+        }
+        albums_aggregate(where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}) {
+          aggregate {
+            count
+          }
+        }
+        albums(where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}, offset: $offset, limit: $limit) {
+          id
+          name
+          show
+          disable
+          thumbnail_url
+          created_at
+          artworks_aggregate(where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}) {
+            aggregate {
+              count
+            }
+          }
+        }
+      }
+      `,
       'list_album',
       variables,
       headers
