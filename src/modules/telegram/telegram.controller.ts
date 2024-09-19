@@ -112,6 +112,6 @@ export class TelegramController {
   @UseInterceptors(AuthUserInterceptor)
   @ApiOperation({ summary: '' })
   getTopCreatorDonate() {
-    return this.telegramSvc.getTopDonate();
+    return this.telegramSvc.getTopCreatorDonate();
   }
 }
