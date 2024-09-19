@@ -9,3 +9,46 @@ array_relationships:
         table:
           name: artworks
           schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - created_at
+        - creator_id
+        - description
+        - disable
+        - id
+        - name
+        - show
+        - thumbnail_url
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: creator
+    permission:
+      columns:
+        - created_at
+        - creator_id
+        - description
+        - disable
+        - id
+        - name
+        - show
+        - thumbnail_url
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - creator_id
+        - description
+        - disable
+        - id
+        - name
+        - show
+        - thumbnail_url
+        - updated_at
+      filter: {}
+      allow_aggregations: true

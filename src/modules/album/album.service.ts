@@ -128,9 +128,10 @@ export class AlbumService {
 
   async getAll(query: QueryAlbumDto) {
     const creatorId = await this.creatorService.getCreatorIdAuthToken();
-    const { limit, offset } = query;
+    const { name, limit, offset } = query;
     return this.albumGraphql.getListAlbum({
       creator_id: creatorId,
+      name,
       limit: Number(limit),
       offset: Number(offset),
     });

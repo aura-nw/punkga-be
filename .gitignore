@@ -42,3 +42,4 @@ tsconfig.tsbuildinfo
 credentials/*
 
 src/test/**/*.json
+*.exe

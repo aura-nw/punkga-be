@@ -48,8 +48,8 @@ export class CreateMangaRequestDto {
   @ApiProperty()
   release_date: string;
 
-  @ApiProperty()
-  contract_addresses: string;
+  // @ApiProperty()
+  // contract_addresses: string;
 
   @ApiProperty({ type: 'string', format: 'binary' })
   banner: Express.Multer.File;
