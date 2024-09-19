@@ -343,4 +343,51 @@ export class TelegramGraphql {
       headers
     );
   }
+  getTopDonate() {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query top_user_donate {
+        top_user_donate(limit: 10) {
+          user_id
+          telegram_id
+          username
+          value
+        }
+      }`,
+      'top_user_donate',
+      {},
+      headers
+    );
+  }
+  getTopCreatorDonate() {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query top_creator_donate {
+        top_creator_donate(limit: 10) {
+          id
+          name
+          email
+          avatar_url
+          value
+        }
+      }`,
+      'top_creator_donate',
+      {},
+      headers
+    );
+  }
 }

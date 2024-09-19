@@ -20,7 +20,7 @@ export class TelegramService {
     private configService: ConfigService,
     private telegramGraphql: TelegramGraphql,
     private jwtService: JwtService
-  ) {}
+  ) { }
 
   async readChapter(manga_slug: string, chapter_number: number) {
     try {
@@ -136,7 +136,7 @@ export class TelegramService {
       throw new UnauthorizedException(error.message);
     }
   }
-  async createAndLink(){
+  async createAndLink() {
     const { telegramId, telegramUserId } = ContextProvider.getAuthUser();
     const email = `tele_${telegramId}_${(new Date()).getTime()}@punkga.me`;
     const username = `tele_${telegramId}_${(new Date()).getTime()}`;
@@ -150,7 +150,7 @@ export class TelegramService {
       signup_methods: 'telegram'
     })
     if (insertedUser.errors) return insertedUser;
-    try {      
+    try {
       const userId = insertedUser.data?.insert_authorizer_users?.returning[0].id;
       const updateResult = await this.telegramGraphql.updateTelegramUser({
         id: telegramUserId,
@@ -259,8 +259,8 @@ export class TelegramService {
                 quest.claim_after <= 0 ||
                 (Date.parse(new Date().toISOString()) -
                   Date.parse(h.created_date + 'Z')) /
-                  1000 >=
-                  quest.claim_after * 60
+                1000 >=
+                quest.claim_after * 60
               ) {
                 var r = await this.telegramGraphql.updateTelegramQuestHistory({
                   quest_id: id,
@@ -290,6 +290,29 @@ export class TelegramService {
         telegram_user_id: telegramUserId,
       });
       return lastResponse?.data?.telegram_quests[0];
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async getTopDonate() {
+    try {
+      const topDonate = await this.telegramGraphql.getTopDonate();
+
+      return topDonate;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+  async getTopCreatorDonate() {
+    try {
+      const topDonate = await this.telegramGraphql.getTopDonate();
+
+      return topDonate;
     } catch (errors) {
       return {
         errors,
