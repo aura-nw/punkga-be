@@ -42,13 +42,18 @@ export class AuthGuard implements CanActivate {
     // insert user
 
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('invalid token');
     }
+
+    const username =
+      !user.username || user.username === null
+        ? `tele_${user.id.toString()}`
+        : user.username;
 
     const insertResult = await this.insertTelegramUser({
       object: {
         telegram_id: user.id.toString(),
-        username: user.username,
+        username,
       },
     });
     if (insertResult.errors)
@@ -58,6 +63,7 @@ export class AuthGuard implements CanActivate {
       userId: insertResult.data.insert_telegram_users_one.authorizer_user?.id,
       roles: [Role.TelegramUser],
       telegramUserId: insertResult.data.insert_telegram_users_one.id,
+      telegramId: user.id.toString(),
     };
 
     return true;

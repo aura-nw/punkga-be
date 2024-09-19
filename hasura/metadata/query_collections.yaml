@@ -1472,3 +1472,47 @@
               }
             }
           }
+      - name: Public - Query albums by creator id
+        query: |
+          query albums ($creator_id: Int!) {
+            albums(where: {creator_id:{_eq:$creator_id},show:{_eq:true}}, limit: 10, offset: 0) {
+              id
+              show
+              thumbnail_url
+              name
+              disable
+            }
+            albums_aggregate(where: {creator_id:{_eq:$creator_id},show:{_eq:true}}) {
+              aggregate {
+                count
+              }
+            }
+            default: albums_by_pk(id: 1) {
+              id
+              show
+              thumbnail_url
+              name
+              disable
+            }
+          }
+      - name: Public - Query album detail
+        query: |
+          query albums ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
+            albums(where: {id:{_eq:$id},show:{_eq:true},disable:{_eq:false}}) {
+              id
+              name
+              thumbnail_url
+              show
+              disable
+              artworks(limit: $limit, offset: $offset) {
+                id
+                name
+                url
+              }
+              artworks_aggregate {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }

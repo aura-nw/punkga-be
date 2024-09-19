@@ -1,0 +1,1 @@
+CREATE TABLE "public"."telegram_quest_history" ("id" bigserial NOT NULL, "quest_id" bigint NOT NULL, "telegram_user_id" integer NOT NULL, "is_claim" boolean NOT NULL, "created_date_utc" date NOT NULL, PRIMARY KEY ("id") , FOREIGN KEY ("quest_id") REFERENCES "public"."telegram_quests"("id") ON UPDATE restrict ON DELETE no action, UNIQUE ("id"));

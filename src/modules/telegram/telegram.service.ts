@@ -1,9 +1,16 @@
+import { readFile } from 'fs/promises';
+import * as path from 'path';
+
+import { Authorizer } from '@authorizerdev/authorizer-js';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHmac } from 'crypto';
+import { JwtService } from '@nestjs/jwt';
+
 import { ContextProvider } from '../../providers/contex.provider';
+import { SaveDonateTxDto } from './dto/save-donate-tx.dto';
 import { TelegramGraphql } from './telegram.graphql';
-import { Authorizer } from '@authorizerdev/authorizer-js';
+import { Role } from '../../auth/role.enum';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class TelegramService {
@@ -11,14 +18,51 @@ export class TelegramService {
 
   constructor(
     private configService: ConfigService,
-    private telegramGraphql: TelegramGraphql
+    private telegramGraphql: TelegramGraphql,
+    private jwtService: JwtService
   ) {}
 
-  connect() {
+  async readChapter(manga_slug: string, chapter_number: number) {
+    try {
+      const result = await this.telegramGraphql.getChapterDetail({
+        manga_slug,
+        chapter_number,
+      });
+
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async connect() {
     const { telegramUserId } = ContextProvider.getAuthUser();
-    return this.telegramGraphql.getTelegramUser({
+    const result = await this.telegramGraphql.getTelegramUser({
       id: telegramUserId,
     });
+
+    if (result.data?.telegram_user?.authorizer_user !== null) {
+      const payload = {
+        'https://hasura.io/jwt/claims': {
+          'x-hasura-allowed-roles': [Role.User],
+          'x-hasura-default-role': Role.User,
+          'x-hasura-user-email':
+            result.data.telegram_user.authorizer_user.email,
+          'x-hasura-user-id': result.data.telegram_user.authorizer_user.id,
+        },
+      };
+      const privateKey = await readFile(
+        path.resolve(__dirname, '../../../private.pem')
+      );
+      const access_token = await this.jwtService.signAsync(payload, {
+        algorithm: 'RS256',
+        privateKey,
+      });
+      result.data.telegram_user.authorizer_user.token = access_token;
+    }
+    return result;
   }
 
   async link(email: string, password: string) {
@@ -62,12 +106,194 @@ export class TelegramService {
       if (result.errors) return result;
 
       const userId = result.login.user.id;
-      return this.telegramGraphql.updateTelegramUser({
+      const updateResult = await this.telegramGraphql.updateTelegramUser({
         id: telegramUserId,
         user_id: userId,
       });
+      if (updateResult.errors) return updateResult;
+
+      const payload = {
+        'https://hasura.io/jwt/claims': {
+          'x-hasura-allowed-roles': [Role.User],
+          'x-hasura-default-role': Role.User,
+          'x-hasura-user-email':
+            updateResult.data.telegram_user.authorizer_user.email,
+          'x-hasura-user-id':
+            updateResult.data.telegram_user.authorizer_user.id,
+        },
+      };
+      const privateKey = await readFile(
+        path.resolve(__dirname, '../../../private.pem')
+      );
+      const access_token = await this.jwtService.signAsync(payload, {
+        algorithm: 'RS256',
+        privateKey,
+      });
+      updateResult.data.telegram_user.authorizer_user.token = access_token;
+
+      return updateResult;
     } catch (error) {
       throw new UnauthorizedException(error.message);
+    }
+  }
+  async createAndLink(){
+    const { telegramId, telegramUserId } = ContextProvider.getAuthUser();
+    const email = `tele_${telegramId}_${(new Date()).getTime()}@punkga.me`;
+    const username = `tele_${telegramId}_${(new Date()).getTime()}`;
+    const uuidTemp = uuidv4();
+    const insertedUser = await this.telegramGraphql.insertTempAuthorizedUser({
+      id: uuidTemp,
+      key: uuidTemp,
+      email: email,
+      nickname: username,
+      email_verified_at: (new Date()).getTime(),
+      signup_methods: 'telegram'
+    })
+    if (insertedUser.errors) return insertedUser;
+    try {      
+      const userId = insertedUser.data?.insert_authorizer_users?.returning[0].id;
+      const updateResult = await this.telegramGraphql.updateTelegramUser({
+        id: telegramUserId,
+        user_id: userId,
+      });
+      if (updateResult.errors) return insertedUser;
+      const payload = {
+        'https://hasura.io/jwt/claims': {
+          'x-hasura-allowed-roles': [Role.User],
+          'x-hasura-default-role': Role.User,
+          'x-hasura-user-email':
+            updateResult.data.telegram_user.authorizer_user.email,
+          'x-hasura-user-id':
+            updateResult.data.telegram_user.authorizer_user.id,
+        },
+      };
+      const privateKey = await readFile(
+        path.resolve(__dirname, '../../../private.pem')
+      );
+      const access_token = await this.jwtService.signAsync(payload, {
+        algorithm: 'RS256',
+        privateKey,
+      });
+      updateResult.data.telegram_user.authorizer_user.token = access_token;
+
+      return updateResult;
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
+    }
+  }
+
+  async saveTx(data: SaveDonateTxDto) {
+    const { telegramId, telegramUserId } = ContextProvider.getAuthUser();
+    const { creator_id, txn, value } = data;
+    var saveDonate = this.telegramGraphql.saveDonateHistory({
+      object: {
+        telegram_id: telegramId,
+        creator_id,
+        txn,
+        value: Number(value),
+      },
+    });
+    if (saveDonate) {
+      const user = await this.telegramGraphql.getTelegramUser({
+        id: telegramUserId,
+      });
+      const chip = data.value * 20000 + user?.data?.telegram_user.chip;
+      var res = await this.telegramGraphql.updateTelegramUserChip({
+        telegram_user_id: telegramUserId,
+        chip: chip,
+      });
+    }
+  }
+
+  async getQuest() {
+    try {
+      const { telegramUserId } = ContextProvider.getAuthUser();
+      const quests = await this.telegramGraphql.getTelegramQuest({
+        telegram_user_id: telegramUserId,
+      });
+
+      return quests;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async saveQuest(id) {
+    try {
+      const { telegramUserId } = ContextProvider.getAuthUser();
+      let quest;
+      const quests = await this.telegramGraphql.getTelegramQuestById({
+        id: id,
+        telegram_user_id: telegramUserId,
+      });
+
+      if (quests?.data?.telegram_quests.length > 0) {
+        quest = quests?.data?.telegram_quests[0];
+        if (!quest) {
+          return {
+            errors: {
+              message: JSON.stringify('Quest not found.'),
+            },
+          };
+        }
+        if (quest) {
+          var history = quest.telegram_quest_histories;
+          if (!history || history.length <= 0) {
+            var r = await this.telegramGraphql.insertTelegramQuestHistory({
+              quest_id: id,
+              telegram_user_id: telegramUserId,
+              is_claim: false,
+            });
+          } else {
+            var h = history[0];
+            if (h.is_claim) {
+              return {
+                errors: {
+                  message: JSON.stringify('Quest already claimed.'),
+                },
+              };
+            } else {
+              if (
+                quest.claim_after <= 0 ||
+                (Date.parse(new Date().toISOString()) -
+                  Date.parse(h.created_date + 'Z')) /
+                  1000 >=
+                  quest.claim_after * 60
+              ) {
+                var r = await this.telegramGraphql.updateTelegramQuestHistory({
+                  quest_id: id,
+                  telegram_user_id: telegramUserId,
+                });
+                const user = await this.telegramGraphql.getTelegramUser({
+                  id: telegramUserId,
+                });
+                const chip = quest?.reward + user?.data?.telegram_user.chip;
+                var res = await this.telegramGraphql.updateTelegramUserChip({
+                  telegram_user_id: telegramUserId,
+                  chip: chip,
+                });
+              }
+            }
+          }
+        }
+      } else {
+        return {
+          errors: {
+            message: JSON.stringify('Quest not found.'),
+          },
+        };
+      }
+      var lastResponse = await this.telegramGraphql.getTelegramQuestById({
+        id: id,
+        telegram_user_id: telegramUserId,
+      });
+      return lastResponse?.data?.telegram_quests[0];
+    } catch (errors) {
+      return {
+        errors,
+      };
     }
   }
 }

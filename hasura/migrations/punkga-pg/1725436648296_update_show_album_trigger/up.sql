@@ -1,0 +1,16 @@
+CREATE OR REPLACE FUNCTION update_show_album_fnc() RETURNS trigger AS $$
+DECLARE
+  cnt integer;
+BEGIN
+  SELECT count(*) INTO cnt FROM artworks a WHERE a.album_id = OLD.album_id;
+  IF cnt = 0 THEN
+    UPDATE albums SET show = false WHERE id = OLD.album_id;
+  END IF;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER update_show_album
+    AFTER DELETE ON artworks
+    FOR EACH ROW
+    EXECUTE FUNCTION update_show_album_fnc();

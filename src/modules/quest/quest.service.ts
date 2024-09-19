@@ -122,8 +122,7 @@ export class QuestService {
       this.logger.debug(`uploading nft image ${file.originalname} success`);
       return {
         url,
-        // ipfs: `ipfs://${metadataCID}`,
-        ipfs: `https://ipfs-gw.dev.aura.network/ipfs/${metadataCID}`,
+        ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
       };
     } catch (errors) {
       return {
