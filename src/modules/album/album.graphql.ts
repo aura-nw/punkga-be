@@ -44,7 +44,7 @@ export class AlbumGraphql {
           disable
           thumbnail_url
           created_at
-          artworks_aggregate(where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}) {
+          artworks_aggregate(where: {creator_id: {_eq: $creator_id}}) {
             aggregate {
               count
             }
