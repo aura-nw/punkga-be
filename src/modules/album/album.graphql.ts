@@ -32,12 +32,12 @@ export class AlbumGraphql {
             }
           }
         }
-        albums_aggregate(where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}) {
+        albums_aggregate(where: {name: {_ilike: $name}, creator_id: {_eq: $creator_id}}) {
           aggregate {
             count
           }
         }
-        albums(where: {creator_id: {_eq: $creator_id}, name: {_ilike: $name}}, offset: $offset, limit: $limit) {
+        albums(where: {name: {_ilike: $name}, creator_id: {_eq: $creator_id}}, offset: $offset, limit: $limit) {
           id
           name
           show
@@ -50,8 +50,7 @@ export class AlbumGraphql {
             }
           }
         }
-      }
-      `,
+      }`,
       'list_album',
       variables,
       headers
