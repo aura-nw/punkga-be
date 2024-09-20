@@ -1431,27 +1431,6 @@
               }
             }
           }
-      - name: Public - Query album detail
-        query: |
-          query albums ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
-            albums(where: {id:{_eq:$id},show:{_eq:true},disable:{_eq:false}}) {
-              id
-              name
-              thumbnail_url
-              show
-              disable
-              artworks(limit: $limit, offset: $offset) {
-                id
-                name
-                url
-              }
-              artworks_aggregate {
-                aggregate {
-                  count
-                }
-              }
-            }
-          }
       - name: Public - Query albums by creator id
         query: |
           query albums ($creator_id: Int!, $limit: Int = 100, $offset: Int = 0) {
@@ -1465,6 +1444,27 @@
             albums_aggregate(where: {_or:[{_and:{id:{_eq:1},show:{_eq:true}}},{_and:{creator_id:{_eq:$creator_id},show:{_eq:true}}}]}) {
               aggregate {
                 count
+              }
+            }
+          }
+      - name: Public - Query album detail
+        query: |
+          query albums ($id: Int!, $limit: Int = 10, $offset: Int = 0, $creator_id: Int!) {
+            albums(where: {id:{_eq:$id},show:{_eq:true},disable:{_eq:false}}) {
+              id
+              name
+              thumbnail_url
+              show
+              disable
+              artworks(limit: $limit, offset: $offset, where: {creator_id:{_eq:$creator_id}}) {
+                id
+                name
+                url
+              }
+              artworks_aggregate {
+                aggregate {
+                  count
+                }
               }
             }
           }
