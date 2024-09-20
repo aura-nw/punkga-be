@@ -9,6 +9,89 @@ export class AlbumGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
+  countArtworkInDefault(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query artworks_aggregate($creator_id: Int!) {
+        artworks_aggregate(where: {id: {_eq: 1}, creator_id: {_eq: $creator_id}}) {
+          aggregate {
+            count
+          }
+        }
+      }
+      `,
+      'artworks_aggregate',
+      variables,
+      headers
+    );
+  }
+
+  getPublicAlbumsWithDefaultAlbum(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query albums($creator_id: Int!, $limit: Int = 100, $offset: Int = 0) {
+        albums(where: {_or: [{_and: {id: {_eq: 1}, show: {_eq: true}}}, {_and: {creator_id: {_eq: $creator_id}, show: {_eq: true}}}]}, limit: $limit, offset: $offset) {
+          id
+          show
+          thumbnail_url
+          name
+          disable
+        }
+        albums_aggregate(where: {_or: [{_and: {id: {_eq: 1}, show: {_eq: true}}}, {_and: {creator_id: {_eq: $creator_id}, show: {_eq: true}}}]}) {
+          aggregate {
+            count
+          }
+        }
+      }
+      `,
+      'albums',
+      variables,
+      headers
+    );
+  }
+
+  getPublicAlbums(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query albums($creator_id: Int!, $limit: Int = 100, $offset: Int = 0) {
+        albums(where: {_and: {creator_id: {_eq: $creator_id}, show: {_eq: true}}}, limit: $limit, offset: $offset) {
+          id
+          show
+          thumbnail_url
+          name
+          disable
+        }
+        albums_aggregate(where: {_and: {creator_id: {_eq: $creator_id}, show: {_eq: true}}}) {
+          aggregate {
+            count
+          }
+        }
+      }
+      `,
+      'albums',
+      variables,
+      headers
+    );
+  }
+
   getListAlbum(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(

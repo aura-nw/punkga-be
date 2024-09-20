@@ -8,6 +8,7 @@ import { AlbumGraphql } from './album.graphql';
 import { CreateAlbumRequestDto } from './dto/create-album-request.dto';
 import { QueryAlbumDto } from './dto/query-album-query.dto';
 import { UpdateAlbumRequestDto } from './dto/update-album-request.dto';
+import { QueryAlbumPublicDto } from './dto/query-album-public-query.dto';
 
 @Injectable()
 export class AlbumService {
@@ -134,6 +135,30 @@ export class AlbumService {
       name,
       limit: Number(limit),
       offset: Number(offset),
+    });
+  }
+
+  async getAllPublicAlbum(query: QueryAlbumPublicDto) {
+    const { creator_id, limit, offset } = query;
+
+    const result = await this.albumGraphql.countArtworkInDefault({
+      creator_id,
+    });
+
+    if (result.errors) return result;
+    const count = result.data.artworks_aggregate.aggregate.count;
+
+    if (count > 0)
+      return this.albumGraphql.getPublicAlbumsWithDefaultAlbum({
+        creator_id,
+        limit,
+        offset,
+      });
+
+    return this.albumGraphql.getPublicAlbums({
+      creator_id,
+      limit,
+      offset,
     });
   }
 
