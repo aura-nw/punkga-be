@@ -1461,7 +1461,7 @@
                 name
                 url
               }
-              artworks_aggregate {
+              artworks_aggregate(where: {creator_id:{_eq:$creator_id}}) {
                 aggregate {
                   count
                 }
