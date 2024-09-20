@@ -151,14 +151,14 @@ export class AlbumService {
     if (count > 0)
       return this.albumGraphql.getPublicAlbumsWithDefaultAlbum({
         creator_id,
-        limit,
-        offset,
+        limit: Number(limit),
+        offset: Number(offset),
       });
 
     return this.albumGraphql.getPublicAlbums({
       creator_id,
-      limit,
-      offset,
+      limit: Number(limit),
+      offset: Number(offset),
     });
   }
 
