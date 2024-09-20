@@ -1141,53 +1141,6 @@
               }
             }
           }
-      - name: Public - Get manga by creator
-        query: |
-          query manga ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
-            manga(limit: $limit, offset: $offset, where: {manga_creators:{creator_id:{_eq:$id}},status:{_neq:"Removed"}}) {
-              id
-              slug
-              status
-              poster
-              banner
-              manga_creators {
-                creator {
-                  name
-                  pen_name
-                  id
-                  slug
-                }
-              }
-              manga_total_likes {
-                likes
-              }
-              manga_total_views {
-                views
-              }
-              manga_tags {
-                tag {
-                  tag_languages {
-                    language_id
-                    value
-                  }
-                  id
-                }
-              }
-              chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
-                id
-                chapter_number
-                chapter_name
-              }
-              contract_addresses
-              manga_languages {
-                id
-                is_main_language
-                title
-                description
-                language_id
-              }
-            }
-          }
       - name: Public - query artwork by creator
         query: |
           query artworks ($creator_id: Int!, $limit: Int = 10, $offset: Int = 0) {
@@ -1465,6 +1418,54 @@
                 aggregate {
                   count
                 }
+              }
+            }
+          }
+      - name: Public - Get manga by creator
+        query: |
+          query manga ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
+            manga(limit: $limit, offset: $offset, where: {manga_creators:{creator_id:{_eq:$id}},status:{_neq:"Removed"}}) {
+              id
+              slug
+              status
+              poster
+              banner
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                  id
+                  slug
+                  isActive
+                }
+              }
+              manga_total_likes {
+                likes
+              }
+              manga_total_views {
+                views
+              }
+              manga_tags {
+                tag {
+                  tag_languages {
+                    language_id
+                    value
+                  }
+                  id
+                }
+              }
+              chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
+                id
+                chapter_number
+                chapter_name
+              }
+              contract_addresses
+              manga_languages {
+                id
+                is_main_language
+                title
+                description
+                language_id
               }
             }
           }
