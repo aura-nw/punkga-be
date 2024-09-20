@@ -160,7 +160,7 @@ export class TelegramGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query telegram_quests($telegram_user_id: Int!) {
-        telegram_quests {
+        telegram_quests(where: {activated: {_eq: true}, deleted: {_eq: false}}) {
           id
           quest_name
           quest_url
@@ -205,7 +205,7 @@ export class TelegramGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query telegram_quests($id: bigint!, $telegram_user_id: Int!) {
-        telegram_quests(where: {id: {_eq: $id}}) {
+        telegram_quests(where: {id: {_eq: $id},activated: {_eq: true}, deleted: {_eq: false}}) {
           id
           quest_name
           quest_url
