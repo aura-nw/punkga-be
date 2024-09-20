@@ -310,7 +310,7 @@ export class TelegramService {
   }
   async getTopCreatorDonate() {
     try {
-      const topDonate = await this.telegramGraphql.getTopDonate();
+      const topDonate = await this.telegramGraphql.getTopCreatorDonate();
 
       return topDonate;
     } catch (errors) {
