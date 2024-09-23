@@ -1077,117 +1077,6 @@
               }
             }
           }
-      - name: User - Get Profile
-        query: |
-          query GetUserProfile {
-            authorizer_users(limit: 1) {
-              id
-              email
-              email_verified_at
-              bio
-              birthdate
-              gender
-              active_wallet_address: active_evm_address
-              wallet_address
-              nickname
-              picture
-              signup_methods
-              levels {
-                xp
-                level
-                user_level_chain {
-                  id
-                  name
-                  punkga_config
-                }
-              }
-              authorizer_users_user_wallet {
-                address
-              }
-              user_quests_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              user_quests(order_by: {created_at:desc}, limit: 20) {
-                created_at
-                status
-                user_quest_rewards {
-                  tx_hash
-                }
-                quest {
-                  id
-                  name
-                  quests_campaign {
-                    campaign_chain {
-                      punkga_config
-                    }
-                  }
-                  quests_i18n {
-                    id
-                    quest_id
-                    language_id
-                    data
-                    i18n_language {
-                      id
-                      description
-                      icon
-                      is_main
-                      symbol
-                    }
-                  }
-                  reward
-                }
-              }
-            }
-          }
-      - name: Public - Get manga by creator
-        query: |
-          query manga ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
-            manga(limit: $limit, offset: $offset, where: {manga_creators:{creator_id:{_eq:$id}},status:{_neq:"Removed"}}) {
-              id
-              slug
-              status
-              poster
-              banner
-              manga_creators {
-                creator {
-                  name
-                  pen_name
-                  id
-                  slug
-                }
-              }
-              manga_total_likes {
-                likes
-              }
-              manga_total_views {
-                views
-              }
-              manga_tags {
-                tag {
-                  tag_languages {
-                    language_id
-                    value
-                  }
-                  id
-                }
-              }
-              chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
-                id
-                chapter_number
-                chapter_name
-              }
-              contract_addresses
-              manga_languages {
-                id
-                is_main_language
-                title
-                description
-                language_id
-              }
-            }
-          }
       - name: Public - query artwork by creator
         query: |
           query artworks ($creator_id: Int!, $limit: Int = 10, $offset: Int = 0) {
@@ -1433,44 +1322,150 @@
           }
       - name: Public - Query albums by creator id
         query: |
-          query albums ($creator_id: Int!) {
-            albums(where: {creator_id:{_eq:$creator_id},show:{_eq:true}}, limit: 10, offset: 0) {
+          query albums ($creator_id: Int!, $limit: Int = 100, $offset: Int = 0) {
+            albums(where: {_or:[{_and:{id:{_eq:1},show:{_eq:true}}},{_and:{creator_id:{_eq:$creator_id},show:{_eq:true}}}]}, limit: $limit, offset: $offset) {
               id
               show
               thumbnail_url
               name
               disable
             }
-            albums_aggregate(where: {creator_id:{_eq:$creator_id},show:{_eq:true}}) {
+            albums_aggregate(where: {_or:[{_and:{id:{_eq:1},show:{_eq:true}}},{_and:{creator_id:{_eq:$creator_id},show:{_eq:true}}}]}) {
               aggregate {
                 count
               }
             }
-            default: albums_by_pk(id: 1) {
-              id
-              show
-              thumbnail_url
-              name
-              disable
-            }
           }
       - name: Public - Query album detail
         query: |
-          query albums ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
+          query albums ($id: Int!, $limit: Int = 10, $offset: Int = 0, $creator_id: Int!) {
             albums(where: {id:{_eq:$id},show:{_eq:true},disable:{_eq:false}}) {
               id
               name
               thumbnail_url
               show
               disable
-              artworks(limit: $limit, offset: $offset) {
+              artworks(limit: $limit, offset: $offset, where: {creator_id:{_eq:$creator_id}}) {
                 id
                 name
                 url
               }
-              artworks_aggregate {
+              artworks_aggregate(where: {creator_id:{_eq:$creator_id}}) {
                 aggregate {
                   count
+                }
+              }
+            }
+          }
+      - name: Public - Get manga by creator
+        query: |
+          query manga ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
+            manga(limit: $limit, offset: $offset, where: {manga_creators:{creator_id:{_eq:$id}},status:{_neq:"Removed"}}) {
+              id
+              slug
+              status
+              poster
+              banner
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                  id
+                  slug
+                  isActive
+                }
+              }
+              manga_total_likes {
+                likes
+              }
+              manga_total_views {
+                views
+              }
+              manga_tags {
+                tag {
+                  tag_languages {
+                    language_id
+                    value
+                  }
+                  id
+                }
+              }
+              chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
+                id
+                chapter_number
+                chapter_name
+              }
+              contract_addresses
+              manga_languages {
+                id
+                is_main_language
+                title
+                description
+                language_id
+              }
+            }
+          }
+      - name: User - Get Profile
+        query: |
+          query GetUserProfile {
+            authorizer_users(limit: 1) {
+              id
+              email
+              email_verified_at
+              bio
+              birthdate
+              gender
+              active_wallet_address: active_evm_address
+              wallet_address
+              ton_wallet_address
+              nickname
+              picture
+              signup_methods
+              levels {
+                xp
+                level
+                user_level_chain {
+                  id
+                  name
+                  punkga_config
+                }
+              }
+              authorizer_users_user_wallet {
+                address
+              }
+              user_quests_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_quests(order_by: {created_at:desc}, limit: 20) {
+                created_at
+                status
+                user_quest_rewards {
+                  tx_hash
+                }
+                quest {
+                  id
+                  name
+                  quests_campaign {
+                    campaign_chain {
+                      punkga_config
+                    }
+                  }
+                  quests_i18n {
+                    id
+                    quest_id
+                    language_id
+                    data
+                    i18n_language {
+                      id
+                      description
+                      icon
+                      is_main
+                      symbol
+                    }
+                  }
+                  reward
                 }
               }
             }

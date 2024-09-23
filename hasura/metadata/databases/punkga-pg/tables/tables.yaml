@@ -38,8 +38,6 @@
 - "!include public_telegram_quest_history.yaml"
 - "!include public_telegram_quests.yaml"
 - "!include public_telegram_users.yaml"
-- "!include public_top_creator_donate.yaml"
-- "!include public_top_user_donate.yaml"
 - "!include public_user_campaign.yaml"
 - "!include public_user_campaign_reward.yaml"
 - "!include public_user_level.yaml"
