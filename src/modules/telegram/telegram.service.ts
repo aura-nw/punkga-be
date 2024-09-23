@@ -386,18 +386,6 @@ export class TelegramService {
   }
   async linkFromScan(data: string) {
     const { telegramId, telegramUserId } = ContextProvider.getAuthUser();
-    const email = `tele_${telegramId}_${(new Date()).getTime()}@punkga.me`;
-    const username = `tele_${telegramId}_${(new Date()).getTime()}`;
-    const uuidTemp = uuidv4();
-    const insertedUser = await this.telegramGraphql.insertTempAuthorizedUser({
-      id: uuidTemp,
-      key: uuidTemp,
-      email: email,
-      nickname: username,
-      email_verified_at: (new Date()).getTime(),
-      signup_methods: 'telegram'
-    })
-    if (insertedUser.errors) return insertedUser;
     try {
       const TELEGRAM_QR_SECRET =
         this.configService.get<string>('telgram.qr_secret');
@@ -408,12 +396,12 @@ export class TelegramService {
         var seconds = (new Date().getTime() - time.getTime()) / 1000;
         if (seconds <= 300) {
           const userId = arr[1];
-          if (userId){
+          if (userId) {
             const updateResult = await this.telegramGraphql.updateTelegramUser({
               id: telegramUserId,
               user_id: userId,
             });
-            if (updateResult.errors) return insertedUser;
+            if (updateResult.errors) return updateResult;
             const payload = {
               'https://hasura.io/jwt/claims': {
                 'x-hasura-allowed-roles': [Role.User],
@@ -431,7 +419,7 @@ export class TelegramService {
               algorithm: 'RS256',
               privateKey,
             });
-            updateResult.data.telegram_user.authorizer_user.token = access_token;      
+            updateResult.data.telegram_user.authorizer_user.token = access_token;
             return updateResult;
           } else {
             return {
@@ -451,7 +439,7 @@ export class TelegramService {
             ]
           }
         }
-      }      
+      }
     } catch (error) {
       throw new UnauthorizedException(error.message);
     }
