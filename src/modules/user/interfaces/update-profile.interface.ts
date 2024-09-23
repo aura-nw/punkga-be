@@ -5,6 +5,7 @@ export interface IUpdateProfile {
     gender: string;
     birthdate: string;
     nickname: string;
+    ton_wallet_address: string;
     picture?: string;
   };
 }

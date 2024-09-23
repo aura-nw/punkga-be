@@ -91,6 +91,7 @@ select_permissions:
         - revoked_timestamp
         - roles
         - signup_methods
+        - ton_wallet_address
         - updated_at
         - wallet_address
       computed_fields:
@@ -109,6 +110,7 @@ update_permissions:
         - gender
         - nickname
         - picture
+        - ton_wallet_address
         - wallet_address
       filter:
         id:

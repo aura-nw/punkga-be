@@ -94,4 +94,24 @@ export class TelegramController {
   createAndLink() {
     return this.telegramSvc.createAndLink();
   }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.TelegramUser)
+  @Post('get-top-donate')
+  @UseInterceptors(AuthUserInterceptor)
+  @ApiOperation({ summary: '' })
+  getTopDonate() {
+    return this.telegramSvc.getTopDonate();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.TelegramUser)
+  @Post('get-top-creator-donate')
+  @UseInterceptors(AuthUserInterceptor)
+  @ApiOperation({ summary: '' })
+  getTopCreatorDonate() {
+    return this.telegramSvc.getTopCreatorDonate();
+  }
 }

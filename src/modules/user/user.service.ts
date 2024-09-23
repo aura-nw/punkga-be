@@ -212,7 +212,7 @@ export class UserService {
     files: Array<Express.Multer.File>
   ) {
     try {
-      const { birthdate, gender, bio, nickname } = data;
+      const { birthdate, gender, bio, nickname, ton_wallet_address } = data;
       const { token, userId } = ContextProvider.getAuthUser();
 
       const variables: IUpdateProfile = {
@@ -222,25 +222,29 @@ export class UserService {
           gender,
           birthdate,
           nickname,
+          ton_wallet_address,
         },
       };
 
-      const pictureFile = files.filter((f) => f.fieldname === 'picture')[0];
-      if (pictureFile) {
-        const pictureUrl = await this.filesService.uploadImageToS3(
-          `user-${userId}`,
-          pictureFile
-        );
+      if (files && files.length > 0) {
+        const pictureFile = files.filter((f) => f.fieldname === 'picture')[0];
+        if (pictureFile) {
+          const pictureUrl = await this.filesService.uploadImageToS3(
+            `user-${userId}`,
+            pictureFile
+          );
 
-        variables._set.picture = pictureUrl;
+          variables._set.picture = pictureUrl;
+        }
       }
-
       const result = await this.userGraphql.updateUserProfile(token, variables);
 
       return result;
-    } catch (errors) {
+    } catch (error) {
       return {
-        errors,
+        errors: {
+          message: error.toString(),
+        },
       };
     }
   }
