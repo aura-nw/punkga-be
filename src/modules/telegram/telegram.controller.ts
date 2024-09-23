@@ -117,6 +117,7 @@ export class TelegramController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.TelegramUser)
   @Post('gen-telegram-qr')
   @UseInterceptors(AuthUserInterceptor)
   @ApiOperation({ summary: '' })
