@@ -408,7 +408,7 @@ export class TelegramService {
         var seconds = (new Date().getTime() - time.getTime()) / 1000;
         if (seconds <= 300) {
           const userId = arr[1];
-          if (userId && !isNaN(userId)){
+          if (userId){
             const updateResult = await this.telegramGraphql.updateTelegramUser({
               id: telegramUserId,
               user_id: userId,
