@@ -114,4 +114,13 @@ export class TelegramController {
   getTopCreatorDonate() {
     return this.telegramSvc.getTopCreatorDonate();
   }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Post('gen-telegram-qr')
+  @UseInterceptors(AuthUserInterceptor)
+  @ApiOperation({ summary: '' })
+  generateTelegramAccountLink() {
+    return this.telegramSvc.genTelegramQr();
+  }
 }

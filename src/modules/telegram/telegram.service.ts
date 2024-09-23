@@ -11,6 +11,7 @@ import { SaveDonateTxDto } from './dto/save-donate-tx.dto';
 import { TelegramGraphql } from './telegram.graphql';
 import { Role } from '../../auth/role.enum';
 import { v4 as uuidv4 } from 'uuid';
+const AES = require("crypto-js/aes");
 
 @Injectable()
 export class TelegramService {
@@ -357,6 +358,102 @@ export class TelegramService {
       return {
         errors,
       };
+    }
+  }
+  async genTelegramQr() {
+    try {
+      const TELEGRAM_QR_SECRET =
+        this.configService.get<string>('telgram.qr_secret');
+      const { userId } = ContextProvider.getAuthUser();
+      if (userId) {
+        var message = `${userId}|${Date.parse((new Date()).toISOString())}`;
+        var encrypted = AES.encrypt(message, TELEGRAM_QR_SECRET);
+        return encrypted;
+      } else {
+        return {
+          errors: [
+            {
+              message: 'Unauthorized'
+            }
+          ]
+        }
+      }
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+  async linkFromScan(data: string) {
+    const { telegramId, telegramUserId } = ContextProvider.getAuthUser();
+    const email = `tele_${telegramId}_${(new Date()).getTime()}@punkga.me`;
+    const username = `tele_${telegramId}_${(new Date()).getTime()}`;
+    const uuidTemp = uuidv4();
+    const insertedUser = await this.telegramGraphql.insertTempAuthorizedUser({
+      id: uuidTemp,
+      key: uuidTemp,
+      email: email,
+      nickname: username,
+      email_verified_at: (new Date()).getTime(),
+      signup_methods: 'telegram'
+    })
+    if (insertedUser.errors) return insertedUser;
+    try {
+      const TELEGRAM_QR_SECRET =
+        this.configService.get<string>('telgram.qr_secret');
+      var decrypted = AES.decrypted(data, TELEGRAM_QR_SECRET);
+      if (decrypted && decrypted.indexOf('|') != -1) {
+        let arr = decrypted.split('|');
+        const time = new Date(arr[1] * 1000);
+        var seconds = (new Date().getTime() - time.getTime()) / 1000;
+        if (seconds <= 300) {
+          const userId = arr[1];
+          if (userId && !isNaN(userId)){
+            const updateResult = await this.telegramGraphql.updateTelegramUser({
+              id: telegramUserId,
+              user_id: userId,
+            });
+            if (updateResult.errors) return insertedUser;
+            const payload = {
+              'https://hasura.io/jwt/claims': {
+                'x-hasura-allowed-roles': [Role.User],
+                'x-hasura-default-role': Role.User,
+                'x-hasura-user-email':
+                  updateResult.data.telegram_user.authorizer_user.email,
+                'x-hasura-user-id':
+                  updateResult.data.telegram_user.authorizer_user.id,
+              },
+            };
+            const privateKey = await readFile(
+              path.resolve(__dirname, '../../../private.pem')
+            );
+            const access_token = await this.jwtService.signAsync(payload, {
+              algorithm: 'RS256',
+              privateKey,
+            });
+            updateResult.data.telegram_user.authorizer_user.token = access_token;      
+            return updateResult;
+          } else {
+            return {
+              errors: [
+                {
+                  message: 'User Id is not valid'
+                }
+              ]
+            }
+          }
+        } else {
+          return {
+            errors: [
+              {
+                message: 'Expired'
+              }
+            ]
+          }
+        }
+      }      
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
     }
   }
 }
