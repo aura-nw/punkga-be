@@ -226,16 +226,17 @@ export class UserService {
         },
       };
 
-      const pictureFile = files.filter((f) => f.fieldname === 'picture')[0];
-      if (pictureFile) {
-        const pictureUrl = await this.filesService.uploadImageToS3(
-          `user-${userId}`,
-          pictureFile
-        );
+      if (files && files.length > 0) {
+        const pictureFile = files.filter((f) => f.fieldname === 'picture')[0];
+        if (pictureFile) {
+          const pictureUrl = await this.filesService.uploadImageToS3(
+            `user-${userId}`,
+            pictureFile
+          );
 
-        variables._set.picture = pictureUrl;
+          variables._set.picture = pictureUrl;
+        }
       }
-
       const result = await this.userGraphql.updateUserProfile(token, variables);
 
       return result;
