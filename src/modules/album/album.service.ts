@@ -155,11 +155,13 @@ export class AlbumService {
         offset: Number(offset),
       });
 
-    return this.albumGraphql.getPublicAlbums({
+    const queryResult = await this.albumGraphql.getPublicAlbums({
       creator_id,
       limit: Number(limit),
       offset: Number(offset),
     });
+
+    return queryResult.data;
   }
 
   async getDetail(id: number) {
