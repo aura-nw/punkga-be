@@ -428,7 +428,7 @@ export class TelegramService {
       var decrypted = AES.decrypt(data?.data, TELEGRAM_QR_SECRET)?.toString(CryptoJS.enc.Utf8);
       if (decrypted && decrypted.indexOf('|') != -1) {
         let arr = decrypted.split('|');
-        const time = new Date(arr[1]);
+        const time = new Date(parseFloat(arr[1]));
         var seconds = (new Date().getTime() - time.getTime()) / 1000;
         if (seconds <= 300) {
           const userId = arr[0];
