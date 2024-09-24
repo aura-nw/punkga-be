@@ -117,11 +117,20 @@ export class TelegramController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.TelegramUser)
   @Post('gen-telegram-qr')
   @UseInterceptors(AuthUserInterceptor)
   @ApiOperation({ summary: '' })
   generateTelegramAccountLink() {
     return this.telegramSvc.genTelegramQr();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.TelegramUser)
+  @Post('scan-telegram-qr')
+  @UseInterceptors(AuthUserInterceptor)
+  @ApiOperation({ summary: '' })
+  scanAndLink(@Body() body: any) {
+    return this.telegramSvc.linkFromScan(body);
   }
 }
