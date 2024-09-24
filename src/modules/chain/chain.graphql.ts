@@ -1,8 +1,7 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { GraphqlService } from '../graphql/graphql.service';
-import { errorOrEmpty } from '../graphql/utils';
 
 @Injectable()
 export class ChainGraphql {

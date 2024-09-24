@@ -18,7 +18,6 @@ import { RedisService } from '../redis/redis.service';
 import { UserGraphql } from '../user/user.graphql';
 import { CampaignGraphql } from './campaign.graphql';
 import {
-  CampaignLanguageDto,
   CampaignLanguagesDto as CreateCampaignLanguagesDto,
   CreateCampaignDto,
 } from './dto/create-campaign.dto';

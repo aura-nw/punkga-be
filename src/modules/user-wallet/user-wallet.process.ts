@@ -1,12 +1,11 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+import { ConfigService } from '@nestjs/config';
 import { SysKeyService } from '../keys/syskey.service';
 import { RedisService } from '../redis/redis.service';
 import { IGenerateUserWallet } from './interfaces/generate-user-wallet.interface';
 import { UserWalletGraphql } from './user-wallet.graphql';
-import { ConfigService } from '@nestjs/config';
-import { Wallet } from 'ethers';
 
 @Injectable()
 export class UserWalletProcessor implements OnModuleInit {

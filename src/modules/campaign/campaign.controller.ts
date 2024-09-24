@@ -23,7 +23,7 @@ import { GetAllCampaignQuery } from './dto/get-all-campaign.dto';
 import { GetCampaignDetailDto } from './dto/get-campaign-detail.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { GetUserCampaignRankDto } from './dto/get-user-campaign-rank.dto';
-import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { UpdateCampaignParam } from './dto/update-campaign.dto';
 

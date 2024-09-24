@@ -176,7 +176,7 @@ export class ChapterService {
       }
       if (collection_ids) {
         const collectionIdListStr = collection_ids.toString().split(',');
-        let collectionIdList = Array.from(collectionIdListStr, Number);
+        const collectionIdList = Array.from(collectionIdListStr, Number);
         if (collectionIdList.length > 0) {
           const updateResult = await this.addChapterCollection(
             chapterId,
@@ -258,7 +258,7 @@ export class ChapterService {
       );
       if (collection_ids) {
         const collectionIdListStr = collection_ids.toString().split(',');
-        let collectionIdList = Array.from(collectionIdListStr, Number);
+        const collectionIdList = Array.from(collectionIdListStr, Number);
         if (collectionIdList.length > 0) {
           const updateResult = await this.addChapterCollection(
             chapter_id,
@@ -449,7 +449,7 @@ export class ChapterService {
     }
   }
 
-  async addChapterCollection(chapterId: Number, collectionIdList: number[]) {
+  async addChapterCollection(chapterId: number, collectionIdList: number[]) {
     try {
       // const { token } = ContextProvider.getAuthUser();
       const objects = [];

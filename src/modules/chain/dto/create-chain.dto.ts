@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class Contracts {
   @ApiProperty({ example: '0xFfABBAC4b8860268317d787A181aD4D7F8E93D00' })
