@@ -1,11 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { KMSService } from '@aura-nw/aura-kms';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class KMSBuilderService {
-  private readonly logger = new Logger(KMSBuilderService.name);
-  private SystemKey = null;
   private KMS: KMSService = null;
 
   constructor(private configService: ConfigService) {

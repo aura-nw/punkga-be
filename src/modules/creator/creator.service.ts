@@ -29,7 +29,7 @@ export class CreatorService {
   }
 
   async getCreator() {
-    const { userId, token } = ContextProvider.getAuthUser();
+    const { userId } = ContextProvider.getAuthUser();
     const result = await this.creatorGraphql.queryCreatorIdByUserId({
       id: userId,
     });

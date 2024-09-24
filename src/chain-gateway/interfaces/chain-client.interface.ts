@@ -1,4 +1,3 @@
-import { JsonRpcProvider } from 'ethers';
 import { ICustodialWalletAsset } from './account-onchain.interface';
 
 export interface IChainClient {
