@@ -22,7 +22,7 @@ export class TelegramService {
     private configService: ConfigService,
     private telegramGraphql: TelegramGraphql,
     private jwtService: JwtService
-  ) { }
+  ) {}
 
   async readChapter(manga_slug: string, chapter_number: number) {
     try {
@@ -140,20 +140,21 @@ export class TelegramService {
   }
   async createAndLink() {
     const { telegramId, telegramUserId } = ContextProvider.getAuthUser();
-    const email = `tele_${telegramId}_${(new Date()).getTime()}@punkga.me`;
-    const username = `tele_${telegramId}_${(new Date()).getTime()}`;
+    const email = `tele_${telegramId}_${new Date().getTime()}@punkga.me`;
+    const username = `tele_${telegramId}_${new Date().getTime()}`;
     const uuidTemp = uuidv4();
     const insertedUser = await this.telegramGraphql.insertTempAuthorizedUser({
       id: uuidTemp,
       key: uuidTemp,
       email: email,
       nickname: username,
-      email_verified_at: (new Date()).getTime(),
-      signup_methods: 'telegram'
-    })
+      email_verified_at: new Date().getTime(),
+      signup_methods: 'telegram',
+    });
     if (insertedUser.errors) return insertedUser;
     try {
-      const userId = insertedUser.data?.insert_authorizer_users?.returning[0].id;
+      const userId =
+        insertedUser.data?.insert_authorizer_users?.returning[0].id;
       const updateResult = await this.telegramGraphql.updateTelegramUser({
         id: telegramUserId,
         user_id: userId,
@@ -187,7 +188,7 @@ export class TelegramService {
   async saveTx(data: SaveDonateTxDto) {
     const { telegramId, telegramUserId } = ContextProvider.getAuthUser();
     const { creator_id, txn, value } = data;
-    var saveDonate = this.telegramGraphql.saveDonateHistory({
+    const saveDonate = this.telegramGraphql.saveDonateHistory({
       object: {
         telegram_id: telegramId,
         creator_id,
@@ -200,7 +201,7 @@ export class TelegramService {
         id: telegramUserId,
       });
       const chip = data.value * 20000 + user?.data?.telegram_user.chip;
-      var res = await this.telegramGraphql.updateTelegramUserChip({
+      const res = await this.telegramGraphql.updateTelegramUserChip({
         telegram_user_id: telegramUserId,
         chip: chip,
       });
@@ -215,19 +216,35 @@ export class TelegramService {
       });
       if (quests?.data) {
         quests?.data?.telegram_quests?.map((q, i) => {
-          if (q.type == "Daily" && q.telegram_quest_histories) {
-            q.telegram_quest_histories = q.telegram_quest_histories.map((h, j) => {
-              const fullToday = new Date();
-              const today = new Date(Date.UTC(fullToday.getUTCFullYear(), fullToday.getUTCMonth(),
-                fullToday.getUTCDate(), 0, 0, 0))
-              if (Date.parse(today.toISOString()) - Date.parse(h.created_date + 'Z') > 0) {
-                return null;
+          if (q.type == 'Daily' && q.telegram_quest_histories) {
+            q.telegram_quest_histories = q.telegram_quest_histories.map(
+              (h, j) => {
+                const fullToday = new Date();
+                const today = new Date(
+                  Date.UTC(
+                    fullToday.getUTCFullYear(),
+                    fullToday.getUTCMonth(),
+                    fullToday.getUTCDate(),
+                    0,
+                    0,
+                    0
+                  )
+                );
+                if (
+                  Date.parse(today.toISOString()) -
+                    Date.parse(h.created_date + 'Z') >
+                  0
+                ) {
+                  return null;
+                }
+                return h;
               }
-              return h;
-            })
+            );
           }
-          q.telegram_quest_histories = q.telegram_quest_histories.filter(x => x != null);
-        })
+          q.telegram_quest_histories = q.telegram_quest_histories.filter(
+            (x) => x != null
+          );
+        });
       }
       return quests;
     } catch (errors) {
@@ -246,19 +263,35 @@ export class TelegramService {
       });
       if (quests?.data) {
         quests?.data?.telegram_quests?.map((q, i) => {
-          if (q.type == "Daily" && q.telegram_quest_histories) {
-            q.telegram_quest_histories = q.telegram_quest_histories.map((h, j) => {
-              const fullToday = new Date();
-              const today = new Date(Date.UTC(fullToday.getUTCFullYear(), fullToday.getUTCMonth(),
-                fullToday.getUTCDate(), 0, 0, 0))
-              if (Date.parse(today.toISOString()) - Date.parse(h.created_date + 'Z') > 0) {
-                return null;
+          if (q.type == 'Daily' && q.telegram_quest_histories) {
+            q.telegram_quest_histories = q.telegram_quest_histories.map(
+              (h, j) => {
+                const fullToday = new Date();
+                const today = new Date(
+                  Date.UTC(
+                    fullToday.getUTCFullYear(),
+                    fullToday.getUTCMonth(),
+                    fullToday.getUTCDate(),
+                    0,
+                    0,
+                    0
+                  )
+                );
+                if (
+                  Date.parse(today.toISOString()) -
+                    Date.parse(h.created_date + 'Z') >
+                  0
+                ) {
+                  return null;
+                }
+                return h;
               }
-              return h;
-            })
+            );
           }
-          q.telegram_quest_histories = q.telegram_quest_histories.filter(x => x != null);
-        })
+          q.telegram_quest_histories = q.telegram_quest_histories.filter(
+            (x) => x != null
+          );
+        });
       }
       return quests;
     } catch (errors) {
@@ -284,7 +317,7 @@ export class TelegramService {
           };
         }
         if (quest) {
-          var history = quest.telegram_quest_histories;
+          const history = quest.telegram_quest_histories;
           if (!history || history.length <= 0) {
             var r = await this.telegramGraphql.insertTelegramQuestHistory({
               quest_id: id,
@@ -292,7 +325,7 @@ export class TelegramService {
               is_claim: false,
             });
           } else {
-            var h = history[0];
+            const h = history[0];
             if (h.is_claim) {
               return {
                 errors: {
@@ -304,8 +337,8 @@ export class TelegramService {
                 quest.claim_after <= 0 ||
                 (Date.parse(new Date().toISOString()) -
                   Date.parse(h.created_date + 'Z')) /
-                1000 >=
-                quest.claim_after * 60
+                  1000 >=
+                  quest.claim_after * 60
               ) {
                 var r = await this.telegramGraphql.updateTelegramQuestHistory({
                   quest_id: id,
@@ -315,7 +348,7 @@ export class TelegramService {
                   id: telegramUserId,
                 });
                 const chip = quest?.reward + user?.data?.telegram_user.chip;
-                var res = await this.telegramGraphql.updateTelegramUserChip({
+                const res = await this.telegramGraphql.updateTelegramUserChip({
                   telegram_user_id: telegramUserId,
                   chip: chip,
                 });
@@ -330,7 +363,7 @@ export class TelegramService {
           },
         };
       }
-      var lastResponse = await this.getQuestById(id);
+      const lastResponse = await this.getQuestById(id);
       return lastResponse?.data?.telegram_quests[0];
     } catch (errors) {
       return {
@@ -376,10 +409,10 @@ export class TelegramService {
         return {
           errors: [
             {
-              message: 'Unauthorized'
-            }
-          ]
-        }
+              message: 'Unauthorized',
+            },
+          ],
+        };
       }
     } catch (errors) {
       return {
@@ -422,25 +455,26 @@ export class TelegramService {
               algorithm: 'RS256',
               privateKey,
             });
-            updateResult.data.telegram_user.authorizer_user.token = access_token;
+            updateResult.data.telegram_user.authorizer_user.token =
+              access_token;
             return updateResult;
           } else {
             return {
               errors: [
                 {
-                  message: 'User Id is not valid'
-                }
-              ]
-            }
+                  message: 'User Id is not valid',
+                },
+              ],
+            };
           }
         } else {
           return {
             errors: [
               {
-                message: 'Expired'
-              }
-            ]
-          }
+                message: 'Expired',
+              },
+            ],
+          };
         }
       }
     } catch (error) {

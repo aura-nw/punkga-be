@@ -65,7 +65,7 @@ export class LaunchpadService {
         },
       });
       const mangaId = result.data.insert_launchpad_one.id;
-      const slug = generateSlug(name,mangaId);
+      const slug = generateSlug(name, mangaId);
       if (result.errors) return result;
 
       const launchpadId = result.data.insert_launchpad_one.id;
@@ -167,7 +167,6 @@ export class LaunchpadService {
 
   async unpublish(launchpadId: number) {
     // Update offchain launchpad data
-    const { token } = ContextProvider.getAuthUser();
 
     const launchpad = await this.getExistingLaunchpad(launchpadId);
     if (launchpad.status != LaunchpadStatus.Published)
