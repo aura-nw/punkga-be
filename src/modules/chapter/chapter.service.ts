@@ -4,7 +4,12 @@ import * as _ from 'lodash';
 import md5 from 'md5';
 import rimraf from 'rimraf';
 
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { ContextProvider } from '../../providers/contex.provider';
 import { MangaService } from '../manga/manga.service';
@@ -23,6 +28,7 @@ import { UploadInputDto } from './dto/upload.dto';
 import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
 import { UploadChapterService } from './upload-chapter.service';
 import { mkdirp, writeFilesToFolder } from './utils';
+import { CreatorService } from '../creator/creator.service';
 
 @Injectable()
 export class ChapterService {
@@ -32,7 +38,8 @@ export class ChapterService {
     private mangaService: MangaService,
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService,
-    private configSvc: ConfigService
+    private configSvc: ConfigService,
+    private creatorService: CreatorService
   ) {}
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
@@ -345,39 +352,6 @@ export class ChapterService {
         }
       );
 
-      // console.log(JSON.stringify(newChapterLanguages))
-      // build new chapter languages for existing languages
-      // const newChapterLanguages = current_chapter_languages.map(
-      //   ({ language_id, detail }) => {
-      //     const { add_images, delete_images } =
-      //       input_chapter_images.chapter_languages.filter(
-      //         (chapLang) => chapLang.language_id === language_id
-      //       )[0];
-
-      //     _.remove(detail, (image: any) => delete_images.includes(image.name));
-
-      //     uploadChapterResult
-      //       .filter((uploadResult) => add_images.includes(uploadResult.name))
-      //       .forEach((uploadResult) => {
-      //         const isNameExists = detail.some(
-      //           (item) => item.name === uploadResult.name
-      //         );
-      //         if (!isNameExists) {
-      //           detail.push({
-      //             order: uploadResult.order,
-      //             image_path: uploadResult.image_path,
-      //             name: uploadResult.name,
-      //           });
-      //         }
-      //       });
-
-      //     return {
-      //       languageId: language_id,
-      //       detail: detail.sort((a, b) => a.order - b.order),
-      //     };
-      //   }
-      // );
-
       // update data
       const updateChapterLangResult =
         await this.chapterGraphql.insertUpdateChapterLanguages(
@@ -510,5 +484,18 @@ export class ChapterService {
         errors,
       };
     }
+  }
+
+  async deactiveChapter(id: number) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+
+    const isOwner = await this.chapterGraphql.verifyChapterOwner({
+      chapter_id: id,
+      creator_id: creatorId,
+    });
+
+    if (!isOwner) throw new ForbiddenException('invalid creator');
+
+    return this.chapterGraphql.deactiveChapter(id);
   }
 }

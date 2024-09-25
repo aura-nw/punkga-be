@@ -1,13 +1,75 @@
 import { ConfigService } from '@nestjs/config';
 import { GraphqlService } from '../graphql/graphql.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ChapterStatus } from '../../common/enum';
 
 @Injectable()
 export class ChapterGraphql {
+  private logger: Logger = new Logger(ChapterGraphql.name);
+
   constructor(
     private configService: ConfigService,
     private graphqlSvc: GraphqlService
   ) {}
+
+  async deactiveChapter(chapterId: number) {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_chapters_by_pk($id: Int!, $status: String!) {
+        update_chapters_by_pk(pk_columns: {id: $id}, _set: {status: $status}) {
+          id
+          status
+        }
+      }
+      `,
+      'update_chapters_by_pk',
+      {
+        id: chapterId,
+        status: ChapterStatus.Inactive,
+      },
+      headers
+    );
+  }
+
+  async verifyChapterOwner(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query chapters_by_pk($creator_id: Int!, $chapter_id: Int!) {
+        chapters_by_pk(id: $chapter_id) {
+          id
+          manga {
+            manga_creators(where: {creator_id: {_eq: $creator_id}}) {
+              id
+            }
+          }
+        }
+      }`,
+      'chapters_by_pk',
+      variables
+    );
+
+    if (result.errors) {
+      this.logger.error(JSON.stringify(result));
+      return false;
+    }
+    if (!result.data.chapters_by_pk || result.data.chapters_by_pk === null) {
+      return false;
+    }
+
+    if (result.data.chapters_by_pk.manga.manga_creators.length === 0) {
+      return false;
+    }
+
+    return true;
+  }
 
   async getChapterInfo(token: string, id: number) {
     const chapter = await this.graphqlSvc.query(
@@ -139,7 +201,7 @@ export class ChapterGraphql {
     };
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
-      "",
+      '',
       `mutation insert_chapter_collection($objects: [chapter_collection_insert_input!] = {}) {
         insert_chapter_collection(objects: $objects, on_conflict: {constraint: chapter_collection_chapter_id_launchpad_id_key, update_columns: chapter_id}) {
           affected_rows
