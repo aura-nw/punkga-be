@@ -1,9 +1,12 @@
 import { ConfigService } from '@nestjs/config';
 import { GraphqlService } from '../graphql/graphql.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { MangaStatus } from '../../common/enum';
 
 @Injectable()
 export class MangaGraphql {
+  private logger: Logger = new Logger(MangaGraphql.name);
+
   constructor(
     private configSvc: ConfigService,
     private graphqlSvc: GraphqlService
@@ -345,6 +348,64 @@ export class MangaGraphql {
       }`,
       'insert_manga_collection',
       variables,
+      headers
+    );
+  }
+
+  async verifyMangaOwner(variables: any) {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query manga_by_pk($creator_id: Int!, $manga_id: Int!) {
+        manga_by_pk(id: $manga_id) {
+          id
+          manga_creators(where: {creator_id: {_eq: $creator_id}}) {
+            id
+          }
+        }
+      }
+      `,
+      'manga_by_pk',
+      variables
+    );
+
+    if (result.errors) {
+      this.logger.error(JSON.stringify(result));
+      return false;
+    }
+    if (!result.data.manga_by_pk || result.data.manga_by_pk === null) {
+      return false;
+    }
+
+    if (result.data.manga_by_pk.manga_creators.length === 0) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async removeManga(mangaId: number) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_manga_by_pk($id: Int!, $status: String!) {
+        update_manga_by_pk(pk_columns: {id: $id}, _set: {status: $status}) {
+          id
+          status
+        }
+      }
+      `,
+      'update_manga_by_pk',
+      {
+        id: mangaId,
+        status: MangaStatus.Removed,
+      },
       headers
     );
   }
