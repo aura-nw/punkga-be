@@ -3,6 +3,7 @@ export enum MangaStatus {
   'On-going' = 'On-going',
   Published = 'Published',
   Removed = 'Removed',
+  OnRequest = 'On-request',
 }
 
 export enum ChapterStatus {
@@ -36,4 +37,17 @@ export enum LaunchpadStatus {
 
 export enum AddressType {
   EVM = 'evm',
+}
+
+export enum CreatorRequestType {
+  CREATE_NEW_MANGA = 'CREATE_NEW_MANGA',
+}
+
+export enum CreatorRequestStatus {
+  DRAFT = 'Draft',
+  SUBMITED = 'Submited',
+  RE_SUBMITED = 'Re-Submited',
+  APPROVED = 'Approved',
+  REJECTED = 'Rejected',
+  DELETED = 'Deleted',
 }
