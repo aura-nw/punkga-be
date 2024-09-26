@@ -66,7 +66,7 @@ export class ChapterController {
   ) {
     return this.chapterSvc.create(data, files);
   }
-
+ 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin)
