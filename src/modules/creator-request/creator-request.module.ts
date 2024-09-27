@@ -7,9 +7,10 @@ import { CreatorRequestService } from './creator-request.service';
 import { MangaModule } from '../../modules/manga/manga.module';
 import { JwtModule } from '@nestjs/jwt';
 import { FilesModule } from '../files/files.module';
+import { MangaGraphql } from '../../modules/manga/manga.graphql';
 @Module({
   imports: [JwtModule, FilesModule, GraphqlModule, MangaModule],
-  providers: [CreatorRequestService, CreatorRequestGraphql],
+  providers: [CreatorRequestService, CreatorRequestGraphql, MangaGraphql],
   controllers: [RequestController],
   exports: [],
 })

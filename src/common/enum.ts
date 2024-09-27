@@ -41,6 +41,7 @@ export enum AddressType {
 
 export enum CreatorRequestType {
   CREATE_NEW_MANGA = 'CREATE_NEW_MANGA',
+  UPDATE_MANGA = 'UPDATE_MANGA',
 }
 
 export enum CreatorRequestStatus {

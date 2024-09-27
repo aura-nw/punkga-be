@@ -55,3 +55,34 @@ export class CreatorCreateMangaRequestDto {
   poster: Express.Multer.File;
 
 }
+
+export class CreatorUpdateMangaRequestDto {
+  @ApiProperty({ type: Number })
+  requestor_id: number;
+
+  @ApiProperty({ type: [MangaTag] })
+  manga_tags: string;
+
+  @ApiProperty({ type: [MangaCreator] })
+  manga_creators: string;
+
+  @ApiProperty({ type: [MangaLanguage] })
+  manga_languages: string;
+
+  @ApiProperty()
+  release_date: string;
+
+  @ApiProperty({ type: 'string', format: 'binary' })
+  banner: Express.Multer.File;
+
+  @ApiProperty({ type: 'string', format: 'binary' })
+  poster: Express.Multer.File;
+
+}
+
+
+export class CreatorUpdateMangaParamDto {
+  @ApiProperty()
+  @IsNumber()
+  mangaId: number;
+}
