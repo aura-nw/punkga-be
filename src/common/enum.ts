@@ -10,6 +10,7 @@ export enum ChapterStatus {
   // Uploading = 'Uploading',
   Published = 'Published',
   Inactive = 'Inactive',
+  OnRequest = 'On-request',
 }
 
 export enum ChapterType {
@@ -41,7 +42,9 @@ export enum AddressType {
 
 export enum CreatorRequestType {
   CREATE_NEW_MANGA = 'CREATE_NEW_MANGA',
+  CREATE_NEW_CHAPTER = 'CREATE_NEW_CHAPTER',
   UPDATE_MANGA = 'UPDATE_MANGA',
+  UPDATE_CHAPTER = 'UPDATE_CHAPTER',
 }
 
 export enum CreatorRequestStatus {

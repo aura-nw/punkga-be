@@ -202,6 +202,37 @@ export class ChapterService {
   ) {
     try {
       const { chapterId: chapter_id } = param;
+      const { token } = ContextProvider.getAuthUser();
+      const { chapter, chapterLanguage } = await this.buildChapterObjToUpdate(
+        param,
+        data,
+        files
+      );
+      // update chapter
+      const result = await this.chapterGraphql.updateChapter(token, chapter);
+      const updateChapterLangResult =
+        await this.chapterGraphql.insertUpdateChapterLanguages(
+          token,
+          chapter_id,
+          chapterLanguage
+        );
+      this.logger.log(updateChapterLangResult);
+
+      return result.data;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async buildChapterObjToUpdate(
+    param: UpdateChapterParamDto,
+    data: UpdateChapterRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
+    try {
+      const { chapterId: chapter_id } = param;
       const { userId, token } = ContextProvider.getAuthUser();
 
       const storageFolder = `./uploads/${userId}`;
@@ -235,21 +266,6 @@ export class ChapterService {
         manga_id,
         chapter_number
       );
-
-      // update chapter
-      const result = await this.chapterGraphql.updateChapter(token, {
-        id: chapter_id,
-        chapter_name,
-        chapter_number,
-        chapter_type,
-        pushlish_date,
-        status,
-        thumbnail_url: newThumbnailUrl !== '' ? newThumbnailUrl : thumbnail_url,
-      });
-
-      if (result.errors && result.errors.length > 0) {
-        return result;
-      }
 
       // update chapter images by language
       const input_chapter_images = plainToInstance(
@@ -378,16 +394,19 @@ export class ChapterService {
       //   }
       // );
 
-      // update data
-      const updateChapterLangResult =
-        await this.chapterGraphql.insertUpdateChapterLanguages(
-          token,
-          chapter_id,
-          newChapterLanguages
-        );
-      this.logger.log(updateChapterLangResult);
-
-      return result.data;
+      return {
+        chapter: {
+          id: chapter_id,
+          chapter_name,
+          chapter_number,
+          chapter_type,
+          pushlish_date,
+          status,
+          thumbnail_url:
+            newThumbnailUrl !== '' ? newThumbnailUrl : thumbnail_url,
+        },
+        chapterLanguage: newChapterLanguages,
+      };
     } catch (errors) {
       return {
         errors,

@@ -13,6 +13,6 @@ import { UploadChapterService } from './upload-chapter.service';
   imports: [JwtModule, GraphqlModule, FilesModule, MangaModule],
   providers: [ChapterService, UploadChapterService, ChapterGraphql],
   controllers: [ChapterController],
-  exports: [UploadChapterService, ChapterGraphql],
+  exports: [UploadChapterService, ChapterGraphql, ChapterService],
 })
 export class ChapterModule {}

@@ -23,6 +23,10 @@ import {
   CreatorUpdateMangaParamDto,
   CreatorUpdateMangaRequestDto,
 } from './dto/creator-create-manga-request.dto';
+import {
+  CreatorCreateChapterRequestDto,
+} from './dto/creator-create-chapter-request.dto';
+import { CreatorUpdateChapterParamDto, CreatorUpdateChapterRequestDto } from './dto/creator-update-chapter-request.dto';
 
 @Controller('creator-request')
 @ApiTags('creator-request')
@@ -32,10 +36,10 @@ export class RequestController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
-  @Post()
+  @Post('manga')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
-  create(
+  createManga(
     @Body() params: CreatorCreateMangaRequestDto,
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
@@ -46,15 +50,43 @@ export class RequestController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
-  @Put(':mangaId')
+  @Put('manga/:mangaId')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
-  update(
+  updatemanga(
     @Param() param: CreatorUpdateMangaParamDto,
     @Body() data: CreatorUpdateMangaRequestDto,
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     const { mangaId } = param;
     return this.requestSvc.updateMangaRequest(mangaId, data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin, Role.Creator)
+  @Post('chapter')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  createChapter(
+    @Body() params: CreatorCreateChapterRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    // console.log(params);
+    return this.requestSvc.createChapterRequest(params, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @Put('chapter/:chapterId')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  update(
+    @Param() param: CreatorUpdateChapterParamDto,
+    @Body() data: CreatorUpdateChapterRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.requestSvc.updateChapterRequest(param, data, files);
   }
 }
