@@ -8,9 +8,10 @@ import { ChapterController } from './chapter.controller';
 import { ChapterGraphql } from './chapter.graphql';
 import { ChapterService } from './chapter.service';
 import { UploadChapterService } from './upload-chapter.service';
+import { CreatorModule } from '../creator/creator.module';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, FilesModule, MangaModule],
+  imports: [JwtModule, GraphqlModule, FilesModule, MangaModule, CreatorModule],
   providers: [ChapterService, UploadChapterService, ChapterGraphql],
   controllers: [ChapterController],
   exports: [UploadChapterService, ChapterGraphql, ChapterService],

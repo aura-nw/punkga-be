@@ -1,3 +1,10 @@
 table:
   name: creator_request
   schema: public
+object_relationships:
+  - name: creator
+    using:
+      foreign_key_constraint_on: creator_id
+  - name: manga
+    using:
+      foreign_key_constraint_on: manga_id

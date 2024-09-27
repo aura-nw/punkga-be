@@ -643,45 +643,6 @@
               updated_at
             }
           }
-      - name: Admin - Query List Manga
-        query: |
-          query QueryListManga {
-            manga(order_by: {created_at:desc}) {
-              id
-              slug
-              banner
-              poster
-              status
-              release_date
-              publish_date
-              created_at
-              manga_creators {
-                creator {
-                  name
-                  pen_name
-                }
-              }
-              chapters_aggregate {
-                aggregate {
-                  count
-                  max {
-                    chapter_number
-                  }
-                }
-              }
-              published_chapters_aggregate: chapters_aggregate(where: {status:{_eq:"Published"}}) {
-                aggregate {
-                  count
-                }
-              }
-              manga_languages {
-                id
-                title
-                language_id
-                is_main_language
-              }
-            }
-          }
       - name: User - Query rank
         query: |
           query user_xp_rank {
@@ -1468,5 +1429,69 @@
                   reward
                 }
               }
+            }
+          }
+      - name: Admin - Query List Manga
+        query: |
+          query QueryListManga {
+            manga(order_by: {created_at:desc}) {
+              id
+              slug
+              banner
+              poster
+              is_active
+              status
+              release_date
+              publish_date
+              created_at
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                }
+              }
+              chapters_aggregate {
+                aggregate {
+                  count
+                  max {
+                    chapter_number
+                  }
+                }
+              }
+              published_chapters_aggregate: chapters_aggregate(where: {status:{_eq:"Published"}}) {
+                aggregate {
+                  count
+                }
+              }
+              manga_languages {
+                id
+                title
+                language_id
+                is_main_language
+              }
+            }
+          }
+      - name: Admin - Get list creator request
+        query: |
+          query creator_request ($limit: Int = 10, $offset: Int = 0) {
+            creator_request(limit: $limit, offset: $offset) {
+              id
+              manga {
+                id
+                manga_languages {
+                  id
+                  title
+                  description
+                  is_main_language
+                }
+              }
+              creator {
+                id
+                pen_name
+                name
+              }
+              type
+              status
+              created_at
             }
           }

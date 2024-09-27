@@ -11,7 +11,8 @@ import { SaveDonateTxDto } from './dto/save-donate-tx.dto';
 import { TelegramGraphql } from './telegram.graphql';
 import { Role } from '../../auth/role.enum';
 import { v4 as uuidv4 } from 'uuid';
-const AES = require('crypto-js/aes');
+var CryptoJS = require("crypto-js");
+const AES = require("crypto-js/aes");
 
 @Injectable()
 export class TelegramService {
@@ -397,11 +398,13 @@ export class TelegramService {
     try {
       const TELEGRAM_QR_SECRET =
         this.configService.get<string>('telgram.qr_secret');
-      const { userId } = ContextProvider.getAuthUser();
+      let { userId } = ContextProvider.getAuthUser();
       if (userId) {
-        const message = `${userId}|${Date.parse(new Date().toISOString())}`;
-        const encrypted = AES.encrypt(message, TELEGRAM_QR_SECRET);
-        return encrypted;
+        var message = `${userId}|${Date.parse((new Date()).toISOString())}`;
+        var encrypted = AES.encrypt(message, TELEGRAM_QR_SECRET);
+        return {
+          data: encrypted.toString()
+        }        
       } else {
         return {
           errors: [
@@ -417,18 +420,18 @@ export class TelegramService {
       };
     }
   }
-  async linkFromScan(data: string) {
-    const { telegramId, telegramUserId } = ContextProvider.getAuthUser();
+  async linkFromScan(data: any) {
+    const { telegramUserId } = ContextProvider.getAuthUser();
     try {
       const TELEGRAM_QR_SECRET =
         this.configService.get<string>('telgram.qr_secret');
-      const decrypted = AES.decrypted(data, TELEGRAM_QR_SECRET);
+      var decrypted = AES.decrypt(data?.data, TELEGRAM_QR_SECRET)?.toString(CryptoJS.enc.Utf8);
       if (decrypted && decrypted.indexOf('|') != -1) {
-        const arr = decrypted.split('|');
-        const time = new Date(arr[1] * 1000);
-        const seconds = (new Date().getTime() - time.getTime()) / 1000;
+        let arr = decrypted.split('|');
+        const time = new Date(parseFloat(arr[1]));
+        var seconds = (new Date().getTime() - time.getTime()) / 1000;
         if (seconds <= 300) {
-          const userId = arr[1];
+          const userId = arr[0];
           if (userId) {
             const updateResult = await this.telegramGraphql.updateTelegramUser({
               id: telegramUserId,

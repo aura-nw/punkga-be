@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import {
@@ -15,6 +15,7 @@ import { detectSlugOrId } from '../../utils/utils';
 import { GetChapterByMangaParamDto } from './dto/get-chapter-by-manga-request.dto';
 import { MangaGraphql } from './manga.graphql';
 import { errorOrEmpty } from '../graphql/utils';
+import { CreatorService } from '../creator/creator.service';
 
 @Injectable()
 export class MangaService {
@@ -23,6 +24,7 @@ export class MangaService {
   constructor(
     private configSvc: ConfigService,
     private filesService: FilesService,
+    private creatorService: CreatorService,
     private mangaGraphql: MangaGraphql
   ) {}
 
@@ -311,5 +313,18 @@ export class MangaService {
         errors,
       };
     }
+  }
+
+  async deleteManga(mangaId: number) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+
+    const isOwner = await this.mangaGraphql.verifyMangaOwner({
+      manga_id: mangaId,
+      creator_id: creatorId,
+    });
+
+    if (!isOwner) throw new ForbiddenException('invalid creator');
+
+    return this.mangaGraphql.removeManga(mangaId);
   }
 }

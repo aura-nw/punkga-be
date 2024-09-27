@@ -56,6 +56,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: Admin - Get list creator request
+  methods:
+    - GET
+  name: Admin - Get list creator request
+  url: admin/creator-request
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: Admin - Query creators
   methods:
     - GET
