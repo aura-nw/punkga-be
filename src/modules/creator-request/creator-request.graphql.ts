@@ -75,4 +75,67 @@ export class CreatorRequestGraphql {
       headers
     );
   }
+
+  getCreatorRequestByPK(id: number) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    const variables = {
+      id,
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query creator_request_by_pk($id: Int!) {
+        creator_request_by_pk(id: $id) {
+          id
+          data
+          manga_id
+          status
+          type
+          updated_at
+          creator_id
+          created_at
+        }
+      }
+      `,
+      'creator_request_by_pk',
+      variables,
+      headers
+    );
+  }
+
+  adminUpdateCreatorRequestByPK(id: number, requestInfo: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    const variables = {
+      id,
+      object: requestInfo,
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_creator_request_by_pk($id: Int!, $object: creator_request_set_input!) {
+        update_creator_request_by_pk(pk_columns: {id: $id}, _set: $object) {
+          creator_id
+          data
+          id
+          status
+          type
+          updated_at
+          manga_id
+          created_at
+        }
+      }
+      `,
+      'update_creator_request_by_pk',
+      variables,
+      headers
+    );
+  }
 }

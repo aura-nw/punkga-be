@@ -433,7 +433,32 @@ export class MangaGraphql {
     );
   }
 
-  adminUpdateMangaByPK( variables: any) {
+  // adminUpdateMangaByPK(id: number, object: any) {
+  //   const headers = {
+  //     'x-hasura-admin-secret': this.configSvc.get<string>(
+  //       'graphql.adminSecret'
+  //     ),
+  //   };
+  //   const variables = { id, object };
+  //   return this.graphqlSvc.query(
+  //     this.configSvc.get<string>('graphql.endpoint'),
+  //     '',
+  //     `mutation UpdateMangaByPK($id: Int!, $object: manga_set_input!) {
+  //       update_manga_by_pk(pk_columns: {id: $id}, _set: $object) {
+  //         id
+  //         banner
+  //         poster
+  //         status
+  //         contract_addresses
+  //         created_at
+  //       }
+  //     }`,
+  //     'UpdateMangaByPK',
+  //     variables,
+  //     headers
+  //   );
+  // }
+  adminUpdateManga(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
@@ -442,17 +467,39 @@ export class MangaGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation UpdateMangaByPK($banner: String = "", $poster: String = "", $id: Int = 10, $slug: String = "") {
-        update_manga_by_pk(pk_columns: {id: $id}, _set: {banner: $banner, poster: $poster, slug: $slug}) {
+      `mutation UpdateManga($manga_id: Int!, $status: String!, $contract_addresses: jsonb = "", $banner: String!, $poster: String!, $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
+        delete_manga_tag(where: {manga_id: {_eq: $manga_id}}) {
+          affected_rows
+        }
+        delete_manga_creator(where: {manga_id: {_eq: $manga_id}}) {
+          affected_rows
+        }
+        delete_manga_languages(where: {manga_id: {_eq: $manga_id}}) {
+          affected_rows
+        }
+        insert_manga_one(object: {status: $status, contract_addresses: $contract_addresses, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, id: $manga_id, release_date: $release_date}, on_conflict: {constraint: manga_pkey, update_columns: [banner, poster, status, release_date, contract_addresses]}) {
           id
           banner
           poster
           status
-          contract_addresses
+          release_date
           created_at
+          manga_creators {
+            creator_id
+          }
+          manga_languages {
+            language_id
+            title
+            is_main_language
+            description
+          }
+          manga_tags {
+            tag_id
+          }
         }
-      }`,
-      'UpdateMangaByPK',
+      }
+      `,
+      'UpdateManga',
       variables,
       headers
     );

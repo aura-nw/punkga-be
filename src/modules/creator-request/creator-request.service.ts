@@ -26,6 +26,7 @@ import {
   UpdateChapterParamDto,
   UpdateChapterRequestDto,
 } from '../../modules/chapter/dto/update-chapter-request.dto';
+import { UpdateMangaRequestDto } from 'modules/manga/dto/update-manga-request.dto';
 
 @Injectable()
 export class CreatorRequestService {
@@ -99,7 +100,7 @@ export class CreatorRequestService {
         banner,
         poster,
       } = params;
-      const data: CreateMangaRequestDto = {
+      const data: UpdateMangaRequestDto = {
         manga_tags,
         manga_creators,
         manga_languages,
@@ -118,7 +119,7 @@ export class CreatorRequestService {
         return result;
       }
 
-      if (!result.manga_by_pk) {
+      if (!result.data.manga_by_pk) {
         return {
           errors: {
             message: 'Manga can not found',
@@ -283,6 +284,77 @@ export class CreatorRequestService {
     } catch (errors) {
       return {
         errors,
+      };
+    }
+  }
+
+  async reSubmitCreateMangaRequest(
+    request_id: number,
+    params: CreatorCreateMangaRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
+    try {
+      const {
+        requestor_id,
+        manga_tags,
+        manga_creators,
+        manga_languages,
+        release_date,
+        banner,
+        poster,
+      } = params;
+      const requestInfo = await this.requestGraphql.getCreatorRequestByPK(
+        request_id
+      );
+
+      if (requestInfo.errors && requestInfo.errors.length > 0) {
+        return requestInfo;
+      }
+
+      if (!requestInfo.data.creator_request_by_pk) {
+        return {
+          errors: {
+            message: 'Request can not found',
+          },
+        };
+      }
+      const { manga_id } = requestInfo.data.creator_request_by_pk;
+      const data: UpdateMangaRequestDto = {
+        manga_tags,
+        manga_creators,
+        manga_languages,
+        release_date,
+        banner,
+        poster,
+        status: MangaStatus.OnRequest,
+      };
+      const createMangaResponse = await this.mangaSvc.update(
+        manga_id,
+        data,
+        files
+      );
+      if (createMangaResponse.errors && createMangaResponse.errors.length > 0) {
+        return createMangaResponse;
+      }
+      const object = {
+        creator_id: requestor_id,
+        data: createMangaResponse.data.insert_manga_one,
+        type: CreatorRequestType.CREATE_NEW_MANGA,
+        manga_id,
+        status: CreatorRequestStatus.RE_SUBMITTED,
+      };
+      const createRequestResponse =
+        await this.requestGraphql.adminUpdateCreatorRequestByPK(
+          request_id,
+          object
+        );
+
+      return createRequestResponse;
+    } catch (error) {
+      return {
+        errors: {
+          message: error.message,
+        },
       };
     }
   }

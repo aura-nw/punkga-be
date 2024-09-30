@@ -123,12 +123,14 @@ export class MangaService {
       );
 
       // update manga in DB
-      const updateResponse = await this.mangaGraphql.adminUpdateMangaByPK({
-        id: mangaId,
-        banner: bannerUrl,
-        poster: posterUrl,
-        slug,
-      });
+      const updateResponse = await this.mangaGraphql.adminUpdateManga(
+        {
+          id: mangaId,
+          banner: bannerUrl,
+          poster: posterUrl,
+          slug,
+        }
+      );
 
       return updateResponse;
     } catch (error) {
@@ -148,7 +150,7 @@ export class MangaService {
     try {
       const updateManga = await this.buildObjToUpdate(mangaId, data, files);
       // update manga in DB
-      const updateResponse = await this.mangaGraphql.adminUpdateMangaByPK(
+      const updateResponse = await this.mangaGraphql.adminUpdateManga(
         updateManga
       );
 
@@ -232,9 +234,11 @@ export class MangaService {
           objects.push(o);
         })
       );
-      const updateResponse = await this.mangaGraphql.adminCreateMangaCollection({
-        objects,
-      });
+      const updateResponse = await this.mangaGraphql.adminCreateMangaCollection(
+        {
+          objects,
+        }
+      );
 
       return updateResponse;
     } catch (errors) {

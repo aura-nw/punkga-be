@@ -80,9 +80,14 @@ export class CreatorUpdateMangaRequestDto {
 
 }
 
-
 export class CreatorUpdateMangaParamDto {
   @ApiProperty()
   @IsNumber()
   mangaId: number;
+}
+
+export class CreatorUpdateRequestCreateMangaParamDto {
+  @ApiProperty()
+  @IsNumber()
+  request_id: number;
 }
