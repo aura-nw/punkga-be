@@ -160,7 +160,7 @@ export class TelegramGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query telegram_quests($telegram_user_id: Int!) {
-        telegram_quests {
+        telegram_quests(where: {activated: {_eq: true}, deleted: {_eq: false}}) {
           id
           quest_name
           quest_url
@@ -205,7 +205,7 @@ export class TelegramGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query telegram_quests($id: bigint!, $telegram_user_id: Int!) {
-        telegram_quests(where: {id: {_eq: $id}}) {
+        telegram_quests(where: {id: {_eq: $id},activated: {_eq: true}, deleted: {_eq: false}}) {
           id
           quest_name
           quest_url
@@ -340,6 +340,53 @@ export class TelegramGraphql {
         `,
       'insert_authorizer_users',
       variables,
+      headers
+    );
+  }
+  getTopDonate() {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query top_user_donate {
+        top_user_donate(limit: 10) {
+          user_id
+          telegram_id
+          username
+          value
+        }
+      }`,
+      'top_user_donate',
+      {},
+      headers
+    );
+  }
+  getTopCreatorDonate() {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query top_creator_donate {
+        top_creator_donate(limit: 10) {
+          id
+          name
+          email
+          avatar_url
+          value
+        }
+      }`,
+      'top_creator_donate',
+      {},
       headers
     );
   }

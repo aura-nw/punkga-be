@@ -1,19 +1,13 @@
-import {
-  BaseContract,
-  Contract,
-  HDNodeWallet,
-  JsonRpcProvider,
-  Wallet,
-} from 'ethers';
+import { Contract, HDNodeWallet, JsonRpcProvider, Wallet } from 'ethers';
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { Crypter } from '../../utils/crypto';
 import { SysKeyService } from '../keys/syskey.service';
+import { IChainInfo } from '../quest/interface/ichain-info';
 import { abi as levelingAbi } from './../../abi/PunkgaReward.json';
 import { UserWalletGraphql } from './user-wallet.graphql';
-import { IChainInfo } from '../quest/interface/ichain-info';
 
 @Injectable()
 export class MasterWalletService implements OnModuleInit {

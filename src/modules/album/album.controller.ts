@@ -32,11 +32,18 @@ import {
   UpdateAlbumParamDto,
   UpdateAlbumRequestDto,
 } from './dto/update-album-request.dto';
+import { QueryAlbumPublicDto } from './dto/query-album-public-query.dto';
 
 @Controller('album')
 @ApiTags('album')
 export class AlbumController {
   constructor(private readonly albumSvc: AlbumService) {}
+
+  @Get('public')
+  @ApiOperation({ summary: 'list album - public' })
+  listPublic(@Query() query: QueryAlbumPublicDto) {
+    return this.albumSvc.getAllPublicAlbum(query);
+  }
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)

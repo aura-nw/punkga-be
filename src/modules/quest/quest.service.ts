@@ -2,7 +2,6 @@ import { Queue } from 'bull';
 
 import { InjectQueue } from '@nestjs/bull';
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,

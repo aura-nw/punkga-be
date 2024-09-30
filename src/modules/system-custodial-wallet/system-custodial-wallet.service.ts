@@ -26,7 +26,6 @@ export class SystemCustodialWalletService implements OnModuleInit {
   async initGranterWallet() {
     // get from db
     const granterWalletData = await this.walletGraphql.getGranterWallet();
-    const providerUrl = this.configService.get<string>('network.rpcEndpoint');
 
     if (granterWalletData) {
       const phrase = this.masterWalletService.decryptPhrase(

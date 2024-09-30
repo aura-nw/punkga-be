@@ -1,0 +1,3 @@
+table:
+  name: top_user_donate
+  schema: public
