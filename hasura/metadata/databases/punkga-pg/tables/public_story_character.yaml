@@ -1,0 +1,3 @@
+table:
+  name: story_character
+  schema: public
