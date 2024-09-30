@@ -49,8 +49,8 @@ export enum CreatorRequestType {
 
 export enum CreatorRequestStatus {
   DRAFT = 'Draft',
-  SUBMITED = 'Submited',
-  RE_SUBMITED = 'Re-Submited',
+  SUBMITTED = 'Submitted',
+  RE_SUBMITTED = 'Re-Submitted',
   APPROVED = 'Approved',
   REJECTED = 'Rejected',
   DELETED = 'Deleted',

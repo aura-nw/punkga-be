@@ -84,7 +84,7 @@ export class MangaService {
       );
 
       // insert manga to DB
-      const result = await this.mangaGraphql.createNewManga(token, {
+      const result = await this.mangaGraphql.adminCreateNewManga({
         status,
         manga_tags,
         manga_creators,
@@ -123,7 +123,7 @@ export class MangaService {
       );
 
       // update manga in DB
-      const updateResponse = await this.mangaGraphql.updateMangaByPK(token, {
+      const updateResponse = await this.mangaGraphql.adminUpdateMangaByPK({
         id: mangaId,
         banner: bannerUrl,
         poster: posterUrl,
@@ -146,11 +146,9 @@ export class MangaService {
     files: Array<Express.Multer.File>
   ) {
     try {
-      const { token } = ContextProvider.getAuthUser();
       const updateManga = await this.buildObjToUpdate(mangaId, data, files);
       // update manga in DB
-      const updateResponse = await this.mangaGraphql.updateManga(
-        token,
+      const updateResponse = await this.mangaGraphql.adminUpdateMangaByPK(
         updateManga
       );
 
@@ -234,7 +232,7 @@ export class MangaService {
           objects.push(o);
         })
       );
-      const updateResponse = await this.mangaGraphql.createMangaCollection({
+      const updateResponse = await this.mangaGraphql.adminCreateMangaCollection({
         objects,
       });
 

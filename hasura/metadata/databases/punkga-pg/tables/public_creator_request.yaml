@@ -8,3 +8,52 @@ object_relationships:
   - name: manga
     using:
       foreign_key_constraint_on: manga_id
+insert_permissions:
+  - role: creator
+    permission:
+      check:
+        creator_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - status
+        - type
+        - creator_id
+        - id
+        - manga_id
+        - data
+        - created_at
+        - updated_at
+select_permissions:
+  - role: creator
+    permission:
+      columns:
+        - status
+        - type
+        - creator_id
+        - id
+        - manga_id
+        - data
+        - created_at
+        - updated_at
+      filter:
+        creator_id:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true
+update_permissions:
+  - role: creator
+    permission:
+      columns:
+        - status
+        - type
+        - creator_id
+        - id
+        - manga_id
+        - data
+        - created_at
+        - updated_at
+      filter:
+        creator_id:
+          _eq: X-Hasura-User-Id
+      check:
+        creator_id:
+          _eq: X-Hasura-User-Id

@@ -1,5 +1,6 @@
 import {
   Body,
+  CacheInterceptor,
   Controller,
   Get,
   Param,
@@ -27,6 +28,7 @@ import {
   CreatorCreateChapterRequestDto,
 } from './dto/creator-create-chapter-request.dto';
 import { CreatorUpdateChapterParamDto, CreatorUpdateChapterRequestDto } from './dto/creator-update-chapter-request.dto';
+import { GetRequestByCreatorAndStatusParam, GetRequestByCreatorAndStatusRequest } from './dto/creator-get-request.dto';
 
 @Controller('creator-request')
 @ApiTags('creator-request')
@@ -78,7 +80,7 @@ export class RequestController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.Creator)
   @Put('chapter/:chapterId')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
@@ -88,5 +90,13 @@ export class RequestController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.requestSvc.updateChapterRequest(param, data, files);
+  }
+
+  @Get('/request/:creator_id')
+  getChapterByManga(
+    @Param() param: GetRequestByCreatorAndStatusParam,
+    @Query() query: GetRequestByCreatorAndStatusRequest
+  ) {
+    return this.requestSvc.getRequestByCreatorAndStatus(param.creator_id, query.status);
   }
 }

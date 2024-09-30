@@ -332,7 +332,7 @@ export class MangaGraphql {
     );
   }
 
-  createMangaCollection(variables: any) {
+  adminCreateMangaCollection(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
@@ -406,6 +406,54 @@ export class MangaGraphql {
         id: mangaId,
         status: MangaStatus.Removed,
       },
+      headers
+    );
+  }
+
+  adminCreateNewManga(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation CreateNewManga($status: String = "", $contract_addresses: jsonb = "", $banner: String = "", $poster: String = "", $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
+        insert_manga_one(object: {status: $status, contract_addresses: $contract_addresses, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, release_date: $release_date}) {
+          id
+          created_at
+          status
+          release_date
+        }
+      }`,
+      'CreateNewManga',
+      variables,
+      headers
+    );
+  }
+
+  adminUpdateMangaByPK( variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation UpdateMangaByPK($banner: String = "", $poster: String = "", $id: Int = 10, $slug: String = "") {
+        update_manga_by_pk(pk_columns: {id: $id}, _set: {banner: $banner, poster: $poster, slug: $slug}) {
+          id
+          banner
+          poster
+          status
+          contract_addresses
+          created_at
+        }
+      }`,
+      'UpdateMangaByPK',
+      variables,
       headers
     );
   }

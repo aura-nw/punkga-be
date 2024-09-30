@@ -120,7 +120,7 @@ export class ChapterService {
       );
 
       // insert chapter to DB
-      const result = await this.chapterGraphql.createChapter(token, {
+      const result = await this.chapterGraphql.adminCreateChapter({
         manga_id,
         chapter_name,
         chapter_number,
@@ -171,8 +171,7 @@ export class ChapterService {
           }));
 
         const updateResult =
-          await this.chapterGraphql.insertUpdateChapterLanguages(
-            token,
+          await this.chapterGraphql.adminInsertUpdateChapterLanguages(
             chapterId,
             chapterLanguages
           );
@@ -216,10 +215,9 @@ export class ChapterService {
         files
       );
       // update chapter
-      const result = await this.chapterGraphql.updateChapter(token, chapter);
+      const result = await this.chapterGraphql.adminUpdateChapter(chapter);
       const updateChapterLangResult =
-        await this.chapterGraphql.insertUpdateChapterLanguages(
-          token,
+        await this.chapterGraphql.adminInsertUpdateChapterLanguages(
           chapter_id,
           chapterLanguage
         );
@@ -456,9 +454,10 @@ export class ChapterService {
           objects.push(o);
         })
       );
-      const updateResponse = await this.chapterGraphql.createChapterCollection({
-        objects,
-      });
+      const updateResponse =
+        await this.chapterGraphql.adminCreateChapterCollection({
+          objects,
+        });
 
       return updateResponse;
     } catch (errors) {

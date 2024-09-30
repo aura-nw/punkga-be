@@ -69,7 +69,7 @@ export class CreatorRequestService {
         data: createMangaResponse.data.update_manga_by_pk,
         type: CreatorRequestType.CREATE_NEW_MANGA,
         manga_id: createMangaResponse.data.update_manga_by_pk.id,
-        status: CreatorRequestStatus.SUBMITED,
+        status: CreatorRequestStatus.SUBMITTED,
       };
       const createRequestResponse =
         await this.requestGraphql.createNewCreatorRequest(token, { object });
@@ -139,7 +139,7 @@ export class CreatorRequestService {
         data: updateMangaObj,
         type: CreatorRequestType.UPDATE_MANGA,
         manga_id,
-        status: CreatorRequestStatus.SUBMITED,
+        status: CreatorRequestStatus.SUBMITTED,
       };
       const createRequestResponse =
         await this.requestGraphql.createNewCreatorRequest(token, { object });
@@ -195,7 +195,7 @@ export class CreatorRequestService {
         data: createChapterResponse.insert_chapters_one,
         type: CreatorRequestType.CREATE_NEW_CHAPTER,
         manga_id,
-        status: CreatorRequestStatus.SUBMITED,
+        status: CreatorRequestStatus.SUBMITTED,
       };
       const createRequestResponse =
         await this.requestGraphql.createNewCreatorRequest(token, { object });
@@ -239,11 +239,12 @@ export class CreatorRequestService {
         files,
         collection_ids,
       };
-      const updateChapterData =
-        await this.chapterSvc.buildChapterObjToUpdate(param, dataInput, files);
-      if (
-        updateChapterData.errors
-      ) {
+      const updateChapterData = await this.chapterSvc.buildChapterObjToUpdate(
+        param,
+        dataInput,
+        files
+      );
+      if (updateChapterData.errors) {
         return {
           errors: {
             message: 'Build Update data failed',
@@ -255,7 +256,7 @@ export class CreatorRequestService {
         data: updateChapterData,
         type: CreatorRequestType.UPDATE_CHAPTER,
         manga_id,
-        status: CreatorRequestStatus.SUBMITED,
+        status: CreatorRequestStatus.SUBMITTED,
       };
       const createRequestResponse =
         await this.requestGraphql.createNewCreatorRequest(token, { object });
@@ -266,6 +267,22 @@ export class CreatorRequestService {
         errors: {
           message: error.message,
         },
+      };
+    }
+  }
+
+  async getRequestByCreatorAndStatus(creator_id: number, status: string) {
+    try {
+      const result =
+        await this.requestGraphql.getCreatorRequestByCreatorAndStatus(
+          creator_id,
+          status
+        );
+
+      return result;
+    } catch (errors) {
+      return {
+        errors,
       };
     }
   }
