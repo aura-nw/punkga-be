@@ -366,6 +366,29 @@ export class TelegramGraphql {
       headers
     );
   }
+  getTopDonateByUser(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query top_user_donate($telegram_id: String! = "") {
+        top_user_donate(where: {telegram_id: {_eq: $telegram_id}}) {
+          user_id
+          telegram_id
+          username
+          value
+        }
+      }`,
+      'top_user_donate',
+      variables,
+      headers
+    );
+  }
   getTopCreatorDonate() {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(

@@ -263,15 +263,6 @@
   definition:
     query:
       collection_name: allowed-queries
-      query_name: Public - Query album detail
-  methods:
-    - GET
-  name: Public - Query album detail
-  url: public/albums/:id
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
       query_name: Public - Get campaign leaderboard
   methods:
     - GET
@@ -295,15 +286,6 @@
     - GET
   name: Public - Get Chapter Comments
   url: public/chapters/:chapter_id/comments
-- comment: ""
-  definition:
-    query:
-      collection_name: allowed-queries
-      query_name: Public - Query albums by creator id
-  methods:
-    - GET
-  name: Public - Query albums by creator id
-  url: public/creators/:creator_id/albums
 - comment: ""
   definition:
     query:
