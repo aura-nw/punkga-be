@@ -358,7 +358,8 @@ export class TelegramGraphql {
           user_id
           telegram_id
           username
-          value
+          value,
+          ranking
         }
       }`,
       'top_user_donate',
@@ -381,7 +382,8 @@ export class TelegramGraphql {
           user_id
           telegram_id
           username
-          value
+          value,
+          ranking
         }
       }`,
       'top_user_donate',
