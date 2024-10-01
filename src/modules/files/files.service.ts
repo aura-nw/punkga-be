@@ -14,6 +14,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { IFileInfo } from '../chapter/interfaces';
+import sharp from 'sharp';
 
 @Injectable()
 export class FilesService implements OnModuleInit {
@@ -41,6 +42,17 @@ export class FilesService implements OnModuleInit {
       url: ipfsUrl,
       timeout: 60000,
     });
+  }
+
+  resize(buffer: Buffer, width = 1366, height = 768, quality = 80) {
+    return sharp(buffer)
+      .resize(width, height, { fit: 'inside' })
+      .png({ quality })
+      .toBuffer()
+      .catch(function (err) {
+        console.log('Error occured ', err);
+        return buffer;
+      });
   }
 
   getKeyName = (file: Express.Multer.File, folderName: string) => {
@@ -125,6 +137,25 @@ export class FilesService implements OnModuleInit {
     return {
       cid: response.cid.toString(),
       originalname: file.originalname,
+    };
+
+    // return `/ipfs/${response.cid.toString()}/${file.originalname}`;
+  }
+
+  async uploadFileToIpfs(buffer: Buffer, originalname: string) {
+    const response = await this.ipfsClient.add(
+      {
+        path: originalname,
+        content: buffer,
+      },
+      {
+        wrapWithDirectory: true,
+      }
+    );
+
+    return {
+      cid: response.cid.toString(),
+      originalname,
     };
 
     // return `/ipfs/${response.cid.toString()}/${file.originalname}`;

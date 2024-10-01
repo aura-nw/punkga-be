@@ -12,18 +12,46 @@ export class StoryEventGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
-  async queryRequest(variables: any) {
+  async insertStoryCharacter(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query request_log_by_pk($id: Int!) {
-        request_log_by_pk(id: $id) {
-          log
-          status
+      `mutation insert_story_character_one($object: story_character_insert_input = {}) {
+        insert_story_character_one(object: $object) {
+          id
+        }
+      }
+      `,
+      'insert_story_character_one',
+      variables,
+      headers
+    );
+  }
+
+  async insertSubmission(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_story_event_submission($object: story_event_submission_insert_input = {}) {
+        insert_story_event_submission_one(object: $object) {
+          id
         }
       }`,
-      'request_log_by_pk',
-      variables
+      'insert_story_event_submission',
+      variables,
+      headers
     );
   }
 }

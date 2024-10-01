@@ -1,10 +1,26 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 
-import { ApiTags } from '@nestjs/swagger';
-import { StoryEventService } from './story-event.service';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../../auth/auth.guard';
+import { Role } from '../../auth/role.enum';
+import { RolesGuard } from '../../auth/role.guard';
+import { Roles } from '../../auth/roles.decorator';
+import { SetRequestTimeout } from '../../decorators/set-timeout.decorator';
+import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
+import { SubmitArtworkRequestDto } from './dto/submit-artwork.dto';
 import { SubmitCharacterRequestDto } from './dto/submit-character.dto';
 import { SubmitMangaRequestDto } from './dto/submit-manga.dto';
-import { SubmitArtworkRequestDto } from './dto/submit-artwork.dto';
+import { StoryEventService } from './story-event.service';
 
 @Controller('story-event')
 @ApiTags('story-event')
@@ -12,8 +28,17 @@ export class StoryEventController {
   constructor(private readonly storyEventSvc: StoryEventService) {}
 
   @Post('submission/character')
-  submitCharacter(@Query() data: SubmitCharacterRequestDto) {
-    return this.storyEventSvc.submitCharacter(data);
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @SetRequestTimeout()
+  @Roles(Role.User)
+  submitCharacter(
+    @Body() data: SubmitCharacterRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.storyEventSvc.submitCharacter(data, files);
   }
 
   @Post('submission/manga')
