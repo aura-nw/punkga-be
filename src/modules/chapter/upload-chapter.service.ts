@@ -143,7 +143,7 @@ export class UploadChapterService {
           )
         );
       } catch (error) {
-        throw Error(`upload to s3 failed - ${JSON.stringify(error)}`);
+        throw Error(`upload to s3 failed - ${error.message}`);
       }
     }
 
