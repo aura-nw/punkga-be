@@ -93,6 +93,7 @@ export class CreatorRequestGraphql {
           id
           data
           manga_id
+          chapter_id
           status
           type
           updated_at
@@ -134,6 +135,26 @@ export class CreatorRequestGraphql {
       }
       `,
       'update_creator_request_by_pk',
+      variables,
+      headers
+    );
+  }
+
+  adminCreateNewCreatorRequest(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_creator_request_one($object: creator_request_insert_input = {}) {
+        insert_creator_request_one(object: $object) {
+          id
+        }
+      }`,
+      'insert_creator_request_one',
       variables,
       headers
     );

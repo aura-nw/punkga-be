@@ -43,7 +43,7 @@ export class RequestController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
-  @Post('manga')
+  @Post('create-manga')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   createManga(
@@ -57,7 +57,7 @@ export class RequestController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
-  @Post('manga/:mangaId')
+  @Post('update-manga/:mangaId')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   updatemanga(
@@ -72,7 +72,7 @@ export class RequestController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
-  @Post('chapter')
+  @Post('create-chapter')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   createChapter(
@@ -86,7 +86,7 @@ export class RequestController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
-  @Post('chapter/:chapterId')
+  @Post('update-chapter/:chapterId')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   update(
@@ -111,7 +111,7 @@ export class RequestController {
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
-  @Put('manga/re-submit/:request_id')
+  @Put('create-manga/re-submit/:request_id')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   resubmitCreateManga(
@@ -120,17 +120,37 @@ export class RequestController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     // console.log(params);
-    return this.requestSvc.reSubmitCreateMangaRequest(
+    return this.requestSvc.resubmitCreateMangaRequest(
       params.request_id,
       body,
       files
     );
   }
 
+    
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
-  @Put('chapter/re-submit/:request_id')
+  @Put('update-manga/re-submit/:request_id')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  resubmitUpdateManga(
+    @Param() params: CreatorUpdateRequestParamDto,
+    @Body() body: CreatorUpdateMangaRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    // console.log(params);
+    return this.requestSvc.resubmitUpdateMangaRequest(
+      params.request_id,
+      body,
+      files
+    );
+  }
+  
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin, Role.Creator)
+  @Put('create-chapter/re-submit/:request_id')
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   resubmitCreateChapter(
@@ -138,8 +158,27 @@ export class RequestController {
     @Body() body: CreatorUpdateChapterRequestDto,
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
-    console.log(params);
-    return this.requestSvc.reSubmitCreateChapterRequest(
+    // console.log(params);
+    return this.requestSvc.resubmitCreateChapterRequest(
+      params.request_id,
+      body,
+      files
+    );
+  }
+  
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin, Role.Creator)
+  @Put('update-chapter/re-submit/:request_id')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  resubmitUpdateChapter(
+    @Param() params: CreatorUpdateRequestParamDto,
+    @Body() body: CreatorUpdateChapterRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    // console.log(params);
+    return this.requestSvc.resubmitUpdateChapterRequest(
       params.request_id,
       body,
       files
