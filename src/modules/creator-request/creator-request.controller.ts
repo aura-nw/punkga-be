@@ -23,13 +23,17 @@ import {
   CreatorCreateMangaRequestDto,
   CreatorUpdateMangaParamDto,
   CreatorUpdateMangaRequestDto,
-  CreatorUpdateRequestCreateMangaParamDto,
+  CreatorUpdateRequestParamDto,
 } from './dto/creator-create-manga-request.dto';
+import { CreatorCreateChapterRequestDto } from './dto/creator-create-chapter-request.dto';
 import {
-  CreatorCreateChapterRequestDto,
-} from './dto/creator-create-chapter-request.dto';
-import { CreatorUpdateChapterParamDto, CreatorUpdateChapterRequestDto } from './dto/creator-update-chapter-request.dto';
-import { GetRequestByCreatorAndStatusParam, GetRequestByCreatorAndStatusRequest } from './dto/creator-get-request.dto';
+  CreatorUpdateChapterParamDto,
+  CreatorUpdateChapterRequestDto,
+} from './dto/creator-update-chapter-request.dto';
+import {
+  GetRequestByCreatorAndStatusParam,
+  GetRequestByCreatorAndStatusRequest,
+} from './dto/creator-get-request.dto';
 
 @Controller('creator-request')
 @ApiTags('creator-request')
@@ -93,12 +97,15 @@ export class RequestController {
     return this.requestSvc.updateChapterRequest(param, data, files);
   }
 
-  @Get('/request/:creator_id')
+  @Get('request/:creator_id')
   getChapterByManga(
     @Param() param: GetRequestByCreatorAndStatusParam,
     @Query() query: GetRequestByCreatorAndStatusRequest
   ) {
-    return this.requestSvc.getRequestByCreatorAndStatus(param.creator_id, query.status);
+    return this.requestSvc.getRequestByCreatorAndStatus(
+      param.creator_id,
+      query.status
+    );
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -108,11 +115,34 @@ export class RequestController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   resubmitCreateManga(
-    @Param() params: CreatorUpdateRequestCreateMangaParamDto,
+    @Param() params: CreatorUpdateRequestParamDto,
     @Body() body: CreatorCreateMangaRequestDto,
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     // console.log(params);
-    return this.requestSvc.reSubmitCreateMangaRequest(params.request_id,body, files);
+    return this.requestSvc.reSubmitCreateMangaRequest(
+      params.request_id,
+      body,
+      files
+    );
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin, Role.Creator)
+  @Put('chapter/re-submit/:request_id')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  resubmitCreateChapter(
+    @Param() params: CreatorUpdateRequestParamDto,
+    @Body() body: CreatorUpdateChapterRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    console.log(params);
+    return this.requestSvc.reSubmitCreateChapterRequest(
+      params.request_id,
+      body,
+      files
+    );
   }
 }

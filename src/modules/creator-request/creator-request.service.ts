@@ -26,15 +26,17 @@ import {
   UpdateChapterParamDto,
   UpdateChapterRequestDto,
 } from '../../modules/chapter/dto/update-chapter-request.dto';
-import { UpdateMangaRequestDto } from 'modules/manga/dto/update-manga-request.dto';
+import { UpdateMangaRequestDto } from '../../modules/manga/dto/update-manga-request.dto';
+import { ChapterGraphql } from '../../modules/chapter/chapter.graphql';
 
 @Injectable()
 export class CreatorRequestService {
   constructor(
     private requestGraphql: CreatorRequestGraphql,
-    private mangaSvc: MangaService, // private mangaGraphql: MangaGraphql
-    private chapterSvc: ChapterService, // private mangaGraphql: MangaGraphql
-    private mangaGraphql: MangaGraphql
+    private mangaSvc: MangaService,
+    private chapterSvc: ChapterService,
+    private mangaGraphql: MangaGraphql,
+    private chapterGraphql: ChapterGraphql
   ) {}
 
   async createMangaRequest(
@@ -196,6 +198,7 @@ export class CreatorRequestService {
         data: createChapterResponse.insert_chapters_one,
         type: CreatorRequestType.CREATE_NEW_CHAPTER,
         manga_id,
+        chapter_id: createChapterResponse.insert_chapters_one.id,
         status: CreatorRequestStatus.SUBMITTED,
       };
       const createRequestResponse =
@@ -257,6 +260,7 @@ export class CreatorRequestService {
         data: updateChapterData,
         type: CreatorRequestType.UPDATE_CHAPTER,
         manga_id,
+        chapter_id: param.chapterId,
         status: CreatorRequestStatus.SUBMITTED,
       };
       const createRequestResponse =
@@ -340,6 +344,98 @@ export class CreatorRequestService {
         creator_id: requestor_id,
         data: createMangaResponse.data.insert_manga_one,
         type: CreatorRequestType.CREATE_NEW_MANGA,
+        manga_id,
+        status: CreatorRequestStatus.RE_SUBMITTED,
+      };
+      const createRequestResponse =
+        await this.requestGraphql.adminUpdateCreatorRequestByPK(
+          request_id,
+          object
+        );
+
+      return createRequestResponse;
+    } catch (error) {
+      return {
+        errors: {
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  async reSubmitCreateChapterRequest(
+    request_id: number,
+    params: CreatorUpdateChapterRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
+    try {
+      const {
+        requestor_id,
+        manga_id,
+        chapter_number,
+        chapter_name,
+        chapter_type,
+        pushlish_date,
+        collection_ids,
+        thumbnail,
+        chapter_images,
+      } = params;
+      const data: UpdateChapterRequestDto = {
+        chapter_name,
+        chapter_number,
+        chapter_type,
+        chapter_images,
+        pushlish_date,
+        status: ChapterStatus.OnRequest,
+        thumbnail,
+        files,
+        collection_ids,
+      };
+      const requestInfo = await this.requestGraphql.getCreatorRequestByPK(
+        request_id
+      );
+
+      if (requestInfo.errors && requestInfo.errors.length > 0) {
+        return requestInfo;
+      }
+
+      if (!requestInfo.data.creator_request_by_pk) {
+        throw new Error('Request can not found');
+      }
+      const chapterId = requestInfo.data.creator_request_by_pk.data.id;
+      const { chapter, chapterLanguage } =
+        await this.chapterSvc.buildChapterObjToUpdate(
+          { chapterId },
+          data,
+          files
+        );
+      if (!chapter || !chapterLanguage) {
+        throw new Error('can not build chapter infor for update');
+      }
+      // update chapter
+      const updateChapter = await this.chapterGraphql.adminUpdateChapter(
+        chapter
+      );
+      if (updateChapter.errors && updateChapter.errors.length > 0) {
+        return updateChapter;
+      }
+      const updateChapterLangResult =
+        await this.chapterGraphql.adminInsertUpdateChapterLanguages(
+          chapterId,
+          chapterLanguage
+        );
+
+      if (
+        updateChapterLangResult.errors &&
+        updateChapterLangResult.errors.length > 0
+      ) {
+        return updateChapterLangResult;
+      }
+
+      const object = {
+        creator_id: requestor_id,
+        data: updateChapter.data.update_chapters_by_pk,
+        type: CreatorRequestType.CREATE_NEW_CHAPTER,
         manga_id,
         status: CreatorRequestStatus.RE_SUBMITTED,
       };

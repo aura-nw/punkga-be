@@ -208,7 +208,6 @@ export class ChapterService {
   ) {
     try {
       const { chapterId: chapter_id } = param;
-      const { token } = ContextProvider.getAuthUser();
       const { chapter, chapterLanguage } = await this.buildChapterObjToUpdate(
         param,
         data,

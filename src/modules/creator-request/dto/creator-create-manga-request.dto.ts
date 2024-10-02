@@ -86,7 +86,7 @@ export class CreatorUpdateMangaParamDto {
   mangaId: number;
 }
 
-export class CreatorUpdateRequestCreateMangaParamDto {
+export class CreatorUpdateRequestParamDto {
   @ApiProperty()
   @IsNumber()
   request_id: number;
