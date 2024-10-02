@@ -6,6 +6,9 @@ import { StoryEventGraphql } from './story-event.graphql';
 import { JsonRpcProvider } from 'ethers';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { SubmissionStatus } from './story-event.enum';
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { iliad } from './utils';
+import { abi as storyEventAbi } from './../../abi/StoryEvent.json';
 
 @Processor('storyEvent')
 export class StoryEventConsumer {
@@ -47,32 +50,95 @@ export class StoryEventConsumer {
           provider
         );
 
-      const mintNftTx =
-        await contractWithMasterWallet.mintAndRegisterIpAndAttach(
-          '0x7c756cba10ff2c65016494e8ba37c12a108572b5',
-          data.metadata_ipfs,
-          [
-            'true',
-            '0x7f6a8f43ec6059ec80c172441cee3423988a0be9',
-            '100',
-            '0',
-            'true',
-            'true',
-            '0x0000000000000000000000000000000000000000',
-            '0x',
-            '50',
-            '1',
-            'true',
-            'false',
-            'false',
-            'true',
-            '1',
-            '0x91f6f05b08c16769d3c85867548615d270c42fc7',
-            "''",
-          ]
-        );
+      const publicClient = createPublicClient({
+        chain: iliad,
+        transport: http(storyChain.rpc),
+      });
 
-      const updateXpTxResult = await mintNftTx.wait();
+      const args = [
+        '0x1c615a47F1091517c712304D874C031A97fc9333',
+        data.metadata_ipfs,
+        [
+          true,
+          '0x7f6a8f43ec6059ec80c172441cee3423988a0be9',
+          100,
+          0,
+          true,
+          true,
+          '0x0000000000000000000000000000000000000000',
+          '0x',
+          50,
+          1,
+          true,
+          false,
+          false,
+          true,
+          1,
+          '0x91f6f05b08c16769d3c85867548615d270c42fc7',
+          '',
+        ],
+      ];
+
+      const account = this.masterWalletSerivce.getAccount();
+
+      const walletClient = createWalletClient({
+        chain: iliad,
+        transport: http(storyChain.rpc),
+        account,
+      });
+
+      const address = `${storyChain.contracts.story_event_contract}`;
+
+      const hash = await walletClient.writeContract({
+        abi: storyEventAbi,
+        address: '0x3c8B2E46c2bb3b94e619c7867f2D685C3caA9909',
+        functionName: 'mintAndRegisterIpAndAttach',
+        args,
+        chain: iliad,
+        account,
+      });
+      const { logs } = await publicClient.waitForTransactionReceipt({
+        hash,
+      });
+      // if (logs[0].topics[3]) {
+      //   return parseInt(logs[0].topics[3], 16);
+      // }
+
+      // const { request } = await publicClient.simulateContract({
+      //   abi: storyEventAbi,
+      //   address: storyChain.contracts.story_event_contract,
+      //   functionName: 'mintAndRegisterIpAndAttach',
+      //   args,
+      // });
+
+      // console.log(request);
+
+      // const mintNftTx =
+      //   await contractWithMasterWallet.mintAndRegisterIpAndAttach(
+      //     '0x7c756cba10ff2c65016494e8ba37c12a108572b5',
+      //     data.metadata_ipfs,
+      //     [
+      //       'true',
+      //       '0x7f6a8f43ec6059ec80c172441cee3423988a0be9',
+      //       '100',
+      //       '0',
+      //       'true',
+      //       'true',
+      //       '0x0000000000000000000000000000000000000000',
+      //       '0x',
+      //       '50',
+      //       '1',
+      //       'true',
+      //       'false',
+      //       'false',
+      //       'true',
+      //       '1',
+      //       '0x91f6f05b08c16769d3c85867548615d270c42fc7',
+      //       "''",
+      //     ]
+      //   );
+
+      // const updateXpTxResult = await mintNftTx.wait();
 
       // update offchain data
       // --- insert story ip asset
@@ -97,7 +163,7 @@ export class StoryEventConsumer {
         await this.storyEventGraphql.updateCharacter({
           id: data.charater_id,
           story_ip_asset_id:
-            insertStoryIPAResult.data.insert_story_ip_asset_one,
+            insertStoryIPAResult.data.insert_story_ip_asset_one.id,
         });
       if (updateCharacterResult.errors) {
         this.logger.error(

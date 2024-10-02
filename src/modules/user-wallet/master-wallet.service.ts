@@ -9,6 +9,7 @@ import { IChainInfo } from '../quest/interface/ichain-info';
 import { abi as levelingAbi } from './../../abi/PunkgaReward.json';
 import { abi as storyEventAbi } from './../../abi/StoryEvent.json';
 import { UserWalletGraphql } from './user-wallet.graphql';
+import { mnemonicToAccount } from 'viem/accounts';
 
 @Injectable()
 export class MasterWalletService implements OnModuleInit {
@@ -18,6 +19,7 @@ export class MasterWalletService implements OnModuleInit {
   private levelingContractMap: Map<string, Contract> = new Map();
   private chains: IChainInfo[] = [];
   private storyEventContract: Contract;
+  private account;
 
   constructor(
     private configService: ConfigService,
@@ -39,6 +41,7 @@ export class MasterWalletService implements OnModuleInit {
     if (masterWalletData) {
       const phrase = this.decryptPhrase(masterWalletData.data);
       const wallet = Wallet.fromPhrase(phrase);
+      this.account = mnemonicToAccount(phrase);
 
       this.masterHDWallet = wallet;
       this.masterWalletAddress = wallet.address;
@@ -121,5 +124,9 @@ export class MasterWalletService implements OnModuleInit {
       this.logger.error('get story event contract err', error);
       throw error;
     }
+  }
+
+  getAccount() {
+    return this.account;
   }
 }
