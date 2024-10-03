@@ -33,6 +33,28 @@ export class StoryEventGraphql {
     return result.data.chains_by_pk;
   }
 
+  async queryUserAddress(token: string): Promise<string> {
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `query GetUserProfile {
+        authorizer_users(limit: 1) {
+          id
+          active_wallet_address: active_evm_address
+        }
+      }
+      `,
+      'GetUserProfile',
+      {}
+    );
+
+    if (result.data.authorizer_users[0]?.active_wallet_address) {
+      return result.data.authorizer_users[0]?.active_wallet_address;
+    } else {
+      throw new NotFoundException('wallet address not found');
+    }
+  }
+
   async insertStoryIPA(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(

@@ -14,7 +14,7 @@ import { StoryEventConsumer } from './story-event.consumer';
   imports: [
     GraphqlModule,
     BullModule.registerQueue({
-      name: 'storyEvent',
+      name: 'story-event',
     }),
     FilesModule,
     UserWalletModule,

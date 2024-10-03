@@ -26,7 +26,7 @@ export class StoryEventService {
     private storyEventGraphql: StoryEventGraphql,
     private fileService: FilesService,
     private configService: ConfigService,
-    @InjectQueue('storyEvent') private storyEventQueue: Queue
+    @InjectQueue('story-event') private storyEventQueue: Queue
   ) {}
 
   async submitCharacter(
@@ -34,127 +34,123 @@ export class StoryEventService {
     files: Array<Express.Multer.File>
   ) {
     try {
-      // const { userId } = ContextProvider.getAuthUser();
-      // const { name } = data;
+      const { userId, token } = ContextProvider.getAuthUser();
+      const userWalletAddress = await this.storyEventGraphql.queryUserAddress(
+        token
+      );
 
-      // const avatar = files.find(
-      //   (file) => file.fieldname === 'avatar' && file.mimetype.includes('image')
-      // );
+      const { name } = data;
 
-      // const description = files.find(
-      //   (file) =>
-      //     file.fieldname === 'description' && file.mimetype.includes('image')
-      // );
+      const avatar = files.find(
+        (file) => file.fieldname === 'avatar' && file.mimetype.includes('image')
+      );
 
-      // // resize
-      // const resized = await Promise.all(
-      //   [avatar, description].map((file) =>
-      //     this.fileService.resize(file.buffer)
-      //   )
-      // );
+      const description = files.find(
+        (file) =>
+          file.fieldname === 'description' && file.mimetype.includes('image')
+      );
 
-      // // upload files to s3
-      // const s3SubFolder =
-      //   this.configService.get<string>('aws.s3SubFolder') || 'images';
-      // const s3Path = `${s3SubFolder}/story-event/${userId}/character`;
-      // const s3Urls = [];
+      // resize
+      const resized = await Promise.all(
+        [avatar, description].map((file) =>
+          this.fileService.resize(file.buffer)
+        )
+      );
 
-      // await Promise.all(
-      //   resized.map((file) => {
-      //     const fileName = `${generateSlug(name)}-${new Date().valueOf()}.png`;
-      //     const keyName = `${s3Path}/${fileName}`;
-      //     s3Urls.push(keyName);
-      //     return this.fileService.uploadToS3(keyName, file, 'image/png');
-      //   })
-      // );
+      // upload files to s3
+      const s3SubFolder =
+        this.configService.get<string>('aws.s3SubFolder') || 'images';
+      const s3Path = `${s3SubFolder}/story-event/${userId}/character`;
+      const s3Urls = [];
 
-      // // upload files to ipfs
-      // const uploadIpfsResult = await Promise.all(
-      //   resized.map((file, index) =>
-      //     this.fileService.uploadFileToIpfs(
-      //       file,
-      //       [avatar, description][index].originalname
-      //     )
-      //   )
-      // );
+      await Promise.all(
+        resized.map((file) => {
+          const fileName = `${generateSlug(name)}-${new Date().valueOf()}.png`;
+          const keyName = `${s3Path}/${fileName}`;
+          s3Urls.push(keyName);
+          return this.fileService.uploadToS3(keyName, file, 'image/png');
+        })
+      );
 
-      // const ipfsDisplayUrl =
-      //   this.configService.get<string>('network.ipfsQuery');
-      // const s3Endpoint = this.configService.get<string>('aws.queryEndpoint');
+      // upload files to ipfs
+      const uploadIpfsResult = await Promise.all(
+        resized.map((file, index) =>
+          this.fileService.uploadFileToIpfs(
+            file,
+            [avatar, description][index].originalname
+          )
+        )
+      );
 
-      // const avatarObj = {
-      //   displayUrl: new URL(s3Urls[0], s3Endpoint).href,
-      //   ipfs: `${ipfsDisplayUrl}/${uploadIpfsResult[0].cid}/${uploadIpfsResult[0].originalname}`,
-      // };
-      // const descriptionObj = {
-      //   displayUrl: new URL(s3Urls[1], s3Endpoint).href,
-      //   ipfs: `${ipfsDisplayUrl}/${uploadIpfsResult[1].cid}/${uploadIpfsResult[1].originalname}`,
-      // };
+      const ipfsDisplayUrl =
+        this.configService.get<string>('network.ipfsQuery');
+      const s3Endpoint = this.configService.get<string>('aws.queryEndpoint');
 
-      // // build & upload metadata
-      // const metadata = {
-      //   name: data.name,
-      //   description: `Punkga Story Event Character - ${data.name}`,
-      //   attributes: [],
-      //   image: descriptionObj.ipfs,
-      // };
+      const avatarObj = {
+        displayUrl: new URL(s3Urls[0], s3Endpoint).href,
+        ipfs: `${ipfsDisplayUrl}/${uploadIpfsResult[0].cid}/${uploadIpfsResult[0].originalname}`,
+      };
+      const descriptionObj = {
+        displayUrl: new URL(s3Urls[1], s3Endpoint).href,
+        ipfs: `${ipfsDisplayUrl}/${uploadIpfsResult[1].cid}/${uploadIpfsResult[1].originalname}`,
+      };
 
-      // const { cid: metadataCID } = await this.fileService.uploadMetadataToIpfs(
-      //   metadata,
-      //   `/metadata-${new Date().getTime()}`
-      // );
+      // build & upload metadata
+      const metadata = {
+        name: data.name,
+        description: `Punkga Story Event Character - ${data.name}`,
+        attributes: [],
+        image: descriptionObj.ipfs,
+      };
 
-      // // insert story_event_submission type pending
+      const { cid: metadataCID } = await this.fileService.uploadMetadataToIpfs(
+        metadata,
+        `/metadata-${new Date().getTime()}`
+      );
 
-      // const result = await this.storyEventGraphql.insertSubmission({
-      //   object: {
-      //     name,
-      //     type: 'character',
-      //     user_id: userId,
-      //     data: {
-      //       name,
-      //       avatar: avatarObj,
-      //       description: descriptionObj,
-      //     },
-      //     status: SubmissionStatus.Pending,
-      //   },
-      // });
+      // insert story_event_submission type pending
 
-      // if (result.errors) return result;
+      const result = await this.storyEventGraphql.insertSubmission({
+        object: {
+          name,
+          type: 'character',
+          user_id: userId,
+          data: {
+            name,
+            avatar: avatarObj,
+            description: descriptionObj,
+          },
+          status: SubmissionStatus.Pending,
+        },
+      });
 
-      // // insert character type = submited
-      // const insertCharacterResult =
-      //   await this.storyEventGraphql.insertStoryCharacter({
-      //     object: {
-      //       avatar_url: avatarObj.displayUrl,
-      //       name,
-      //       descripton_url: descriptionObj.displayUrl,
-      //       ipfs_url: `${ipfsDisplayUrl}/${metadataCID}`,
-      //       user_id: userId,
-      //       status: 'Submited',
-      //     },
-      //   });
+      if (result.errors) return result;
 
-      // if (insertCharacterResult.errors) return insertCharacterResult;
-      // const jobData = {
-      //   name,
-      //   user_id: userId,
-      //   metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
-      //   charater_id: insertCharacterResult.data.insert_story_character_one.id,
-      //   submission_id: result.data.insert_story_event_submission_one.id,
-      // };
+      // insert character type = submited
+      const insertCharacterResult =
+        await this.storyEventGraphql.insertStoryCharacter({
+          object: {
+            avatar_url: avatarObj.displayUrl,
+            name,
+            descripton_url: descriptionObj.displayUrl,
+            ipfs_url: `${ipfsDisplayUrl}/${metadataCID}`,
+            user_id: userId,
+            status: 'Submited',
+          },
+        });
 
+      if (insertCharacterResult.errors) return insertCharacterResult;
       const jobData = {
-        name: 'hello',
-        user_id: 'a4537c50-8d3a-472f-ae8a-9461f2f5dd42',
-        metadata_ipfs:
-          'https://ipfs-gw.dev.aura.network/ipfs/QmbUYrE3Aa1Bf6FbmM6j7yYArvu1fGxzkj9LCQxQm971ez',
-        charater_id: 10,
-        submission_id: 11,
+        name,
+        user_id: userId,
+        metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
+        charater_id: insertCharacterResult.data.insert_story_character_one.id,
+        submission_id: result.data.insert_story_event_submission_one.id,
+        user_wallet_address: userWalletAddress,
       };
 
       // create job
-      const job = await this.storyEventQueue.add(
+      await this.storyEventQueue.add(
         'event',
         {
           type: 'character',
@@ -168,8 +164,7 @@ export class StoryEventService {
         }
       );
 
-      return {};
-      // return result;
+      return result;
 
       // return
     } catch (error) {

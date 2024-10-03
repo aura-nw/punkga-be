@@ -7,10 +7,10 @@ import { JsonRpcProvider } from 'ethers';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { SubmissionStatus } from './story-event.enum';
 import { createPublicClient, createWalletClient, http } from 'viem';
-import { iliad } from './utils';
+import { iliad, parseTxIpRegisteredEvent } from './utils';
 import { abi as storyEventAbi } from './../../abi/StoryEvent.json';
 
-@Processor('storyEvent')
+@Processor('story-event')
 export class StoryEventConsumer {
   private logger = new Logger(StoryEventConsumer.name);
   constructor(
@@ -43,12 +43,12 @@ export class StoryEventConsumer {
       // mint nft & create ipa
       const storyChain = await this.storyEventGraphql.getStoryChain();
 
-      const provider = new JsonRpcProvider(storyChain.rpc);
-      const contractWithMasterWallet =
-        this.masterWalletSerivce.getStoryEventContract(
-          storyChain.contracts.story_event_contract,
-          provider
-        );
+      // const provider = new JsonRpcProvider(storyChain.rpc);
+      // const contractWithMasterWallet =
+      //   this.masterWalletSerivce.getStoryEventContract(
+      //     storyChain.contracts.story_event_contract,
+      //     provider
+      //   );
 
       const publicClient = createPublicClient({
         chain: iliad,
@@ -56,7 +56,7 @@ export class StoryEventConsumer {
       });
 
       const args = [
-        '0x1c615a47F1091517c712304D874C031A97fc9333',
+        data.user_wallet_address,
         data.metadata_ipfs,
         [
           true,
@@ -87,67 +87,39 @@ export class StoryEventConsumer {
         account,
       });
 
-      const address = `${storyChain.contracts.story_event_contract}`;
+      const address = `${storyChain.contracts.story_event_contract}` as any;
 
       const hash = await walletClient.writeContract({
         abi: storyEventAbi,
-        address: '0x3c8B2E46c2bb3b94e619c7867f2D685C3caA9909',
+        address,
         functionName: 'mintAndRegisterIpAndAttach',
         args,
         chain: iliad,
         account,
       });
-      const { logs } = await publicClient.waitForTransactionReceipt({
+      const txReceipt = (await publicClient.waitForTransactionReceipt({
         hash,
-      });
-      // if (logs[0].topics[3]) {
-      //   return parseInt(logs[0].topics[3], 16);
-      // }
+      })) as any;
 
-      // const { request } = await publicClient.simulateContract({
-      //   abi: storyEventAbi,
-      //   address: storyChain.contracts.story_event_contract,
-      //   functionName: 'mintAndRegisterIpAndAttach',
-      //   args,
-      // });
+      const targetLogs = parseTxIpRegisteredEvent(txReceipt);
 
-      // console.log(request);
+      let nftId = 0;
+      let ipAssetId = targetLogs[0].ipId;
 
-      // const mintNftTx =
-      //   await contractWithMasterWallet.mintAndRegisterIpAndAttach(
-      //     '0x7c756cba10ff2c65016494e8ba37c12a108572b5',
-      //     data.metadata_ipfs,
-      //     [
-      //       'true',
-      //       '0x7f6a8f43ec6059ec80c172441cee3423988a0be9',
-      //       '100',
-      //       '0',
-      //       'true',
-      //       'true',
-      //       '0x0000000000000000000000000000000000000000',
-      //       '0x',
-      //       '50',
-      //       '1',
-      //       'true',
-      //       'false',
-      //       'false',
-      //       'true',
-      //       '1',
-      //       '0x91f6f05b08c16769d3c85867548615d270c42fc7',
-      //       "''",
-      //     ]
-      //   );
+      if (txReceipt.logs[0].topics[3]) {
+        nftId = parseInt(txReceipt.logs[0].topics[3], 16);
+      }
 
-      // const updateXpTxResult = await mintNftTx.wait();
+      parseTxIpRegisteredEvent;
 
       // update offchain data
       // --- insert story ip asset
       const insertStoryIPAResult = await this.storyEventGraphql.insertStoryIPA({
         object: {
-          ip_asset_id: '1',
+          ip_asset_id: ipAssetId,
           nft_contract_address: storyChain.contracts.story_event_contract,
-          nft_token_id: '1',
-          tx_hash: '',
+          nft_token_id: nftId.toString(),
+          tx_hash: hash,
           user_id: data.user_id,
         },
       });
@@ -187,6 +159,10 @@ export class StoryEventConsumer {
         );
         throw new InternalServerErrorException('Update submission failed ');
       }
+
+      this.logger.log(
+        `Create Character IP Asset Done: ipid ${ipAssetId} hash ${hash}`
+      );
     } catch (error) {
       this.logger.error(error.message);
       return {
