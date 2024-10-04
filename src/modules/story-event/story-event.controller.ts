@@ -63,6 +63,16 @@ export class StoryEventController {
     return this.storyEventSvc.queryCharacter();
   }
 
+  @Get('character/collected')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @SetRequestTimeout()
+  @Roles(Role.User)
+  getCollectedCharacter() {
+    return this.storyEventSvc.queryCollectedCharacter();
+  }
+
   @Post('character/:id/collect')
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()

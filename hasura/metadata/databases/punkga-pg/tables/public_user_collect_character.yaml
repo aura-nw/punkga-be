@@ -1,3 +1,7 @@
 table:
   name: user_collect_character
   schema: public
+object_relationships:
+  - name: story_character
+    using:
+      foreign_key_constraint_on: story_character_id

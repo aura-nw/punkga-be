@@ -210,6 +210,36 @@ export class StoryEventGraphql {
     );
   }
 
+  async queryCollectedCharacters(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query user_collect_character($user_id: bpchar!) {
+        user_collect_character(where: {user_id: {_eq: $user_id}}) {
+          story_character {
+            id
+            avatar_url
+            descripton_url
+          }
+        }
+        user_collect_character_aggregate(where: {user_id: {_eq: $user_id}}) {
+          aggregate {
+            count
+          }
+        }
+      }`,
+      'user_collect_character',
+      variables,
+      headers
+    );
+  }
+
   async countCollectedCharacterByUserId(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(

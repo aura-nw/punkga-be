@@ -231,6 +231,13 @@ export class StoryEventService {
     return this.storyEventGraphql.queryApprovedCharacters();
   }
 
+  async queryCollectedCharacter() {
+    const { userId } = ContextProvider.getAuthUser();
+    return this.storyEventGraphql.queryCollectedCharacters({
+      user_id: userId,
+    });
+  }
+
   async collectCharacter(id: number) {
     const { userId } = ContextProvider.getAuthUser();
 
