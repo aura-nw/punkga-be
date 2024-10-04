@@ -10,6 +10,7 @@
 - "!include public_chapter_languages.yaml"
 - "!include public_chapter_total_likes.yaml"
 - "!include public_chapters.yaml"
+- "!include public_character_total_likes.yaml"
 - "!include public_contest.yaml"
 - "!include public_creators.yaml"
 - "!include public_donate_history.yaml"

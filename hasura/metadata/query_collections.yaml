@@ -1470,3 +1470,20 @@
               }
             }
           }
+      - name: User - Unlike character
+        query: |
+          mutation UserUnLikeCharacter ($story_character_id: Int!) {
+            delete_likes(where: {story_character_id:{_eq:$story_character_id}}) {
+              affected_rows
+            }
+          }
+      - name: User - Like character
+        query: |
+          mutation UserLikeCharacter ($story_character_id: Int!) {
+            insert_likes_one(object: {story_character_id:$story_character_id}) {
+              id
+              user_id
+              story_character_id
+              created_at
+            }
+          }

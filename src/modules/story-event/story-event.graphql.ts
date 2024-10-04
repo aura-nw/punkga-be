@@ -191,6 +191,11 @@ export class StoryEventGraphql {
             id
             ip_asset_id
           }
+          likes_aggregate {
+            aggregate {
+              count
+            }
+          }
         }
       }
       `,

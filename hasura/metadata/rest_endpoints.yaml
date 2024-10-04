@@ -583,3 +583,21 @@
     - GET
   name: User - Query rank
   url: user/rank
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Unlike character
+  methods:
+    - DELETE
+  name: User - Unlike character
+  url: user/story-event/characters/:story_character_id/likes
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
+      query_name: User - Like character
+  methods:
+    - POST
+  name: User - Like character
+  url: user/story-event/characters/:story_character_id/likes

@@ -5,6 +5,23 @@ object_relationships:
   - name: authorizer_user
     using:
       foreign_key_constraint_on: user_id
+  - name: charater_total_likes
+    using:
+      manual_configuration:
+        column_mapping:
+          id: story_character_id
+        insertion_order: null
+        remote_table:
+          name: character_total_likes
+          schema: public
   - name: story_ip_asset
     using:
       foreign_key_constraint_on: story_ip_asset_id
+array_relationships:
+  - name: likes
+    using:
+      foreign_key_constraint_on:
+        column: story_character_id
+        table:
+          name: likes
+          schema: public
