@@ -25,3 +25,10 @@ array_relationships:
         table:
           name: likes
           schema: public
+  - name: user_collect_characters
+    using:
+      foreign_key_constraint_on:
+        column: story_character_id
+        table:
+          name: user_collect_character
+          schema: public

@@ -50,6 +50,7 @@
 - "!include public_top_user_donate.yaml"
 - "!include public_user_campaign.yaml"
 - "!include public_user_campaign_reward.yaml"
+- "!include public_user_collect_character.yaml"
 - "!include public_user_level.yaml"
 - "!include public_user_quest.yaml"
 - "!include public_user_quest_reward.yaml"

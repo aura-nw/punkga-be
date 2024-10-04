@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   UploadedFiles,
@@ -21,6 +22,7 @@ import { SubmitArtworkRequestDto } from './dto/submit-artwork.dto';
 import { SubmitCharacterRequestDto } from './dto/submit-character.dto';
 import { SubmitMangaRequestDto } from './dto/submit-manga.dto';
 import { StoryEventService } from './story-event.service';
+import { CollectCharacterParamDto } from './dto/collect-character.dto';
 
 @Controller('story-event')
 @ApiTags('story-event')
@@ -56,8 +58,18 @@ export class StoryEventController {
     return 'all submission';
   }
 
-  @Get('submission/character')
+  @Get('character')
   getCharacter() {
     return this.storyEventSvc.queryCharacter();
+  }
+
+  @Post('character/:id/collect')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @SetRequestTimeout()
+  @Roles(Role.User)
+  collectCharacter(@Param() param: CollectCharacterParamDto) {
+    return this.storyEventSvc.collectCharacter(param.id);
   }
 }

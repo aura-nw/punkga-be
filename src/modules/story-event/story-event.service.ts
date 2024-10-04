@@ -1,5 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { StoryEventGraphql } from './story-event.graphql';
+import { InjectQueue } from '@nestjs/bull';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Queue } from 'bull';
+import { plainToInstance } from 'class-transformer';
+import { ContextProvider } from '../../providers/contex.provider';
+import { FilesService } from '../files/files.service';
+import { generateSlug } from '../manga/util';
+import {
+  ArtworkStoryCharacter,
+  SubmitArtworkRequestDto,
+} from './dto/submit-artwork.dto';
 import { SubmitCharacterRequestDto } from './dto/submit-character.dto';
 import {
   MangaLanguage,
@@ -7,18 +17,8 @@ import {
   MangaTag,
   SubmitMangaRequestDto,
 } from './dto/submit-manga.dto';
-import { plainToInstance } from 'class-transformer';
-import {
-  ArtworkStoryCharacter,
-  SubmitArtworkRequestDto,
-} from './dto/submit-artwork.dto';
-import { FilesService } from '../files/files.service';
-import { ConfigService } from '@nestjs/config';
-import { ContextProvider } from '../../providers/contex.provider';
-import { generateSlug } from '../manga/util';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
 import { SubmissionStatus } from './story-event.enum';
+import { StoryEventGraphql } from './story-event.graphql';
 
 @Injectable()
 export class StoryEventService {
@@ -229,5 +229,34 @@ export class StoryEventService {
 
   async queryCharacter() {
     return this.storyEventGraphql.queryApprovedCharacters();
+  }
+
+  async collectCharacter(id: number) {
+    const { userId } = ContextProvider.getAuthUser();
+
+    // check total character
+    const queryResult =
+      await this.storyEventGraphql.countCollectedCharacterByUserId({
+        user_id: userId,
+      });
+    if (queryResult.errors) return queryResult;
+    const maxCollectedCharactersPerUser = 3;
+
+    const totalCollectedCharacters = Number(
+      queryResult.data.user_collect_character_aggregate.aggregate.count
+    );
+    if (totalCollectedCharacters >= maxCollectedCharactersPerUser) {
+      throw new BadRequestException(
+        `max ${maxCollectedCharactersPerUser} characters/user!`
+      );
+    }
+
+    // insert db
+    return this.storyEventGraphql.insertUserCollectCharacter({
+      object: {
+        user_id: userId,
+        story_character_id: id,
+      },
+    });
   }
 }
