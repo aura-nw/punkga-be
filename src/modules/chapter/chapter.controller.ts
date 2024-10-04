@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -11,7 +12,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateChapterRequestDto } from './dto/create-chapter-request.dto';
 import { ChapterService } from './chapter.service';
 import { AuthGuard } from '../../auth/auth.guard';
@@ -26,6 +32,7 @@ import { RolesGuard } from '../../auth/role.guard';
 import { SetRequestTimeout } from '../../decorators/set-timeout.decorator';
 import { UploadInputDto } from './dto/upload.dto';
 import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
+import { DeleteChapterParamDto } from './dto/delete-chapter-request.dto';
 
 @Controller('chapter')
 @ApiTags('chapter')
@@ -59,7 +66,7 @@ export class ChapterController {
   ) {
     return this.chapterSvc.create(data, files);
   }
-
+ 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin)
@@ -76,10 +83,20 @@ export class ChapterController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.User,Role.Admin)
+  @Roles(Role.User, Role.Admin)
   @Get(':chapterId/protected')
   @UseInterceptors(AuthUserInterceptor)
   view(@Param() data: ViewProtectedChapterRequestDto) {
     return this.chapterSvc.view(data);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Creator)
+  @ApiOperation({ summary: 'delete chapter - creator role' })
+  @Delete(':chapterId')
+  @UseInterceptors(AuthUserInterceptor)
+  delete(@Param() data: DeleteChapterParamDto) {
+    return this.chapterSvc.deactiveChapter(data.chapterId);
   }
 }

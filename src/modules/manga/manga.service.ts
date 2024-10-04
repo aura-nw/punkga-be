@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import {
@@ -15,6 +15,7 @@ import { detectSlugOrId } from '../../utils/utils';
 import { GetChapterByMangaParamDto } from './dto/get-chapter-by-manga-request.dto';
 import { MangaGraphql } from './manga.graphql';
 import { errorOrEmpty } from '../graphql/utils';
+import { CreatorService } from '../creator/creator.service';
 
 @Injectable()
 export class MangaService {
@@ -23,6 +24,7 @@ export class MangaService {
   constructor(
     private configSvc: ConfigService,
     private filesService: FilesService,
+    private creatorService: CreatorService,
     private mangaGraphql: MangaGraphql
   ) {}
 
@@ -82,7 +84,7 @@ export class MangaService {
       );
 
       // insert manga to DB
-      const result = await this.mangaGraphql.createNewManga(token, {
+      const result = await this.mangaGraphql.adminCreateNewManga({
         status,
         manga_tags,
         manga_creators,
@@ -121,12 +123,14 @@ export class MangaService {
       );
 
       // update manga in DB
-      const updateResponse = await this.mangaGraphql.updateMangaByPK(token, {
-        id: mangaId,
-        banner: bannerUrl,
-        poster: posterUrl,
-        slug,
-      });
+      const updateResponse = await this.mangaGraphql.adminUpdateManga(
+        {
+          id: mangaId,
+          banner: bannerUrl,
+          poster: posterUrl,
+          slug,
+        }
+      );
 
       return updateResponse;
     } catch (error) {
@@ -144,62 +148,11 @@ export class MangaService {
     files: Array<Express.Multer.File>
   ) {
     try {
-      const { token } = ContextProvider.getAuthUser();
-      const {
-        status,
-        release_date,
-        manga_tags,
-        manga_creators,
-        manga_languages,
-      } = data;
-
-      const result = await this.mangaGraphql.queryMangaById(token, {
-        id: mangaId,
-      });
-
-      if (result.errors && result.errors.length > 0) {
-        return result;
-      }
-
-      if (result.data.manga_by_pk === null) {
-        return result.data;
-      }
-
-      let { poster: posterUrl, banner: bannerUrl } = result.data.manga_by_pk;
-
-      // upload files
-      const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
-      if (bannerFile)
-        bannerUrl = await this.filesService.uploadImageToS3(
-          `manga-${mangaId}`,
-          bannerFile
-        );
-
-      const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
-      if (posterFile)
-        posterUrl = await this.filesService.uploadImageToS3(
-          `manga-${mangaId}`,
-          posterFile
-        );
-
+      const updateManga = await this.buildObjToUpdate(mangaId, data, files);
       // update manga in DB
-      const updateResponse = await this.mangaGraphql.updateManga(token, {
-        manga_id: mangaId,
-        banner: bannerUrl,
-        poster: posterUrl,
-        status,
-        release_date,
-        contract_addresses: [],
-        manga_tags: plainToInstance(MangaTag, JSON.parse(manga_tags)),
-        manga_creators: plainToInstance(
-          MangaCreator,
-          JSON.parse(manga_creators)
-        ),
-        manga_languages: plainToInstance(
-          MangaLanguage,
-          JSON.parse(manga_languages)
-        ),
-      });
+      const updateResponse = await this.mangaGraphql.adminUpdateManga(
+        updateManga
+      );
 
       return updateResponse;
     } catch (errors) {
@@ -281,9 +234,11 @@ export class MangaService {
           objects.push(o);
         })
       );
-      const updateResponse = await this.mangaGraphql.createMangaCollection({
-        objects,
-      });
+      const updateResponse = await this.mangaGraphql.adminCreateMangaCollection(
+        {
+          objects,
+        }
+      );
 
       return updateResponse;
     } catch (errors) {
@@ -291,5 +246,87 @@ export class MangaService {
         errors,
       };
     }
+  }
+
+  async buildObjToUpdate(
+    mangaId: number,
+    data: UpdateMangaRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
+    try {
+      const { token } = ContextProvider.getAuthUser();
+      const {
+        status,
+        release_date,
+        manga_tags,
+        manga_creators,
+        manga_languages,
+      } = data;
+
+      const result = await this.mangaGraphql.queryMangaById(token, {
+        id: mangaId,
+      });
+
+      if (result.errors && result.errors.length > 0) {
+        return result;
+      }
+
+      if (result.data.manga_by_pk === null) {
+        return result.data;
+      }
+
+      let { poster: posterUrl, banner: bannerUrl } = result.data.manga_by_pk;
+
+      // upload files
+      const bannerFile = files.filter((f) => f.fieldname === 'banner')[0];
+      if (bannerFile)
+        bannerUrl = await this.filesService.uploadImageToS3(
+          `manga-${mangaId}`,
+          bannerFile
+        );
+
+      const posterFile = files.filter((f) => f.fieldname === 'poster')[0];
+      if (posterFile)
+        posterUrl = await this.filesService.uploadImageToS3(
+          `manga-${mangaId}`,
+          posterFile
+        );
+
+      // update manga in DB
+      return {
+        manga_id: mangaId,
+        banner: bannerUrl,
+        poster: posterUrl,
+        status,
+        release_date,
+        contract_addresses: [],
+        manga_tags: plainToInstance(MangaTag, JSON.parse(manga_tags)),
+        manga_creators: plainToInstance(
+          MangaCreator,
+          JSON.parse(manga_creators)
+        ),
+        manga_languages: plainToInstance(
+          MangaLanguage,
+          JSON.parse(manga_languages)
+        ),
+      };
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async deleteManga(mangaId: number) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+
+    const isOwner = await this.mangaGraphql.verifyMangaOwner({
+      manga_id: mangaId,
+      creator_id: creatorId,
+    });
+
+    if (!isOwner) throw new ForbiddenException('invalid creator');
+
+    return this.mangaGraphql.removeManga(mangaId);
   }
 }

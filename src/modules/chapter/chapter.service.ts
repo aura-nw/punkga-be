@@ -4,7 +4,12 @@ import * as _ from 'lodash';
 import md5 from 'md5';
 import rimraf from 'rimraf';
 
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { ContextProvider } from '../../providers/contex.provider';
 import { MangaService } from '../manga/manga.service';
@@ -23,6 +28,7 @@ import { UploadInputDto } from './dto/upload.dto';
 import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
 import { UploadChapterService } from './upload-chapter.service';
 import { mkdirp, writeFilesToFolder } from './utils';
+import { CreatorService } from '../creator/creator.service';
 
 @Injectable()
 export class ChapterService {
@@ -32,7 +38,8 @@ export class ChapterService {
     private mangaService: MangaService,
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService,
-    private configSvc: ConfigService
+    private configSvc: ConfigService,
+    private creatorService: CreatorService
   ) {}
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
@@ -113,7 +120,7 @@ export class ChapterService {
       );
 
       // insert chapter to DB
-      const result = await this.chapterGraphql.createChapter(token, {
+      const result = await this.chapterGraphql.adminCreateChapter({
         manga_id,
         chapter_name,
         chapter_number,
@@ -164,8 +171,7 @@ export class ChapterService {
           }));
 
         const updateResult =
-          await this.chapterGraphql.insertUpdateChapterLanguages(
-            token,
+          await this.chapterGraphql.adminInsertUpdateChapterLanguages(
             chapterId,
             chapterLanguages
           );
@@ -196,6 +202,35 @@ export class ChapterService {
   }
 
   async update(
+    param: UpdateChapterParamDto,
+    data: UpdateChapterRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
+    try {
+      const { chapterId: chapter_id } = param;
+      const { chapter, chapterLanguage } = await this.buildChapterObjToUpdate(
+        param,
+        data,
+        files
+      );
+      // update chapter
+      const result = await this.chapterGraphql.adminUpdateChapter(chapter);
+      const updateChapterLangResult =
+        await this.chapterGraphql.adminInsertUpdateChapterLanguages(
+          chapter_id,
+          chapterLanguage
+        );
+      this.logger.log(updateChapterLangResult);
+
+      return result.data;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async buildChapterObjToUpdate(
     param: UpdateChapterParamDto,
     data: UpdateChapterRequestDto,
     files: Array<Express.Multer.File>
@@ -235,21 +270,6 @@ export class ChapterService {
         manga_id,
         chapter_number
       );
-
-      // update chapter
-      const result = await this.chapterGraphql.updateChapter(token, {
-        id: chapter_id,
-        chapter_name,
-        chapter_number,
-        chapter_type,
-        pushlish_date,
-        status,
-        thumbnail_url: newThumbnailUrl !== '' ? newThumbnailUrl : thumbnail_url,
-      });
-
-      if (result.errors && result.errors.length > 0) {
-        return result;
-      }
 
       // update chapter images by language
       const input_chapter_images = plainToInstance(
@@ -345,49 +365,19 @@ export class ChapterService {
         }
       );
 
-      // console.log(JSON.stringify(newChapterLanguages))
-      // build new chapter languages for existing languages
-      // const newChapterLanguages = current_chapter_languages.map(
-      //   ({ language_id, detail }) => {
-      //     const { add_images, delete_images } =
-      //       input_chapter_images.chapter_languages.filter(
-      //         (chapLang) => chapLang.language_id === language_id
-      //       )[0];
-
-      //     _.remove(detail, (image: any) => delete_images.includes(image.name));
-
-      //     uploadChapterResult
-      //       .filter((uploadResult) => add_images.includes(uploadResult.name))
-      //       .forEach((uploadResult) => {
-      //         const isNameExists = detail.some(
-      //           (item) => item.name === uploadResult.name
-      //         );
-      //         if (!isNameExists) {
-      //           detail.push({
-      //             order: uploadResult.order,
-      //             image_path: uploadResult.image_path,
-      //             name: uploadResult.name,
-      //           });
-      //         }
-      //       });
-
-      //     return {
-      //       languageId: language_id,
-      //       detail: detail.sort((a, b) => a.order - b.order),
-      //     };
-      //   }
-      // );
-
-      // update data
-      const updateChapterLangResult =
-        await this.chapterGraphql.insertUpdateChapterLanguages(
-          token,
-          chapter_id,
-          newChapterLanguages
-        );
-      this.logger.log(updateChapterLangResult);
-
-      return result.data;
+      return {
+        chapter: {
+          id: chapter_id,
+          chapter_name,
+          chapter_number,
+          chapter_type,
+          pushlish_date,
+          status,
+          thumbnail_url:
+            newThumbnailUrl !== '' ? newThumbnailUrl : thumbnail_url,
+        },
+        chapterLanguage: newChapterLanguages,
+      };
     } catch (errors) {
       return {
         errors,
@@ -463,9 +453,10 @@ export class ChapterService {
           objects.push(o);
         })
       );
-      const updateResponse = await this.chapterGraphql.createChapterCollection({
-        objects,
-      });
+      const updateResponse =
+        await this.chapterGraphql.adminCreateChapterCollection({
+          objects,
+        });
 
       return updateResponse;
     } catch (errors) {
@@ -510,5 +501,18 @@ export class ChapterService {
         errors,
       };
     }
+  }
+
+  async deactiveChapter(id: number) {
+    const creatorId = await this.creatorService.getCreatorIdAuthToken();
+
+    const isOwner = await this.chapterGraphql.verifyChapterOwner({
+      chapter_id: id,
+      creator_id: creatorId,
+    });
+
+    if (!isOwner) throw new ForbiddenException('invalid creator');
+
+    return this.chapterGraphql.deactiveChapter(id);
   }
 }
