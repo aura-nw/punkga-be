@@ -226,4 +226,8 @@ export class StoryEventService {
       };
     }
   }
+
+  async queryCharacter() {
+    return this.storyEventGraphql.queryApprovedCharacters();
+  }
 }

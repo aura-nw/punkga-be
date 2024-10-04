@@ -43,18 +43,12 @@ export class StoryEventConsumer {
       // mint nft & create ipa
       const storyChain = await this.storyEventGraphql.getStoryChain();
 
-      // const provider = new JsonRpcProvider(storyChain.rpc);
-      // const contractWithMasterWallet =
-      //   this.masterWalletSerivce.getStoryEventContract(
-      //     storyChain.contracts.story_event_contract,
-      //     provider
-      //   );
-
       const publicClient = createPublicClient({
         chain: iliad,
         transport: http(storyChain.rpc),
       });
 
+      // TODO: BA define
       const args = [
         data.user_wallet_address,
         data.metadata_ipfs,

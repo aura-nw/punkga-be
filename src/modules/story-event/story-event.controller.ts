@@ -55,4 +55,9 @@ export class StoryEventController {
   allSubmission() {
     return 'all submission';
   }
+
+  @Get('submission/character')
+  getCharacter() {
+    return this.storyEventSvc.queryCharacter();
+  }
 }

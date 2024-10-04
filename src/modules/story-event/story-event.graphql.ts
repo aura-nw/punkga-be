@@ -164,4 +164,39 @@ export class StoryEventGraphql {
       headers
     );
   }
+
+  async queryApprovedCharacters() {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_character {
+        story_character(where: {status: {_eq: "Approved"}}, order_by: {is_default_character: desc}) {
+          id
+          avatar_url
+          descripton_url
+          is_default_character
+          name
+          status
+          authorizer_user {
+            id
+            nickname
+          }
+          story_ip_asset {
+            id
+            ip_asset_id
+          }
+        }
+      }
+      `,
+      'story_character',
+      {},
+      headers
+    );
+  }
 }
