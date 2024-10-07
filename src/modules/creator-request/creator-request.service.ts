@@ -64,6 +64,7 @@ export class CreatorRequestService {
         poster,
         status: MangaStatus.OnRequest,
       };
+
       const createMangaResponse = await this.mangaSvc.create(data, files);
       if (createMangaResponse.errors && createMangaResponse.errors.length > 0) {
         return createMangaResponse;
@@ -75,10 +76,14 @@ export class CreatorRequestService {
         manga_id: createMangaResponse.data.update_manga_by_pk.id,
         status: CreatorRequestStatus.SUBMITTED,
       };
-      const createRequestResponse =
-        await this.requestGraphql.adminCreateNewCreatorRequest({ object });
-
-      return createRequestResponse;
+      return this.requestGraphql.adminCreateNewCreatorRequest({ object });
+      // if (
+      //   createRequestResponse.errors &&
+      //   createRequestResponse.errors.length > 0
+      // ) {
+      //   return createRequestResponse;
+      // }
+      // return createRequestResponse;
     } catch (error) {
       return {
         errors: {
@@ -146,10 +151,9 @@ export class CreatorRequestService {
         manga_id,
         status: CreatorRequestStatus.SUBMITTED,
       };
-      const createRequestResponse =
-        await this.requestGraphql.adminCreateNewCreatorRequest({ object });
+      return this.requestGraphql.adminCreateNewCreatorRequest({ object });
 
-      return createRequestResponse;
+      // return createRequestResponse;
     } catch (error) {
       return {
         errors: {
@@ -215,10 +219,7 @@ export class CreatorRequestService {
         chapter_id: createChapterResponse.insert_chapters_one.id,
         status: CreatorRequestStatus.SUBMITTED,
       };
-      const createRequestResponse =
-        await this.requestGraphql.adminCreateNewCreatorRequest({ object });
-
-      return createRequestResponse;
+      return this.requestGraphql.adminCreateNewCreatorRequest({ object });
     } catch (error) {
       return {
         errors: {
@@ -292,10 +293,7 @@ export class CreatorRequestService {
         chapter_id: param.chapterId,
         status: CreatorRequestStatus.SUBMITTED,
       };
-      const createRequestResponse =
-        await this.requestGraphql.adminCreateNewCreatorRequest({ object });
-
-      return createRequestResponse;
+      return this.requestGraphql.adminCreateNewCreatorRequest({ object });
     } catch (error) {
       return {
         errors: {
@@ -380,13 +378,10 @@ export class CreatorRequestService {
         manga_id,
         status: CreatorRequestStatus.RE_SUBMITTED,
       };
-      const updateRequestResponse =
-        await this.requestGraphql.adminUpdateCreatorRequestByPK(
-          request_id,
-          object
-        );
-
-      return updateRequestResponse;
+      return this.requestGraphql.adminUpdateCreatorRequestByPK(
+        request_id,
+        object
+      );
     } catch (error) {
       return {
         errors: {
@@ -479,13 +474,10 @@ export class CreatorRequestService {
         chapter_id: chapterId,
         status: CreatorRequestStatus.RE_SUBMITTED,
       };
-      const updateRequestResponse =
-        await this.requestGraphql.adminUpdateCreatorRequestByPK(
-          request_id,
-          object
-        );
-
-      return updateRequestResponse;
+      return this.requestGraphql.adminUpdateCreatorRequestByPK(
+        request_id,
+        object
+      );
     } catch (error) {
       return {
         errors: {
@@ -576,12 +568,10 @@ export class CreatorRequestService {
         manga_id,
         status: CreatorRequestStatus.RE_SUBMITTED,
       };
-      const updateRequestResponse =
-        await this.requestGraphql.adminUpdateCreatorRequestByPK(
-          request_id,
-          object
-        );
-      return updateRequestResponse;
+      return this.requestGraphql.adminUpdateCreatorRequestByPK(
+        request_id,
+        object
+      );
     } catch (error) {
       return {
         errors: {
@@ -647,11 +637,7 @@ export class CreatorRequestService {
         files
       );
       if (updateChapterData.errors) {
-        return {
-          errors: {
-            message: 'Build Update data failed',
-          },
-        };
+        throw new Error('Build Update data failed');
       }
       const object = {
         creator_id: requestor_id,
@@ -661,13 +647,10 @@ export class CreatorRequestService {
         chapter_id,
         status: CreatorRequestStatus.RE_SUBMITTED,
       };
-      const updateRequestResponse =
-        await this.requestGraphql.adminUpdateCreatorRequestByPK(
-          request_id,
-          object
-        );
-
-      return updateRequestResponse;
+      return this.requestGraphql.adminUpdateCreatorRequestByPK(
+        request_id,
+        object
+      );
     } catch (error) {
       return {
         errors: {
@@ -746,13 +729,10 @@ export class CreatorRequestService {
         };
       }
 
-      const updateRequestResponse =
-        await this.requestGraphql.adminUpdateCreatorRequestByPK(
-          request_id,
-          object
-        );
-
-      return updateRequestResponse;
+      return this.requestGraphql.adminUpdateCreatorRequestByPK(
+        request_id,
+        object
+      );
     } catch (error) {
       return {
         errors: {
@@ -785,17 +765,9 @@ export class CreatorRequestService {
     if (result.errors && result.errors.length > 0) {
       return result;
     }
-    const updateChapterLangResult =
-      await this.chapterGraphql.adminInsertUpdateChapterLanguages(
-        chapter_id,
-        chaperInfo.chapterLanguage
-      );
-    if (
-      updateChapterLangResult.errors &&
-      updateChapterLangResult.errors.length > 0
-    ) {
-      return updateChapterLangResult;
-    }
-    return result;
+    return this.chapterGraphql.adminInsertUpdateChapterLanguages(
+      chapter_id,
+      chaperInfo.chapterLanguage
+    );
   }
 }
