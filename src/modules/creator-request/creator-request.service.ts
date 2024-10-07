@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreatorRequestGraphql } from './creator-request.graphql';
 import { ContextProvider } from '../../providers/contex.provider';
 import {
+  AdminResponse,
   ChapterStatus,
   CreatorRequestStatus,
   CreatorRequestType,
@@ -28,6 +29,7 @@ import {
 } from '../../modules/chapter/dto/update-chapter-request.dto';
 import { UpdateMangaRequestDto } from '../../modules/manga/dto/update-manga-request.dto';
 import { ChapterGraphql } from '../../modules/chapter/chapter.graphql';
+import { AdminResponseRequest } from './dto/admin-response-request.dto';
 
 @Injectable()
 export class CreatorRequestService {
@@ -121,12 +123,13 @@ export class CreatorRequestService {
       }
 
       if (!result.data.manga_by_pk) {
-        return {
-          errors: {
-            message: 'Manga can not found',
-          },
-        };
+        throw new Error('Manga can not found');
       }
+
+      if (MangaStatus.OnRequest == result.data.manga_by_pk.status) {
+        throw new Error('Can not edit Manga is on-requesting');
+      }
+      data.status = result.data.manga_by_pk.status;
 
       const updateMangaObj = await this.mangaSvc.buildObjToUpdate(
         manga_id,
@@ -172,6 +175,19 @@ export class CreatorRequestService {
         chapter_images,
         thumbnail,
       } = params;
+
+      const { token } = ContextProvider.getAuthUser();
+      const result = await this.mangaGraphql.queryMangaById(token, {
+        id: manga_id,
+      });
+
+      if (result.errors && result.errors.length > 0) {
+        return result;
+      }
+      if (!result.data.manga_by_pk) {
+        throw new Error('Manga can not found');
+      }
+
       const data: CreateChapterRequestDto = {
         chapter_number,
         manga_id,
@@ -228,18 +244,34 @@ export class CreatorRequestService {
         collection_ids,
         thumbnail,
         chapter_images,
+        status,
       } = data;
+
+      // validate
+      const { token } = ContextProvider.getAuthUser();
+      const result = await this.mangaGraphql.queryMangaById(token, {
+        id: manga_id,
+      });
+
+      if (result.errors && result.errors.length > 0) {
+        return result;
+      }
+      if (!result.data.manga_by_pk) {
+        throw new Error('Manga can not found');
+      }
+
       const dataInput: UpdateChapterRequestDto = {
         chapter_name,
         chapter_number,
         chapter_type,
         chapter_images,
         pushlish_date,
-        status: ChapterStatus.OnRequest,
+        status,
         thumbnail,
         files,
         collection_ids,
       };
+
       const updateChapterData = await this.chapterSvc.buildChapterObjToUpdate(
         param,
         dataInput,
@@ -313,12 +345,16 @@ export class CreatorRequestService {
       }
 
       if (!requestInfo.data.creator_request_by_pk) {
-        return {
-          errors: {
-            message: 'Request can not found',
-          },
-        };
+        throw new Error('Request can not found');
       }
+
+      if (
+        CreatorRequestStatus.REJECTED !=
+        requestInfo.data.creator_request_by_pk.status
+      ) {
+        throw new Error('Request is not Rejected');
+      }
+
       const { manga_id } = requestInfo.data.creator_request_by_pk;
       const data: UpdateMangaRequestDto = {
         manga_tags,
@@ -398,6 +434,12 @@ export class CreatorRequestService {
 
       if (!requestInfo.data.creator_request_by_pk) {
         throw new Error('Request can not found');
+      }
+      if (
+        CreatorRequestStatus.REJECTED !=
+        requestInfo.data.creator_request_by_pk.status
+      ) {
+        throw new Error('Request is not Rejected');
       }
       const chapterId = requestInfo.data.creator_request_by_pk.data.id;
       const { chapter, chapterLanguage } =
@@ -480,6 +522,12 @@ export class CreatorRequestService {
       if (!requestInfo.data.creator_request_by_pk) {
         throw new Error('Request can not found');
       }
+      if (
+        CreatorRequestStatus.REJECTED !=
+        requestInfo.data.creator_request_by_pk.status
+      ) {
+        throw new Error('Request is not Rejected');
+      }
 
       const data: UpdateMangaRequestDto = {
         manga_tags,
@@ -508,6 +556,10 @@ export class CreatorRequestService {
           },
         };
       }
+      if (MangaStatus.OnRequest == result.data.manga_by_pk.status) {
+        throw new Error('Can not edit Manga is on-requesting');
+      }
+      data.status = result.data.manga_by_pk.status;
 
       const updateMangaObj = await this.mangaSvc.buildObjToUpdate(
         manga_id,
@@ -555,6 +607,7 @@ export class CreatorRequestService {
         collection_ids,
         thumbnail,
         chapter_images,
+        status,
       } = data;
 
       const requestInfo = await this.requestGraphql.getCreatorRequestByPK(
@@ -569,13 +622,20 @@ export class CreatorRequestService {
         throw new Error('Request can not found');
       }
 
+      if (
+        CreatorRequestStatus.REJECTED !=
+        requestInfo.data.creator_request_by_pk.status
+      ) {
+        throw new Error('Request is not Rejected');
+      }
+
       const dataInput: UpdateChapterRequestDto = {
         chapter_name,
         chapter_number,
         chapter_type,
         chapter_images,
         pushlish_date,
-        status: ChapterStatus.OnRequest,
+        status,
         thumbnail,
         files,
         collection_ids,
@@ -615,5 +675,127 @@ export class CreatorRequestService {
         },
       };
     }
+  }
+
+  async adminResponseRequest(data: AdminResponseRequest) {
+    try {
+      const { request_id, adminResponse, adminNote } = data;
+
+      const requestInfo = await this.requestGraphql.getCreatorRequestByPK(
+        request_id
+      );
+
+      if (requestInfo.errors && requestInfo.errors.length > 0) {
+        return requestInfo;
+      }
+
+      if (!requestInfo.data.creator_request_by_pk) {
+        throw new Error('Request can not found');
+      }
+      if (
+        CreatorRequestStatus.SUBMITTED !=
+          requestInfo.data.creator_request_by_pk.status &&
+        CreatorRequestStatus.RE_SUBMITTED !=
+          requestInfo.data.creator_request_by_pk.status
+      ) {
+        throw new Error('Request is not submitted');
+      }
+
+      let object = {};
+      if (AdminResponse.REJECTED == adminResponse) {
+        object = {
+          status: CreatorRequestStatus.REJECTED,
+          admin_note: adminNote,
+        };
+      } else if (AdminResponse.APPROVED == adminResponse) {
+        const { type, data, manga_id, chapter_id } =
+          requestInfo.data.creator_request_by_pk;
+        switch (type) {
+          case CreatorRequestType.CREATE_NEW_MANGA: {
+            const rs = await this._approveCreateNewManga(manga_id);
+            if (rs.errors && rs.errors.length > 0) {
+              return rs;
+            }
+            break;
+          }
+          case CreatorRequestType.UPDATE_MANGA: {
+            const rs = await this._approveUpdateManga(data);
+            if (rs.errors && rs.errors.length > 0) {
+              return rs;
+            }
+            break;
+          }
+          case CreatorRequestType.CREATE_NEW_CHAPTER: {
+            const rs = await this._approveCreateChapter(chapter_id);
+            if (rs.errors && rs.errors.length > 0) {
+              return rs;
+            }
+            break;
+          }
+          case CreatorRequestType.UPDATE_CHAPTER: {
+            const rs = await this._approveUpdateChapter(chapter_id, data);
+            if (rs.errors && rs.errors.length > 0) {
+              return rs;
+            }
+            break;
+          }
+        }
+        object = {
+          status: CreatorRequestStatus.APPROVED,
+          admin_note: adminNote,
+        };
+      }
+
+      const updateRequestResponse =
+        await this.requestGraphql.adminUpdateCreatorRequestByPK(
+          request_id,
+          object
+        );
+
+      return updateRequestResponse;
+    } catch (error) {
+      return {
+        errors: {
+          message: error.message,
+        },
+      };
+    }
+  }
+
+  async _approveCreateNewManga(mangaId: number) {
+    return this.mangaGraphql.updateMangaStatus(mangaId, MangaStatus.Upcoming);
+  }
+
+  async _approveUpdateManga(manga: any) {
+    return this.mangaGraphql.adminUpdateManga(manga);
+  }
+
+  async _approveCreateChapter(chapterId: number) {
+    return this.chapterGraphql.updateChapterStatus(
+      chapterId,
+      ChapterStatus.Published
+    );
+  }
+
+  async _approveUpdateChapter(chapter_id: number, chaperInfo: any) {
+    // update chapter
+    const result = await this.chapterGraphql.adminUpdateChapter(
+      chaperInfo.chapter
+    );
+    if (result.errors && result.errors.length > 0) {
+      return result;
+    }
+    const updateChapterLangResult =
+      await this.chapterGraphql.adminInsertUpdateChapterLanguages(
+        chapter_id,
+        chaperInfo.chapterLanguage
+      );
+    if (
+      updateChapterLangResult.errors &&
+      updateChapterLangResult.errors.length > 0
+    ) {
+      return updateChapterLangResult;
+    }
+    return result;
   }
 }

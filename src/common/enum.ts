@@ -55,3 +55,8 @@ export enum CreatorRequestStatus {
   REJECTED = 'Rejected',
   DELETED = 'Deleted',
 }
+
+export enum AdminResponse {
+  APPROVED = 'Approved',
+  REJECTED = 'Rejected',
+}

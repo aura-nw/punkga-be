@@ -504,4 +504,30 @@ export class MangaGraphql {
       headers
     );
   }
+
+  async updateMangaStatus(mangaId: number, status: string) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_manga_by_pk($id: Int!, $status: String!) {
+        update_manga_by_pk(pk_columns: {id: $id}, _set: {status: $status}) {
+          id
+          status
+        }
+      }
+      `,
+      'update_manga_by_pk',
+      {
+        id: mangaId,
+        status,
+      },
+      headers
+    );
+  }
 }

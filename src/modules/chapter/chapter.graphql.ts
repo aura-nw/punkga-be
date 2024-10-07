@@ -319,7 +319,7 @@ export class ChapterGraphql {
     }
   }
 
-  async adminCreateChapter( variables: any) {
+  async adminCreateChapter(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configService.get<string>(
         'graphql.adminSecret'
@@ -401,6 +401,32 @@ export class ChapterGraphql {
       }`,
       'InsertChapterLanguages',
       variables,
+      headers
+    );
+  }
+
+  async updateChapterStatus(chapterId: number, status: string) {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `mutation UpdateChapterByPK($id: Int!, $status: String = "") {
+      update_chapters_by_pk(pk_columns: {id: $id}, _set: {status: $status}) {
+        id
+        chapter_name
+        chapter_number
+        chapter_type
+        thumbnail_url
+        updated_at
+        manga_id
+      }
+    }`,
+      'UpdateChapterByPK',
+      { id: chapterId, status },
       headers
     );
   }
