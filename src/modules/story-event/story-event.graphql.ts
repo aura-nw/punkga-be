@@ -176,7 +176,7 @@ export class StoryEventGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query story_event_submission($user_id: bpchar!) {
-        story_event_submission(where: {user_id: {_eq: $user_id}}) {
+        story_event_submission(where: {user_id: {_eq: $user_id}}, order_by: {created_at: desc}) {
           id
           name
           type
