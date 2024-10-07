@@ -1,0 +1,3 @@
+table:
+  name: story_event_submission
+  schema: public

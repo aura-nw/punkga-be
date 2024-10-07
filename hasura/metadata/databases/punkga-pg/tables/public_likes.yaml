@@ -11,26 +11,29 @@ insert_permissions:
         user_id: x-hasura-User-Id
       columns:
         - chapter_id
-        - id
-        - user_id
         - created_at
+        - id
+        - story_character_id
+        - user_id
 select_permissions:
   - role: anonymous
     permission:
       columns:
         - chapter_id
-        - id
-        - user_id
         - created_at
+        - id
+        - story_character_id
+        - user_id
       filter: {}
       allow_aggregations: true
   - role: user
     permission:
       columns:
         - chapter_id
-        - id
-        - user_id
         - created_at
+        - id
+        - story_character_id
+        - user_id
       filter: {}
       allow_aggregations: true
 update_permissions:
@@ -38,9 +41,10 @@ update_permissions:
     permission:
       columns:
         - chapter_id
-        - id
-        - user_id
         - created_at
+        - id
+        - story_character_id
+        - user_id
       filter:
         user_id:
           _eq: X-Hasura-User-Id
