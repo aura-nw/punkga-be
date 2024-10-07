@@ -11,8 +11,8 @@ export class SubmitArtworkRequestDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty()
-  image_url: string;
+  @ApiProperty({ type: 'string', format: 'binary' })
+  artwork: Express.Multer.File;
 
   @ApiProperty({ type: [ArtworkStoryCharacter] })
   artwork_characters: string;

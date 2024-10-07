@@ -44,13 +44,28 @@ export class StoryEventController {
   }
 
   @Post('submission/manga')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @SetRequestTimeout()
+  @Roles(Role.User)
   submitManga(@Query() data: SubmitMangaRequestDto) {
     return this.storyEventSvc.submitManga(data);
   }
 
   @Post('submission/artwork')
-  submitArtwork(@Query() data: SubmitArtworkRequestDto) {
-    return this.storyEventSvc.submitArtwork(data);
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @SetRequestTimeout()
+  @Roles(Role.User)
+  submitArtwork(
+    @Query() data: SubmitArtworkRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.storyEventSvc.submitArtwork(data, files);
   }
 
   @Get('submission')

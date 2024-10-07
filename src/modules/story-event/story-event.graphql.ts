@@ -312,4 +312,48 @@ export class StoryEventGraphql {
       headers
     );
   }
+
+  async insertArtwork(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_artworks_one($object: artworks_insert_input = {}) {
+        insert_artworks_one(object: $object) {
+          id
+        }
+      }
+      `,
+      'insert_artworks_one',
+      variables,
+      headers
+    );
+  }
+
+  async insertStoryArtwork(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_story_artwork_one($object: story_artwork_insert_input = {}) {
+        insert_story_artwork_one(object: $object) {
+          id
+        }
+      }
+      `,
+      'insert_story_artwork_one',
+      variables,
+      headers
+    );
+  }
 }

@@ -17,7 +17,11 @@ import {
   MangaTag,
   SubmitMangaRequestDto,
 } from './dto/submit-manga.dto';
-import { SubmissionStatus } from './story-event.enum';
+import {
+  StoryCharacterStatus,
+  SubmissionStatus,
+  SubmissionType,
+} from './story-event.enum';
 import { StoryEventGraphql } from './story-event.graphql';
 
 @Injectable()
@@ -108,19 +112,19 @@ export class StoryEventService {
         `/metadata-${new Date().getTime()}`
       );
 
-      // insert story_event_submission type pending
+      // insert story_event_submission type submited
 
       const result = await this.storyEventGraphql.insertSubmission({
         object: {
           name,
-          type: 'character',
+          type: SubmissionType.Character,
           user_id: userId,
           data: {
             name,
             avatar: avatarObj,
             description: descriptionObj,
           },
-          status: SubmissionStatus.Pending,
+          status: SubmissionStatus.Submited,
         },
       });
 
@@ -135,7 +139,7 @@ export class StoryEventService {
             descripton_url: descriptionObj.displayUrl,
             ipfs_url: `${ipfsDisplayUrl}/${metadataCID}`,
             user_id: userId,
-            status: 'Submited',
+            status: StoryCharacterStatus.Submited,
           },
         });
 
@@ -176,8 +180,14 @@ export class StoryEventService {
     }
   }
 
+  /**
+   * submit manga
+   * @param data
+   * @returns
+   */
   async submitManga(data: SubmitMangaRequestDto) {
     try {
+      const { userId } = ContextProvider.getAuthUser();
       const { cover_url, banner_url } = data;
       const manga_tags = plainToInstance(
         MangaTag,
@@ -195,6 +205,28 @@ export class StoryEventService {
       );
 
       // insert story_event_submission type pending
+      const defaultLanguage =
+        manga_languages.find((manga) => manga.is_main_language === true) ||
+        manga_languages[0];
+
+      const result = await this.storyEventGraphql.insertSubmission({
+        object: {
+          name: defaultLanguage.title,
+          type: SubmissionType.Manga,
+          user_id: userId,
+          data: {
+            name: defaultLanguage.title,
+            cover_url,
+            banner_url,
+            manga_tags,
+            manga_languages,
+            manga_characters,
+          },
+          status: SubmissionStatus.Submited,
+        },
+      });
+
+      if (result.errors) return result;
 
       // return
     } catch (error) {
@@ -206,8 +238,15 @@ export class StoryEventService {
     }
   }
 
-  async submitArtwork(data: SubmitArtworkRequestDto) {
+  async submitArtwork(
+    data: SubmitArtworkRequestDto,
+    files: Array<Express.Multer.File>
+  ) {
     try {
+      const { userId, token } = ContextProvider.getAuthUser();
+      const userWalletAddress = await this.storyEventGraphql.queryUserAddress(
+        token
+      );
       const { name } = data;
 
       const artwork_characters = plainToInstance(
@@ -215,9 +254,114 @@ export class StoryEventService {
         JSON.parse(data.artwork_characters) as any[]
       );
 
+      const artwork = files.find(
+        (file) =>
+          file.fieldname === 'artwork' && file.mimetype.includes('image')
+      );
+
+      // resize
+      const resized = await this.fileService.resize(artwork.buffer);
+
+      // upload files to s3
+      const s3SubFolder =
+        this.configService.get<string>('aws.s3SubFolder') || 'images';
+      const s3Path = `${s3SubFolder}/story-event/${userId}/artwork`;
+      const fileName = `${generateSlug(name)}-${new Date().valueOf()}.png`;
+      const keyName = `${s3Path}/${fileName}`;
+      await this.fileService.uploadToS3(keyName, resized, 'image/png');
+
+      // upload to ipfs
+      const uploadIpfsResult = await this.fileService.uploadFileToIpfs(
+        resized,
+        artwork.originalname
+      );
+
+      const ipfsDisplayUrl =
+        this.configService.get<string>('network.ipfsQuery');
+      const s3Endpoint = this.configService.get<string>('aws.queryEndpoint');
+      const artworkObj = {
+        displayUrl: new URL(keyName, s3Endpoint).href,
+        ipfs: `${ipfsDisplayUrl}/${uploadIpfsResult[0].cid}/${uploadIpfsResult[0].originalname}`,
+      };
+
+      // build & upload metadata
+      const metadata = {
+        name: data.name,
+        description: `Punkga Story Event Artwork - ${data.name}`,
+        attributes: [],
+        image: artworkObj.ipfs,
+      };
+
+      const { cid: metadataCID } = await this.fileService.uploadMetadataToIpfs(
+        metadata,
+        `/metadata-${new Date().getTime()}`
+      );
+
       // insert story_event_submission type pending
+      const result = await this.storyEventGraphql.insertSubmission({
+        object: {
+          name,
+          type: SubmissionType.Artwork,
+          user_id: userId,
+          data: {
+            name,
+            artwork: artworkObj,
+            artwork_characters,
+          },
+          status: SubmissionStatus.Submited,
+        },
+      });
+      if (result.errors) return result;
+      const submissionId = result.data.insert_story_event_submission_one.id;
+
+      // insert artwork
+      // TODO: add status submited
+      const insertArtwork = await this.storyEventGraphql.insertArtwork({
+        object: {
+          name,
+          url: artworkObj.displayUrl,
+        },
+      });
+      if (insertArtwork.errors) return insertArtwork;
+      const artworkId = Number(insertArtwork.data.insert_artworks_one.id);
+
+      const insertStoryArtworkResult =
+        await this.storyEventGraphql.insertStoryArtwork({
+          object: {
+            artwork_id: artworkId,
+            ipfs_url: artworkObj.ipfs,
+          },
+        });
+      if (insertStoryArtworkResult.errors) return insertStoryArtworkResult;
+      const storyArtworkId =
+        insertStoryArtworkResult.data.insert_story_artwork_one.id;
+
+      // create job
+      const jobData = {
+        name,
+        user_id: userId,
+        metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
+        story_artwork_id: storyArtworkId,
+        submission_id: submissionId,
+        user_wallet_address: userWalletAddress,
+      };
+
+      await this.storyEventQueue.add(
+        'event',
+        {
+          type: 'artwork',
+          data: jobData,
+        },
+        {
+          removeOnComplete: true,
+          removeOnFail: 10,
+          attempts: 5,
+          backoff: 5000,
+        }
+      );
 
       // return
+      return result;
     } catch (error) {
       return {
         errors: {

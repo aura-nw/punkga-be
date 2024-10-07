@@ -145,7 +145,7 @@ export class StoryEventConsumer {
       const updateSubmissionResult =
         await this.storyEventGraphql.updateSubmission({
           id: data.submission_id,
-          status: SubmissionStatus.Done,
+          status: SubmissionStatus.Approved,
         });
       if (updateSubmissionResult.errors) {
         this.logger.error(
