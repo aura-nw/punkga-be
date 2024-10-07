@@ -225,6 +225,10 @@ export class StoryEventGraphql {
               count
             }
           }
+          user_collect_characters(where: {user_id: {_eq: $user_id}}) {
+            id
+            created_at
+          }
           user_collect_characters_aggregate {
             aggregate {
               count
