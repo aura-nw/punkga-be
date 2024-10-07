@@ -23,6 +23,7 @@ import {
   SubmissionType,
 } from './story-event.enum';
 import { StoryEventGraphql } from './story-event.graphql';
+import { QueryApprovedCharacterParamDto } from './dto/query-approved-character.dto';
 
 @Injectable()
 export class StoryEventService {
@@ -378,8 +379,10 @@ export class StoryEventService {
     });
   }
 
-  async queryCharacter() {
-    return this.storyEventGraphql.queryApprovedCharacters();
+  async queryCharacter(data: QueryApprovedCharacterParamDto) {
+    return this.storyEventGraphql.queryApprovedCharacters({
+      user_id: data.user_id,
+    });
   }
 
   async queryCollectedCharacter() {
