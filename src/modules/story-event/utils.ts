@@ -1,4 +1,9 @@
-import { decodeEventLog, defineChain, TransactionReceipt } from 'viem';
+import {
+  decodeEventLog,
+  defineChain,
+  TransactionReceipt,
+  zeroAddress,
+} from 'viem';
 import { abi as ipAssetRegistryAbi } from '../../abi/IPAssetRegistry.json';
 
 export const iliad = defineChain({
@@ -49,4 +54,24 @@ export const parseTxIpRegisteredEvent = (
     }
   }
   return targetLogs;
+};
+
+export const defaultPILTerms = {
+  transferable: true,
+  royaltyPolicy: zeroAddress,
+  mintingFee: 0,
+  expiration: 0,
+  commercialUse: false,
+  commercialAttribution: false,
+  commercializerChecker: zeroAddress,
+  commercializerCheckerData: '0x',
+  commercialRevShare: 0,
+  commercialRevCelling: 0,
+  derivativesAllowed: true,
+  derivativesAttribution: true,
+  derivativesApproval: false,
+  derivativesReciprocal: true,
+  derivativeRevCelling: 0,
+  currency: zeroAddress,
+  uri: '',
 };

@@ -3,13 +3,13 @@ import { Contract, HDNodeWallet, JsonRpcProvider, Wallet } from 'ethers';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { HDAccount, mnemonicToAccount } from 'viem/accounts';
 import { Crypter } from '../../utils/crypto';
 import { SysKeyService } from '../keys/syskey.service';
 import { IChainInfo } from '../quest/interface/ichain-info';
 import { abi as levelingAbi } from './../../abi/PunkgaReward.json';
 import { abi as storyEventAbi } from './../../abi/StoryEvent.json';
 import { UserWalletGraphql } from './user-wallet.graphql';
-import { mnemonicToAccount } from 'viem/accounts';
 
 @Injectable()
 export class MasterWalletService implements OnModuleInit {
@@ -19,7 +19,7 @@ export class MasterWalletService implements OnModuleInit {
   private levelingContractMap: Map<string, Contract> = new Map();
   private chains: IChainInfo[] = [];
   private storyEventContract: Contract;
-  private account;
+  private account: HDAccount;
 
   constructor(
     private configService: ConfigService,
@@ -126,7 +126,7 @@ export class MasterWalletService implements OnModuleInit {
     }
   }
 
-  getAccount() {
+  getAccount(): HDAccount {
     return this.account;
   }
 }

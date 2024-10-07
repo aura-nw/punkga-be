@@ -157,7 +157,7 @@ export class StoryEventService {
       await this.storyEventQueue.add(
         'event',
         {
-          type: 'character',
+          type: SubmissionType.Character,
           data: jobData,
         },
         {
@@ -349,7 +349,7 @@ export class StoryEventService {
       await this.storyEventQueue.add(
         'event',
         {
-          type: 'artwork',
+          type: SubmissionType.Artwork,
           data: jobData,
         },
         {

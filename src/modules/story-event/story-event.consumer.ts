@@ -1,33 +1,47 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bullmq';
 import { IJob } from './interfaces/job.interface';
-import { InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  InternalServerErrorException,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { StoryEventGraphql } from './story-event.graphql';
-import { JsonRpcProvider } from 'ethers';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
-import { SubmissionStatus } from './story-event.enum';
+import { SubmissionStatus, SubmissionType } from './story-event.enum';
 import { createPublicClient, createWalletClient, http } from 'viem';
-import { iliad, parseTxIpRegisteredEvent } from './utils';
+import { defaultPILTerms, iliad, parseTxIpRegisteredEvent } from './utils';
 import { abi as storyEventAbi } from './../../abi/StoryEvent.json';
 
 @Processor('story-event')
-export class StoryEventConsumer {
+export class StoryEventConsumer implements OnModuleInit {
   private logger = new Logger(StoryEventConsumer.name);
+  private storyChain: any;
+  private publicClient;
+  private account;
+  private walletClient;
+
   constructor(
     private storyEventGraphql: StoryEventGraphql,
     private masterWalletSerivce: MasterWalletService
   ) {}
 
+  async onModuleInit() {
+    this.storyChain = await this.storyEventGraphql.getStoryChain();
+  }
+
   @Process({ name: 'event', concurrency: 1 })
   async process(job: Job<IJob>) {
     const { type, data } = job.data;
 
+    await this.buildStoryClient();
+
     switch (type) {
-      case 'character':
+      case SubmissionType.Character:
         return this.createStoryCharacterIpAsset(data);
-      case 'manga':
+      case SubmissionType.Manga:
         return this.createStoryMangaIpAsset(data);
-      case 'artwork':
+      case SubmissionType.Artwork:
         return this.createStoryArtworkIpAsset(data);
       default:
         this.logger.error(
@@ -38,60 +52,64 @@ export class StoryEventConsumer {
     return {};
   }
 
+  async buildStoryClient() {
+    if (!this.storyChain)
+      this.storyChain = await this.storyEventGraphql.getStoryChain();
+
+    if (!this.publicClient)
+      this.publicClient = createPublicClient({
+        chain: iliad,
+        transport: http(this.storyChain.rpc),
+      });
+    if (!this.account) this.account = this.masterWalletSerivce.getAccount();
+
+    if (!this.walletClient)
+      this.walletClient = createWalletClient({
+        chain: iliad,
+        transport: http(this.storyChain.rpc),
+        account: this.account,
+      });
+  }
+
   async createStoryCharacterIpAsset(data: any) {
     try {
       // mint nft & create ipa
-      const storyChain = await this.storyEventGraphql.getStoryChain();
-
-      const publicClient = createPublicClient({
-        chain: iliad,
-        transport: http(storyChain.rpc),
-      });
-
-      // TODO: BA define
       const args = [
         data.user_wallet_address,
         data.metadata_ipfs,
         [
-          true,
-          '0x7f6a8f43ec6059ec80c172441cee3423988a0be9',
-          100,
-          0,
-          true,
-          true,
-          '0x0000000000000000000000000000000000000000',
-          '0x',
-          50,
-          1,
-          true,
-          false,
-          false,
-          true,
-          1,
-          '0x91f6f05b08c16769d3c85867548615d270c42fc7',
-          '',
+          defaultPILTerms.transferable,
+          defaultPILTerms.royaltyPolicy,
+          defaultPILTerms.mintingFee,
+          defaultPILTerms.expiration,
+          defaultPILTerms.commercialUse,
+          defaultPILTerms.commercialAttribution,
+          defaultPILTerms.commercializerChecker,
+          defaultPILTerms.commercializerCheckerData,
+          defaultPILTerms.commercialRevShare,
+          defaultPILTerms.commercialRevCelling,
+          defaultPILTerms.derivativesAllowed,
+          defaultPILTerms.derivativesAttribution,
+          defaultPILTerms.derivativesApproval,
+          defaultPILTerms.derivativesReciprocal,
+          defaultPILTerms.derivativeRevCelling,
+          defaultPILTerms.currency,
+          defaultPILTerms.uri,
         ],
       ];
 
-      const account = this.masterWalletSerivce.getAccount();
+      const address =
+        `${this.storyChain.contracts.story_event_contract}` as any;
 
-      const walletClient = createWalletClient({
-        chain: iliad,
-        transport: http(storyChain.rpc),
-        account,
-      });
-
-      const address = `${storyChain.contracts.story_event_contract}` as any;
-
-      const hash = await walletClient.writeContract({
+      const hash = await this.walletClient.writeContract({
         abi: storyEventAbi,
         address,
         functionName: 'mintAndRegisterIpAndAttach',
         args,
         chain: iliad,
-        account,
+        account: this.account,
       });
-      const txReceipt = (await publicClient.waitForTransactionReceipt({
+      const txReceipt = (await this.publicClient.waitForTransactionReceipt({
         hash,
       })) as any;
 
@@ -111,7 +129,7 @@ export class StoryEventConsumer {
       const insertStoryIPAResult = await this.storyEventGraphql.insertStoryIPA({
         object: {
           ip_asset_id: ipAssetId,
-          nft_contract_address: storyChain.contracts.story_event_contract,
+          nft_contract_address: this.storyChain.contracts.story_event_contract,
           nft_token_id: nftId.toString(),
           tx_hash: hash,
           user_id: data.user_id,
