@@ -54,8 +54,13 @@ export class StoryEventController {
   }
 
   @Get('submission')
-  allSubmission() {
-    return 'all submission';
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @SetRequestTimeout()
+  @Roles(Role.User)
+  getUserSubmissions() {
+    return this.storyEventSvc.queryUserSubmission();
   }
 
   @Get('character')
