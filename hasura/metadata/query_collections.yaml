@@ -1643,6 +1643,9 @@
               }
               type
               status
+              created_at
+            }
+          }
       - name: User - Unlike character
         query: |
           mutation UserUnLikeCharacter ($story_character_id: Int!) {
