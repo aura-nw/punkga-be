@@ -306,7 +306,7 @@ export class CampaignGraphql {
       this.configService.get<string>('graphql.endpoint'),
       userToken,
       `query top_user_campaign($id: Int!) {
-        user_campaign(where: {campaign_id: {_eq: $id}}, order_by: {total_reward_xp: desc_nulls_last, created_at: asc}, limit: 1) {
+        user_campaign(where: {campaign_id: {_eq: $id}}, order_by: {total_reward_xp: desc_nulls_last, updated_at: asc}, limit: 1) {
           id
           user_id
           campaign_id
