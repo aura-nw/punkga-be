@@ -4,6 +4,9 @@ import {
   TransactionReceipt,
   zeroAddress,
 } from 'viem';
+
+import bs58 from 'bs58';
+
 import { abi as ipAssetRegistryAbi } from '../../abi/IPAssetRegistry.json';
 
 export const iliad = defineChain({
@@ -74,4 +77,11 @@ export const defaultPILTerms = {
   derivativeRevCelling: 0,
   currency: zeroAddress,
   uri: '',
+  licenseTermsIds: ['1'],
+  royaltyContext: '0x',
+  ipMetadataHash: '0x',
+};
+
+export const getBytes32FromIpfsHash = (ipfsListing: string) => {
+  return '0x' + Buffer.from(bs58.decode(ipfsListing).slice(2)).toString('hex');
 };

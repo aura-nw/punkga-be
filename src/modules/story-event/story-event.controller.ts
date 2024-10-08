@@ -18,12 +18,12 @@ import { RolesGuard } from '../../auth/role.guard';
 import { Roles } from '../../auth/roles.decorator';
 import { SetRequestTimeout } from '../../decorators/set-timeout.decorator';
 import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
+import { CollectCharacterParamDto } from './dto/collect-character.dto';
+import { QueryApprovedCharacterParamDto } from './dto/query-approved-character.dto';
 import { SubmitArtworkRequestDto } from './dto/submit-artwork.dto';
 import { SubmitCharacterRequestDto } from './dto/submit-character.dto';
 import { SubmitMangaRequestDto } from './dto/submit-manga.dto';
 import { StoryEventService } from './story-event.service';
-import { CollectCharacterParamDto } from './dto/collect-character.dto';
-import { QueryApprovedCharacterParamDto } from './dto/query-approved-character.dto';
 
 @Controller('story-event')
 @ApiTags('story-event')
@@ -63,7 +63,7 @@ export class StoryEventController {
   @SetRequestTimeout()
   @Roles(Role.User)
   submitArtwork(
-    @Query() data: SubmitArtworkRequestDto,
+    @Body() data: SubmitArtworkRequestDto,
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.storyEventSvc.submitArtwork(data, files);

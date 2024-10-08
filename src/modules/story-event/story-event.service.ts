@@ -6,6 +6,7 @@ import { plainToInstance } from 'class-transformer';
 import { ContextProvider } from '../../providers/contex.provider';
 import { FilesService } from '../files/files.service';
 import { generateSlug } from '../manga/util';
+import { QueryApprovedCharacterParamDto } from './dto/query-approved-character.dto';
 import {
   ArtworkStoryCharacter,
   SubmitArtworkRequestDto,
@@ -23,7 +24,7 @@ import {
   SubmissionType,
 } from './story-event.enum';
 import { StoryEventGraphql } from './story-event.graphql';
-import { QueryApprovedCharacterParamDto } from './dto/query-approved-character.dto';
+import { getBytes32FromIpfsHash } from './utils';
 
 @Injectable()
 export class StoryEventService {
@@ -282,7 +283,7 @@ export class StoryEventService {
       const s3Endpoint = this.configService.get<string>('aws.queryEndpoint');
       const artworkObj = {
         displayUrl: new URL(keyName, s3Endpoint).href,
-        ipfs: `${ipfsDisplayUrl}/${uploadIpfsResult[0].cid}/${uploadIpfsResult[0].originalname}`,
+        ipfs: `${ipfsDisplayUrl}/${uploadIpfsResult.cid}/${uploadIpfsResult.originalname}`,
       };
 
       // build & upload metadata
@@ -316,35 +317,49 @@ export class StoryEventService {
       const submissionId = result.data.insert_story_event_submission_one.id;
 
       // insert artwork
+      // TODO: creator_id???
       // TODO: add status submited
-      const insertArtwork = await this.storyEventGraphql.insertArtwork({
-        object: {
-          name,
-          url: artworkObj.displayUrl,
-        },
-      });
-      if (insertArtwork.errors) return insertArtwork;
-      const artworkId = Number(insertArtwork.data.insert_artworks_one.id);
+      // const insertArtwork = await this.storyEventGraphql.insertArtwork({
+      //   object: {
+      //     name,
+      //     url: artworkObj.displayUrl,
+      //   },
+      // });
+      // if (insertArtwork.errors) return insertArtwork;
+      // const artworkId = Number(insertArtwork.data.insert_artworks_one.id);
 
-      const insertStoryArtworkResult =
-        await this.storyEventGraphql.insertStoryArtwork({
-          object: {
-            artwork_id: artworkId,
-            ipfs_url: artworkObj.ipfs,
-          },
-        });
-      if (insertStoryArtworkResult.errors) return insertStoryArtworkResult;
-      const storyArtworkId =
-        insertStoryArtworkResult.data.insert_story_artwork_one.id;
+      // const insertStoryArtworkResult =
+      //   await this.storyEventGraphql.insertStoryArtwork({
+      //     object: {
+      //       artwork_id: artworkId,
+      //       ipfs_url: artworkObj.ipfs,
+      //     },
+      //   });
+      // if (insertStoryArtworkResult.errors) return insertStoryArtworkResult;
+      // const storyArtworkId =
+      //   insertStoryArtworkResult.data.insert_story_artwork_one.id;
 
       // create job
+      const queryStoryCharactersResult =
+        await this.storyEventGraphql.queryStoryCharacters({
+          story_character_ids: artwork_characters.map(
+            (character) => character.story_character_id
+          ),
+        });
+      if (queryStoryCharactersResult.errors) return queryStoryCharactersResult;
+      const ipAssetIds = queryStoryCharactersResult.data.story_character.map(
+        (character) => character.story_ip_asset.ip_asset_id
+      );
+
       const jobData = {
         name,
         user_id: userId,
         metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
-        story_artwork_id: storyArtworkId,
+        // story_artwork_id: storyArtworkId,
         submission_id: submissionId,
         user_wallet_address: userWalletAddress,
+        ip_asset_ids: ipAssetIds,
+        metadata_hash: getBytes32FromIpfsHash(metadataCID),
       };
 
       await this.storyEventQueue.add(
