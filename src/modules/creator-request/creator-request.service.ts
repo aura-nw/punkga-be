@@ -686,6 +686,24 @@ export class CreatorRequestService {
 
       let object = {};
       if (AdminResponse.REJECTED == adminResponse) {
+        const { type, manga_id, chapter_id } =
+          requestInfo.data.creator_request_by_pk;
+        switch (type) {
+          case CreatorRequestType.CREATE_NEW_MANGA: {
+            const rs = await this._rejectCreateNewManga(manga_id);
+            if (rs.errors && rs.errors.length > 0) {
+              return rs;
+            }
+            break;
+          }
+          case CreatorRequestType.CREATE_NEW_CHAPTER: {
+            const rs = await this._rejectCreateChapter(chapter_id);
+            if (rs.errors && rs.errors.length > 0) {
+              return rs;
+            }
+            break;
+          }
+        }
         object = {
           status: CreatorRequestStatus.REJECTED,
           admin_note: adminNote,
@@ -770,4 +788,33 @@ export class CreatorRequestService {
       chaperInfo.chapterLanguage
     );
   }
+
+  async _rejectCreateNewManga(mangaId: number) {
+    return this.mangaGraphql.updateMangaStatus(mangaId, MangaStatus.Rejected);
+  }
+
+  // async _rejectUpdateManga(manga: any) {
+  //   return this.mangaGraphql.adminUpdateManga(manga);
+  // }
+
+  async _rejectCreateChapter(chapterId: number) {
+    return this.chapterGraphql.updateChapterStatus(
+      chapterId,
+      ChapterStatus.Rejected
+    );
+  }
+
+  // async _rejectUpdateChapter(chapter_id: number, chaperInfo: any) {
+  //   // update chapter
+  //   const result = await this.chapterGraphql.adminUpdateChapter(
+  //     chaperInfo.chapter
+  //   );
+  //   if (result.errors && result.errors.length > 0) {
+  //     return result;
+  //   }
+  //   return this.chapterGraphql.adminInsertUpdateChapterLanguages(
+  //     chapter_id,
+  //     chaperInfo.chapterLanguage
+  //   );
+  // }
 }

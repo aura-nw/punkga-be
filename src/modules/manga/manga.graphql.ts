@@ -530,4 +530,47 @@ export class MangaGraphql {
       headers
     );
   }
+
+  async queryMangaListForCreator(
+    creator_id: number,
+    keyword: string,
+    limit: number,
+    offset: number
+  ) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    if (keyword) {
+      keyword = `%${keyword}%`;
+    }
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query manga($keyword: String = "%%", $limit: Int = 10, $offset: Int = 0, $creator_id: Int!) {
+        manga(where: {_or: [{manga_languages: {title: {_ilike: $keyword}}}, {manga_creators: {creator: {pen_name: {_ilike: $keyword}}}}], manga_creators: {creator: {id: {_eq: $creator_id}}}}, order_by: {publish_date: desc}, limit: $limit, offset: $offset) {
+          id
+          slug
+          publish_date
+          status
+          manga_languages {
+            title
+          }
+          manga_creators {
+            creator {
+              name
+              pen_name
+              slug
+              id
+            }
+          }
+        }
+      }
+      `,
+      'manga',
+      { keyword, creator_id, limit, offset },
+      headers
+    );
+  }
 }

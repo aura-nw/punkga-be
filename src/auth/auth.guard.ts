@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
-    private graphqlSvc: GraphqlService
+    private graphqlSvc: GraphqlService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -58,7 +58,6 @@ export class AuthGuard implements CanActivate {
     });
     if (insertResult.errors)
       throw new UnauthorizedException(JSON.stringify(insertResult));
-
     request['user'] = {
       userId: insertResult.data.insert_telegram_users_one.authorizer_user?.id,
       roles: [Role.TelegramUser],
@@ -120,8 +119,12 @@ export class AuthGuard implements CanActivate {
         'x-hasura-user-id': userId,
         'x-hasura-allowed-roles': allowedRoles,
       } = payload['https://hasura.io/jwt/claims'];
+
+      const creatorId = await this.getCreator(userId);
+
       request['user'] = {
         userId,
+        creatorId,
         roles: allowedRoles,
         token,
       };
@@ -162,6 +165,39 @@ export class AuthGuard implements CanActivate {
         }
       }`,
       'insert_telegram_users_one',
+      variables,
+      headers
+    );
+  }
+
+  async getCreator(userId: string) {
+    const result = await this.queryCreatorIdByUserId({
+      id: userId,
+    });
+    if (result.errors) return result;
+
+    const creatorId = result.data.authorizer_users_by_pk.creator.id;
+    return creatorId;
+  }
+
+  queryCreatorIdByUserId(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query getCreatorIdByUserId($id: bpchar!) {
+          authorizer_users_by_pk(id: $id) {
+            creator {
+              id
+            }
+          }
+        }
+        `,
+      'getCreatorIdByUserId',
       variables,
       headers
     );

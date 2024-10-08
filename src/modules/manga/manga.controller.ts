@@ -44,6 +44,7 @@ import {
   MangaCollectionParamDto,
 } from './dto/manage-manga-collection-request.dto';
 import { DeleteMangaParam } from './dto/delete-manga-request.dto';
+import { GetMangaCreatorQueryDto } from './dto/get-manga-for-creator-request.dto';
 
 @Controller('manga')
 @ApiTags('manga')
@@ -125,5 +126,14 @@ export class MangaController {
   @ApiOperation({ summary: 'delete manga - creator role' })
   deleteManga(@Param() param: DeleteMangaParam) {
     return this.mangaSvc.deleteManga(param.manga_id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Creator)
+  @Get('/creator/list')
+  @UseInterceptors(AuthUserInterceptor, CacheInterceptor)
+  getMangaListForCreator(@Query() query: GetMangaCreatorQueryDto) {
+    return this.mangaSvc.getMangaForCreator(query);
   }
 }
