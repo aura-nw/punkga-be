@@ -3,14 +3,16 @@ export enum MangaStatus {
   'On-going' = 'On-going',
   Published = 'Published',
   Removed = 'Removed',
-  OnRequest = 'On-request',
+  OnRequest = 'Waiting For Approval',
+  Rejected = 'Rejected',
 }
 
 export enum ChapterStatus {
   // Uploading = 'Uploading',
   Published = 'Published',
   Inactive = 'Inactive',
-  OnRequest = 'On-request',
+  OnRequest = 'Waiting For Approval',
+  Rejected = 'Rejected',
 }
 
 export enum ChapterType {
@@ -54,4 +56,9 @@ export enum CreatorRequestStatus {
   APPROVED = 'Approved',
   REJECTED = 'Rejected',
   DELETED = 'Deleted',
+}
+
+export enum AdminResponse {
+  APPROVED = 'Approved',
+  REJECTED = 'Rejected',
 }

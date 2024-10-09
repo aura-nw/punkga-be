@@ -39,8 +39,8 @@ export class CreatorRequestGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query creator_request($creator_id: Int = 10, $status: String!) {
-        creator_request(where: {creator_id: {_eq: $creator_id}, status: {_eq: $status}}) {
+      `query creator_request($creator_id: Int!, $status: String!) {
+        creator_request(where: {creator_id: {_eq: $creator_id}, status: {_eq: $status}, order_by: {updated_at: desc}}) {
           id
           creator_id
           data

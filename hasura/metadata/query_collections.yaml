@@ -1298,88 +1298,6 @@
               id
             }
           }
-      - name: Admin - Get manga detail
-        query: |
-          query GetMangaReadingDetail ($id: Int = 28) {
-            manga_by_pk(id: $id) {
-              id
-              poster
-              banner
-              status
-              contract_addresses
-              publish_date
-              release_date
-              created_at
-              manga_languages {
-                title
-                description
-                is_main_language
-                language_id
-              }
-              chapters_aggregate {
-                aggregate {
-                  sum {
-                    views
-                    likes
-                  }
-                  count
-                }
-              }
-              manga_subscribers_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              manga_tags {
-                tag {
-                  tag_languages {
-                    tag_id
-                    language_id
-                    value
-                  }
-                }
-              }
-              chapters(order_by: {chapter_number:desc_nulls_last}) {
-                id
-                chapter_number
-                chapter_name
-                chapter_type
-                thumbnail_url
-                pushlish_date
-                status
-              }
-              manga_creators {
-                creator {
-                  id
-                  slug
-                  name
-                  pen_name
-                }
-              }
-              manga_collections {
-                launchpad_id
-                manga_id
-                manga_collection {
-                  contract_address
-                  launchpad_creator {
-                    name
-                    slug
-                    id
-                  }
-                  launchpad_i18ns {
-                    data(path: "name")
-                    language_id
-                    id
-                  }
-                  slug
-                  status
-                  updated_at
-                  created_at
-                }
-                id
-              }
-            }
-          }
       - name: Admin - Get chapter detail
         query: |
           query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
@@ -1646,6 +1564,89 @@
               created_at
             }
           }
+      - name: Admin - Get manga detail
+        query: |
+          query GetMangaReadingDetail ($id: Int = 28) {
+            manga_by_pk(id: $id) {
+              id
+              poster
+              banner
+              status
+              contract_addresses
+              publish_date
+              release_date
+              created_at
+              is_active
+              finished
+              age_limit
+              manga_languages {
+                title
+                description
+                is_main_language
+                language_id
+              }
+              chapters_aggregate {
+                aggregate {
+                  sum {
+                    views
+                    likes
+                  }
+                  count
+                }
+              }
+              manga_subscribers_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              manga_tags {
+                tag {
+                  tag_languages {
+                    tag_id
+                    language_id
+                    value
+                  }
+                }
+              }
+              chapters(order_by: {chapter_number:desc_nulls_last}) {
+                id
+                chapter_number
+                chapter_name
+                chapter_type
+                thumbnail_url
+                pushlish_date
+                status
+              }
+              manga_creators {
+                creator {
+                  id
+                  slug
+                  name
+                  pen_name
+                }
+              }
+              manga_collections {
+                launchpad_id
+                manga_id
+                manga_collection {
+                  contract_address
+                  launchpad_creator {
+                    name
+                    slug
+                    id
+                  }
+                  launchpad_i18ns {
+                    data(path: "name")
+                    language_id
+                    id
+                  }
+                  slug
+                  status
+                  updated_at
+                  created_at
+                }
+                id
+              }
       - name: User - Unlike character
         query: |
           mutation UserUnLikeCharacter ($story_character_id: Int!) {

@@ -51,6 +51,12 @@ export class UpdateMangaRequestDto {
 
   @ApiProperty({ type: [MangaLanguage] })
   manga_languages: string;
+    
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  finished: number;
+
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  age_limit: number;
 }
 
 export class UpdateMangaParamDto {

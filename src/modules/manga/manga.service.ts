@@ -16,6 +16,8 @@ import { GetChapterByMangaParamDto } from './dto/get-chapter-by-manga-request.dt
 import { MangaGraphql } from './manga.graphql';
 import { errorOrEmpty } from '../graphql/utils';
 import { CreatorService } from '../creator/creator.service';
+import { GetMangaCreatorQueryDto } from './dto/get-manga-for-creator-request.dto';
+import { GetMangaAdminQueryDto } from './dto/get-manga-for-admin-request.dto';
 
 @Injectable()
 export class MangaService {
@@ -68,8 +70,8 @@ export class MangaService {
 
   async create(data: CreateMangaRequestDto, files: Array<Express.Multer.File>) {
     try {
-      const { token } = ContextProvider.getAuthUser();
-      const { status, release_date } = data;
+      // const { token } = ContextProvider.getAuthUser();
+      const { status, release_date, finished, age_limit } = data;
       const manga_tags = plainToInstance(
         MangaTag,
         JSON.parse(data.manga_tags) as any[]
@@ -91,6 +93,8 @@ export class MangaService {
         manga_languages,
         release_date,
         contract_addresses: [],
+        finished,
+        age_limit,
       });
 
       if (result.errors && result.errors.length > 0) {
@@ -123,14 +127,12 @@ export class MangaService {
       );
 
       // update manga in DB
-      const updateResponse = await this.mangaGraphql.adminUpdateManga(
-        {
-          id: mangaId,
-          banner: bannerUrl,
-          poster: posterUrl,
-          slug,
-        }
-      );
+      const updateResponse = await this.mangaGraphql.adminUpdateMangaByPK({
+        id: mangaId,
+        banner: bannerUrl,
+        poster: posterUrl,
+        slug,
+      });
 
       return updateResponse;
     } catch (error) {
@@ -261,6 +263,8 @@ export class MangaService {
         manga_tags,
         manga_creators,
         manga_languages,
+        age_limit,
+        finished,
       } = data;
 
       const result = await this.mangaGraphql.queryMangaById(token, {
@@ -309,6 +313,8 @@ export class MangaService {
           MangaLanguage,
           JSON.parse(manga_languages)
         ),
+        age_limit,
+        finished,
       };
     } catch (errors) {
       return {
@@ -328,5 +334,44 @@ export class MangaService {
     if (!isOwner) throw new ForbiddenException('invalid creator');
 
     return this.mangaGraphql.removeManga(mangaId);
+  }
+
+  async getMangaForCreator(param: GetMangaCreatorQueryDto) {
+    try {
+      const userInfo = ContextProvider.getAuthUser();
+      const { keyword, limit, offset } = param;
+
+      const result = await this.mangaGraphql.queryMangaListForCreator(
+        Number(userInfo.creatorId),
+        keyword,
+        limit,
+        offset
+      );
+
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async getMangaForAdmin(param: GetMangaAdminQueryDto) {
+    try {
+      const { keyword, limit, offset, status } = param;
+
+      const result = await this.mangaGraphql.queryMangaListForAdmin(
+        status,
+        keyword,
+        limit,
+        offset
+      );
+
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
   }
 }

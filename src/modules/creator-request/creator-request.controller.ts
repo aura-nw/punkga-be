@@ -34,6 +34,7 @@ import {
   GetRequestByCreatorAndStatusParam,
   GetRequestByCreatorAndStatusRequest,
 } from './dto/creator-get-request.dto';
+import { AdminResponseRequest } from './dto/admin-response-request.dto';
 
 @Controller('creator-request')
 @ApiTags('creator-request')
@@ -127,7 +128,6 @@ export class RequestController {
     );
   }
 
-    
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
@@ -146,7 +146,7 @@ export class RequestController {
       files
     );
   }
-  
+
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
@@ -165,7 +165,7 @@ export class RequestController {
       files
     );
   }
-  
+
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.Creator)
@@ -183,5 +183,18 @@ export class RequestController {
       body,
       files
     );
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @Post('admin/response')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  responseCreatorRequest(
+    @Body() body: AdminResponseRequest,
+  ) {
+    // console.log(params);
+    return this.requestSvc.adminResponseRequest(body);
   }
 }
