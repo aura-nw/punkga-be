@@ -1038,6 +1038,117 @@
               }
             }
           }
+      - name: User - Get Profile
+        query: |
+          query GetUserProfile {
+            authorizer_users(limit: 1) {
+              id
+              email
+              email_verified_at
+              bio
+              birthdate
+              gender
+              active_wallet_address: active_evm_address
+              wallet_address
+              nickname
+              picture
+              signup_methods
+              levels {
+                xp
+                level
+                user_level_chain {
+                  id
+                  name
+                  punkga_config
+                }
+              }
+              authorizer_users_user_wallet {
+                address
+              }
+              user_quests_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_quests(order_by: {created_at:desc}, limit: 20) {
+                created_at
+                status
+                user_quest_rewards {
+                  tx_hash
+                }
+                quest {
+                  id
+                  name
+                  quests_campaign {
+                    campaign_chain {
+                      punkga_config
+                    }
+                  }
+                  quests_i18n {
+                    id
+                    quest_id
+                    language_id
+                    data
+                    i18n_language {
+                      id
+                      description
+                      icon
+                      is_main
+                      symbol
+                    }
+                  }
+                  reward
+                }
+              }
+            }
+          }
+      - name: Public - Get manga by creator
+        query: |
+          query manga ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
+            manga(limit: $limit, offset: $offset, where: {manga_creators:{creator_id:{_eq:$id}},status:{_neq:"Removed"}}) {
+              id
+              slug
+              status
+              poster
+              banner
+              manga_creators {
+                creator {
+                  name
+                  pen_name
+                  id
+                  slug
+                }
+              }
+              manga_total_likes {
+                likes
+              }
+              manga_total_views {
+                views
+              }
+              manga_tags {
+                tag {
+                  tag_languages {
+                    language_id
+                    value
+                  }
+                  id
+                }
+              }
+              chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
+                id
+                chapter_number
+                chapter_name
+              }
+              contract_addresses
+              manga_languages {
+                id
+                is_main_language
+                title
+                description
+                language_id
+              }
+            }
+          }
       - name: Public - query artwork by creator
         query: |
           query artworks ($creator_id: Int!, $limit: Int = 10, $offset: Int = 0) {
@@ -1083,9 +1194,49 @@
         query: |
           query manga ($contest_id: Int!, $id: Int!, $limit: Int = 100, $offset: Int = 0) {
             manga(where: {contest_id:{_eq:$contest_id},manga_creators:{creator_id:{_eq:$id}}}, limit: $limit, offset: $offset) {
-              banner
               id
               slug
+              latest_published
+              manga_total_views {
+                views
+              }
+              manga_total_likes {
+                likes
+              }
+              manga_creators {
+                creator {
+                  id
+                  slug
+                  name
+                  pen_name
+                  isActive
+                }
+              }
+              status
+              chapters(limit: 1, order_by: {chapter_number:desc}, where: {status:{_eq:"Published"}}) {
+                id
+                chapter_number
+                pushlish_date
+                status
+                updated_at
+              }
+              manga_tags(limit: 5) {
+                tag {
+                  id
+                  tag_languages {
+                    language_id
+                    tag_id
+                    value
+                  }
+                }
+              }
+              manga_languages {
+                title
+                description
+                is_main_language
+                language_id
+              }
+              banner
               poster
             }
             manga_aggregate(where: {contest_id:{_eq:$contest_id},manga_creators:{creator_id:{_eq:$id}}}, limit: $limit, offset: $offset) {
@@ -1496,5 +1647,20 @@
                 }
                 id
               }
+      - name: User - Unlike character
+        query: |
+          mutation UserUnLikeCharacter ($story_character_id: Int!) {
+            delete_likes(where: {story_character_id:{_eq:$story_character_id}}) {
+              affected_rows
+            }
+          }
+      - name: User - Like character
+        query: |
+          mutation UserLikeCharacter ($story_character_id: Int!) {
+            insert_likes_one(object: {story_character_id:$story_character_id}) {
+              id
+              user_id
+              story_character_id
+              created_at
             }
           }

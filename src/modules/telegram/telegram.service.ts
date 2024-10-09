@@ -374,8 +374,16 @@ export class TelegramService {
 
   async getTopDonate() {
     try {
+      const { telegramId } = ContextProvider.getAuthUser();
       const topDonate = await this.telegramGraphql.getTopDonate();
-
+      if (topDonate && topDonate.data) {
+        if (!topDonate.data.top_user_donate.find(x => x.telegram_id == telegramId) || topDonate.data.top_user_donate.length <= 0) {
+          const userDonate = await this.telegramGraphql.getTopDonateByUser({telegram_id: telegramId});
+          if (userDonate && userDonate.data.top_user_donate) {
+            topDonate.data.top_user_donate.concat(userDonate.data.top_user_donate);
+          }
+        }
+      }
       return topDonate;
     } catch (errors) {
       return {

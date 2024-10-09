@@ -1,0 +1,3 @@
+table:
+  name: story_ip_asset
+  schema: public

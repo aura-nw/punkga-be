@@ -3,10 +3,12 @@ import { Contract, HDNodeWallet, JsonRpcProvider, Wallet } from 'ethers';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { HDAccount, mnemonicToAccount } from 'viem/accounts';
 import { Crypter } from '../../utils/crypto';
 import { SysKeyService } from '../keys/syskey.service';
 import { IChainInfo } from '../quest/interface/ichain-info';
 import { abi as levelingAbi } from './../../abi/PunkgaReward.json';
+import { abi as storyEventAbi } from './../../abi/StoryEvent.json';
 import { UserWalletGraphql } from './user-wallet.graphql';
 
 @Injectable()
@@ -16,6 +18,8 @@ export class MasterWalletService implements OnModuleInit {
   private masterWalletAddress = '';
   private levelingContractMap: Map<string, Contract> = new Map();
   private chains: IChainInfo[] = [];
+  private storyEventContract: Contract;
+  private account: HDAccount;
 
   constructor(
     private configService: ConfigService,
@@ -37,6 +41,7 @@ export class MasterWalletService implements OnModuleInit {
     if (masterWalletData) {
       const phrase = this.decryptPhrase(masterWalletData.data);
       const wallet = Wallet.fromPhrase(phrase);
+      this.account = mnemonicToAccount(phrase);
 
       this.masterHDWallet = wallet;
       this.masterWalletAddress = wallet.address;
@@ -97,5 +102,31 @@ export class MasterWalletService implements OnModuleInit {
       this.logger.error('get leveling contract err', error);
       throw error;
     }
+  }
+
+  getStoryEventContract(
+    contractAddress: string,
+    provider: JsonRpcProvider
+  ): any {
+    const storyEventContract = this.storyEventContract;
+    if (storyEventContract) {
+      return storyEventContract.connect(this.masterHDWallet.connect(provider));
+    }
+
+    try {
+      // Connecting to smart contract
+      const contract = new Contract(contractAddress, storyEventAbi);
+      this.storyEventContract = contract;
+
+      const wallet = this.masterHDWallet.connect(provider);
+      return contract.connect(wallet) as Contract;
+    } catch (error) {
+      this.logger.error('get story event contract err', error);
+      throw error;
+    }
+  }
+
+  getAccount(): HDAccount {
+    return this.account;
   }
 }

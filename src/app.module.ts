@@ -28,6 +28,7 @@ import { ArtworkModule } from './modules/artwork/artwork.module';
 import { AlbumModule } from './modules/album/album.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { CreatorRequestModule } from './modules/creator-request/creator-request.module';
+import { StoryEventModule } from './modules/story-event/story-event.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { CreatorRequestModule } from './modules/creator-request/creator-request.
     AlbumModule,
     TelegramModule,
     CreatorRequestModule,
+    StoryEventModule,
   ],
   controllers: [],
   providers: [

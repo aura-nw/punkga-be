@@ -1,0 +1,3 @@
+table:
+  name: character_total_likes
+  schema: public

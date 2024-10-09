@@ -77,7 +77,7 @@ export class QuestProcessor implements OnModuleInit {
           throw new Error(errMsg);
         }
       } catch (error) {
-        this.logger.error(JSON.stringify(error));
+        this.logger.error(error.message);
         await this.updateErrorRequest(rewardMap, error.toString());
       }
     }
