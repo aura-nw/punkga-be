@@ -7,9 +7,12 @@ import {
 } from 'class-validator';
 import { MangaStatus } from '../../../common/enum';
 
-export class GetMangaCreatorQueryDto {
-  @ApiPropertyOptional({ enum: MangaStatus, example: MangaStatus.OnRequest })
-  status: string;
+export class GetMangaAdminQueryDto {
+  @ApiPropertyOptional({
+    type: [MangaStatus],
+    example: [MangaStatus.OnRequest, MangaStatus.Published],
+  })
+  status: string[];
 
   @ApiPropertyOptional()
   @IsOptional()

@@ -45,6 +45,7 @@ import {
 } from './dto/manage-manga-collection-request.dto';
 import { DeleteMangaParam } from './dto/delete-manga-request.dto';
 import { GetMangaCreatorQueryDto } from './dto/get-manga-for-creator-request.dto';
+import { GetMangaAdminQueryDto } from './dto/get-manga-for-admin-request.dto';
 
 @Controller('manga')
 @ApiTags('manga')
@@ -135,5 +136,14 @@ export class MangaController {
   @UseInterceptors(AuthUserInterceptor, CacheInterceptor)
   getMangaListForCreator(@Query() query: GetMangaCreatorQueryDto) {
     return this.mangaSvc.getMangaForCreator(query);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
+  @Get('/admin/list')
+  @UseInterceptors(AuthUserInterceptor, CacheInterceptor)
+  getMangaListForAdmin(@Query() query: GetMangaAdminQueryDto) {
+    return this.mangaSvc.getMangaForAdmin(query);
   }
 }

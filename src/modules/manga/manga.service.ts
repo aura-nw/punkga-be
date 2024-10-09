@@ -17,6 +17,7 @@ import { MangaGraphql } from './manga.graphql';
 import { errorOrEmpty } from '../graphql/utils';
 import { CreatorService } from '../creator/creator.service';
 import { GetMangaCreatorQueryDto } from './dto/get-manga-for-creator-request.dto';
+import { GetMangaAdminQueryDto } from './dto/get-manga-for-admin-request.dto';
 
 @Injectable()
 export class MangaService {
@@ -336,6 +337,25 @@ export class MangaService {
 
       const result = await this.mangaGraphql.queryMangaListForCreator(
         Number(userInfo.creatorId),
+        keyword,
+        limit,
+        offset
+      );
+
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
+  async getMangaForAdmin(param: GetMangaAdminQueryDto) {
+    try {
+      const { keyword, limit, offset, status } = param;
+
+      const result = await this.mangaGraphql.queryMangaListForAdmin(
+        status,
         keyword,
         limit,
         offset

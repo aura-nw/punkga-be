@@ -573,4 +573,68 @@ export class MangaGraphql {
       headers
     );
   }
+  
+  async queryMangaListForAdmin(
+    status: string[],
+    keyword: string,
+    limit: number,
+    offset: number
+  ) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    if (keyword) {
+      keyword = `%${keyword}%`;
+    }
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query manga($keyword: String = "%%", $limit: Int = 10, $offset: Int = 0, $status: [String] = ["Upcoming", "On-going", "Published", "Removed", "Waiting For Approval", "Rejected"]) {
+        manga(where: {status: {_in: $status}, _or: [{manga_languages: {title: {_ilike: $keyword}}}, {manga_creators: {creator: {pen_name: {_ilike: $keyword}}}}]}, order_by: {publish_date: desc}, limit: $limit, offset: $offset) {
+          id
+          slug
+          publish_date
+          status
+          manga_languages {
+            title
+          }
+          manga_creators {
+            creator {
+              name
+              pen_name
+              slug
+              id
+            }
+          }
+          chapters_aggregate {
+            aggregate {
+              count
+              max {
+                chapter_number
+              }
+            }
+          }
+          published_chapters_aggregate: chapters_aggregate(where: {status: {_eq: "Published"}}) {
+            aggregate {
+              count
+            }
+          }
+          manga_languages {
+            id
+            title
+            language_id
+            is_main_language
+          }
+          created_at
+          release_date
+        }
+      }
+      `,
+      'manga',
+      { keyword, status, limit, offset },
+      headers
+    );
+  }
 }

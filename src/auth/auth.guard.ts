@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
-    private graphqlSvc: GraphqlService,
+    private graphqlSvc: GraphqlService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -119,8 +119,10 @@ export class AuthGuard implements CanActivate {
         'x-hasura-user-id': userId,
         'x-hasura-allowed-roles': allowedRoles,
       } = payload['https://hasura.io/jwt/claims'];
-
-      const creatorId = await this.getCreator(userId);
+      let creatorId = null;
+      if (allowedRoles.indexOf(Role.Creator) !== -1) {
+        creatorId = await this.getCreator(userId);
+      }
 
       request['user'] = {
         userId,
