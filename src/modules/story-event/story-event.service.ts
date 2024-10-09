@@ -19,6 +19,7 @@ import {
   SubmitMangaRequestDto,
 } from './dto/submit-manga.dto';
 import {
+  CharacterSortType,
   StoryCharacterStatus,
   SubmissionStatus,
   SubmissionType,
@@ -395,9 +396,33 @@ export class StoryEventService {
   }
 
   async queryCharacter(data: QueryApprovedCharacterParamDto) {
-    return this.storyEventGraphql.queryApprovedCharacters({
-      user_id: data.user_id,
-    });
+    const { user_id, limit, offset, order_by } = data;
+    const orderBy = ['is_default_character: desc'];
+    switch (order_by) {
+      case CharacterSortType.Created_At_Asc:
+        orderBy.push('created_at: asc');
+        break;
+      case CharacterSortType.Created_At_Desc:
+        orderBy.push('created_at: desc');
+        break;
+      case CharacterSortType.User_Collect_Asc:
+        orderBy.push('user_collect_characters_aggregate: {count: asc}');
+        break;
+      case CharacterSortType.User_Collect_Desc:
+        orderBy.push('user_collect_characters_aggregate: {count: desc}');
+        break;
+      default:
+        break;
+    }
+
+    return this.storyEventGraphql.queryApprovedCharacters(
+      {
+        user_id,
+        limit,
+        offset,
+      },
+      orderBy
+    );
   }
 
   async queryCollectedCharacter() {
