@@ -45,8 +45,8 @@ export class CreatorCreateMangaRequestDto {
   @ApiProperty({ type: [MangaLanguage] })
   manga_languages: string;
 
-  @ApiProperty({ example: '2023-07-05T02:48:36.893251+00:00' })
-  release_date: string;
+  // @ApiProperty({ example: '2023-07-05T02:48:36.893251+00:00' })
+  // release_date: string;
 
   @ApiProperty({ type: 'string', format: 'binary' })
   banner: Express.Multer.File;
@@ -54,6 +54,11 @@ export class CreatorCreateMangaRequestDto {
   @ApiProperty({ type: 'string', format: 'binary' })
   poster: Express.Multer.File;
 
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  finished: number;
+
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  age_limit: number;
 }
 
 export class CreatorUpdateMangaRequestDto {
@@ -69,15 +74,20 @@ export class CreatorUpdateMangaRequestDto {
   @ApiProperty({ type: [MangaLanguage] })
   manga_languages: string;
 
-  @ApiProperty({ example: '2023-07-05T02:48:36.893251+00:00' })
-  release_date: string;
+  // @ApiProperty({ example: '2023-07-05T02:48:36.893251+00:00' })
+  // release_date: string;
 
   @ApiProperty({ type: 'string', format: 'binary' })
   banner: Express.Multer.File;
 
   @ApiProperty({ type: 'string', format: 'binary' })
   poster: Express.Multer.File;
+  
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  finished: number;
 
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  age_limit: number;
 }
 
 export class CreatorUpdateMangaParamDto {

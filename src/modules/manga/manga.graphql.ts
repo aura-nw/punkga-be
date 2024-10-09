@@ -224,6 +224,7 @@ export class MangaGraphql {
           poster
           banner
           contract_addresses
+          status
         }
       }`,
       'QueryMangaById',
@@ -419,8 +420,8 @@ export class MangaGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation CreateNewManga($status: String = "", $contract_addresses: jsonb = "", $banner: String = "", $poster: String = "", $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
-        insert_manga_one(object: {status: $status, contract_addresses: $contract_addresses, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, release_date: $release_date}) {
+      `mutation CreateNewManga($status: String = "", $contract_addresses: jsonb = "", $banner: String = "", $poster: String = "", $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "", $age_limit: Int = 0, $finished: Int = 0) {
+        insert_manga_one(object: {status: $status, contract_addresses: $contract_addresses, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, release_date: $release_date, finished: $finished, age_limit: $age_limit}) {
           id
           created_at
           status
@@ -467,7 +468,7 @@ export class MangaGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation UpdateManga($manga_id: Int!, $status: String!, $contract_addresses: jsonb = "", $banner: String!, $poster: String!, $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "") {
+      `mutation UpdateManga($manga_id: Int!, $status: String!, $contract_addresses: jsonb = "", $banner: String!, $poster: String!, $manga_languages: [manga_languages_insert_input!] = {language_id: 10, is_main_language: false, description: "", title: ""}, $manga_creators: [manga_creator_insert_input!] = {creator_id: 10}, $manga_tags: [manga_tag_insert_input!] = {tag_id: 10}, $release_date: timestamptz = "", $age_limit: Int = 0, $finished: Int = 0) {
         delete_manga_tag(where: {manga_id: {_eq: $manga_id}}) {
           affected_rows
         }
@@ -477,7 +478,7 @@ export class MangaGraphql {
         delete_manga_languages(where: {manga_id: {_eq: $manga_id}}) {
           affected_rows
         }
-        insert_manga_one(object: {status: $status, contract_addresses: $contract_addresses, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, id: $manga_id, release_date: $release_date}, on_conflict: {constraint: manga_pkey, update_columns: [banner, poster, status, release_date, contract_addresses]}) {
+        insert_manga_one(object: {status: $status, contract_addresses: $contract_addresses, manga_creators: {data: $manga_creators}, banner: $banner, poster: $poster, manga_languages: {data: $manga_languages}, manga_tags: {data: $manga_tags}, id: $manga_id, release_date: $release_date, finished: $finished, age_limit: $age_limit}, on_conflict: {constraint: manga_pkey, update_columns: [banner, poster, status, release_date, contract_addresses, finished, age_limit]}) {
           id
           banner
           poster
@@ -554,6 +555,9 @@ export class MangaGraphql {
           slug
           publish_date
           status
+          is_active
+          finished
+          age_limit
           manga_languages {
             title
           }
@@ -629,11 +633,39 @@ export class MangaGraphql {
           }
           created_at
           release_date
+          is_active
+          finished
+          age_limit
         }
       }
       `,
       'manga',
       { keyword, status, limit, offset },
+      headers
+    );
+  }
+
+  adminUpdateMangaByPK(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation UpdateMangaByPK($banner: String = "", $poster: String = "", $id: Int = 10, $slug: String = "") {
+        update_manga_by_pk(pk_columns: {id: $id}, _set: {banner: $banner, poster: $poster, slug: $slug}) {
+          id
+          banner
+          poster
+          status
+          contract_addresses
+          created_at
+        }
+      }`,
+      'UpdateMangaByPK',
+      variables,
       headers
     );
   }

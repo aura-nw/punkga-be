@@ -58,4 +58,10 @@ export class CreateMangaRequestDto {
   // files: Express.Multer.File[];
   @ApiPropertyOptional({ enum: MangaStatus, enumName: 'MangaStatus' })
   status: MangaStatus;
+
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  finished: number;
+
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  age_limit: number;
 }

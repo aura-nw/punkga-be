@@ -51,18 +51,22 @@ export class CreatorRequestService {
         manga_tags,
         manga_creators,
         manga_languages,
-        release_date,
+        // release_date,
         banner,
         poster,
+        finished,
+        age_limit,
       } = params;
       const data: CreateMangaRequestDto = {
         manga_tags,
         manga_creators,
         manga_languages,
-        release_date,
+        release_date: null,
         banner,
         poster,
         status: MangaStatus.OnRequest,
+        finished,
+        age_limit,
       };
 
       const createMangaResponse = await this.mangaSvc.create(data, files);
@@ -104,18 +108,22 @@ export class CreatorRequestService {
         manga_tags,
         manga_creators,
         manga_languages,
-        release_date,
+        // release_date,
         banner,
         poster,
+        finished,
+        age_limit,
       } = params;
       const data: UpdateMangaRequestDto = {
         manga_tags,
         manga_creators,
         manga_languages,
-        release_date,
+        release_date: '',
         banner,
         poster,
         status: MangaStatus.OnRequest,
+        finished,
+        age_limit,
       };
 
       const { token } = ContextProvider.getAuthUser();
@@ -330,9 +338,11 @@ export class CreatorRequestService {
         manga_tags,
         manga_creators,
         manga_languages,
-        release_date,
+        // release_date,
         banner,
         poster,
+        finished,
+        age_limit,
       } = params;
       const requestInfo = await this.requestGraphql.getCreatorRequestByPK(
         request_id
@@ -358,10 +368,12 @@ export class CreatorRequestService {
         manga_tags,
         manga_creators,
         manga_languages,
-        release_date,
+        release_date: '',
         banner,
         poster,
         status: MangaStatus.OnRequest,
+        finished,
+        age_limit,
       };
       const updateMangaResponse = await this.mangaSvc.update(
         manga_id,
@@ -498,9 +510,11 @@ export class CreatorRequestService {
         manga_tags,
         manga_creators,
         manga_languages,
-        release_date,
+        // release_date,
         banner,
         poster,
+        finished,
+        age_limit,
       } = params;
 
       const requestInfo = await this.requestGraphql.getCreatorRequestByPK(
@@ -525,10 +539,12 @@ export class CreatorRequestService {
         manga_tags,
         manga_creators,
         manga_languages,
-        release_date,
+        release_date: '',
         banner,
         poster,
         status: MangaStatus.OnRequest,
+        finished,
+        age_limit,
       };
 
       const { token } = ContextProvider.getAuthUser();
