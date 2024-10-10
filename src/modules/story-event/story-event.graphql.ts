@@ -122,6 +122,46 @@ export class StoryEventGraphql {
     );
   }
 
+  async updateStoryCharacterStatus(variables: any, token: string) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `mutation update_story_character($ids: [Int!]!, $status: String!) {
+        update_story_character(where: {id: {_in: $ids}}, _set: {status: $status}) {
+          affected_rows
+        }
+      }
+      `,
+      'update_story_character',
+      variables
+    );
+  }
+
+  async getSubmittedCharacter(token: string) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `query story_character {
+        story_character(where: {status: {_eq: "Submitted"}}) {
+          id
+          name
+          avatar_url
+          descripton_url
+          created_at
+          authorizer_user {
+            id
+            email
+            nickname
+            picture
+          }
+        }
+      }
+      `,
+      'story_character',
+      {}
+    );
+  }
+
   async updateStoryArtwork(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(

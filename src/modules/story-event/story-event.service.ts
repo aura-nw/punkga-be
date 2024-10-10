@@ -115,7 +115,7 @@ export class StoryEventService {
         `/metadata-${new Date().getTime()}`
       );
 
-      // insert story_event_submission type submited
+      // insert story_event_submission type submitted
 
       const result = await this.storyEventGraphql.insertSubmission({
         object: {
@@ -127,13 +127,13 @@ export class StoryEventService {
             avatar: avatarObj,
             description: descriptionObj,
           },
-          status: SubmissionStatus.Submited,
+          status: SubmissionStatus.Submitted,
         },
       });
 
       if (result.errors) return result;
 
-      // insert character type = submited
+      // insert character type = submitted
       const insertCharacterResult =
         await this.storyEventGraphql.insertStoryCharacter({
           object: {
@@ -142,7 +142,7 @@ export class StoryEventService {
             descripton_url: descriptionObj.displayUrl,
             ipfs_url: `${ipfsDisplayUrl}/${metadataCID}`,
             user_id: userId,
-            status: StoryCharacterStatus.Submited,
+            status: StoryCharacterStatus.Submitted,
           },
         });
 
@@ -181,6 +181,22 @@ export class StoryEventService {
         },
       };
     }
+  }
+
+  async approveCharacter(ids: number[], status: StoryCharacterStatus) {
+    const { token } = ContextProvider.getAuthUser();
+    return this.storyEventGraphql.updateStoryCharacterStatus(
+      {
+        ids,
+        status,
+      },
+      token
+    );
+  }
+
+  async getSubmittedCharacter() {
+    const { token } = ContextProvider.getAuthUser();
+    return this.storyEventGraphql.getSubmittedCharacter(token);
   }
 
   /**
@@ -225,7 +241,7 @@ export class StoryEventService {
             manga_languages,
             manga_characters,
           },
-          status: SubmissionStatus.Submited,
+          status: SubmissionStatus.Submitted,
         },
       });
 
@@ -311,7 +327,7 @@ export class StoryEventService {
             artwork: artworkObj,
             artwork_characters,
           },
-          status: SubmissionStatus.Submited,
+          status: SubmissionStatus.Submitted,
         },
       });
       if (result.errors) return result;
@@ -319,7 +335,7 @@ export class StoryEventService {
 
       // insert artwork
       // TODO: creator_id???
-      // TODO: add status submited
+      // TODO: add status submitted
       // const insertArtwork = await this.storyEventGraphql.insertArtwork({
       //   object: {
       //     name,

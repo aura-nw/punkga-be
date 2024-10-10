@@ -24,6 +24,7 @@ import { SubmitArtworkRequestDto } from './dto/submit-artwork.dto';
 import { SubmitCharacterRequestDto } from './dto/submit-character.dto';
 import { SubmitMangaRequestDto } from './dto/submit-manga.dto';
 import { StoryEventService } from './story-event.service';
+import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
 
 @Controller('story-event')
 @ApiTags('story-event')
@@ -42,6 +43,26 @@ export class StoryEventController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.storyEventSvc.submitCharacter(data, files);
+  }
+
+  @Get('submission/character/submitted')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @SetRequestTimeout()
+  @Roles(Role.Admin)
+  getPendingCharacter() {
+    return this.storyEventSvc.getSubmittedCharacter();
+  }
+
+  @Post('submission/character/approve')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @SetRequestTimeout()
+  @Roles(Role.Admin)
+  approveCharacter(@Body() data: UpdateCharacterStatusRequestDto) {
+    return this.storyEventSvc.approveCharacter(data.ids, data.status);
   }
 
   @Post('submission/manga')
