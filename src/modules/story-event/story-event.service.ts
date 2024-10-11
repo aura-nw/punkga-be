@@ -151,7 +151,7 @@ export class StoryEventService {
 
       if (insertCharacterResult.errors) return insertCharacterResult;
 
-      return result;
+      return insertCharacterResult;
 
       // return
     } catch (error) {
