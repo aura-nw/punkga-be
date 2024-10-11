@@ -58,11 +58,12 @@ export class StoryEventController {
   @Post('submission/character/approve')
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @UseInterceptors(AuthUserInterceptor)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   @SetRequestTimeout()
   @Roles(Role.Admin)
   approveCharacter(@Body() data: UpdateCharacterStatusRequestDto) {
-    return this.storyEventSvc.approveCharacter(data.ids, data.status);
+    return this.storyEventSvc.approveCharacter(data);
   }
 
   @Post('submission/manga')

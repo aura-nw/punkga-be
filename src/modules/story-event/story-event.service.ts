@@ -26,6 +26,7 @@ import {
 } from './story-event.enum';
 import { StoryEventGraphql } from './story-event.graphql';
 import { getBytes32FromIpfsHash } from './utils';
+import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
 
 @Injectable()
 export class StoryEventService {
@@ -143,33 +144,12 @@ export class StoryEventService {
             ipfs_url: `${ipfsDisplayUrl}/${metadataCID}`,
             user_id: userId,
             status: StoryCharacterStatus.Submitted,
+            story_event_submission_id:
+              result.data.insert_story_event_submission_one.id,
           },
         });
 
       if (insertCharacterResult.errors) return insertCharacterResult;
-      const jobData = {
-        name,
-        user_id: userId,
-        metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
-        charater_id: insertCharacterResult.data.insert_story_character_one.id,
-        submission_id: result.data.insert_story_event_submission_one.id,
-        user_wallet_address: userWalletAddress,
-      };
-
-      // create job
-      await this.storyEventQueue.add(
-        'event',
-        {
-          type: SubmissionType.Character,
-          data: jobData,
-        },
-        {
-          removeOnComplete: true,
-          removeOnFail: 10,
-          attempts: 5,
-          backoff: 5000,
-        }
-      );
 
       return result;
 
@@ -183,11 +163,47 @@ export class StoryEventService {
     }
   }
 
-  async approveCharacter(ids: number[], status: StoryCharacterStatus) {
+  async approveCharacter(data: UpdateCharacterStatusRequestDto) {
+    const { ids, status } = data;
+    const arrIds = ids.split(',').map((id) => Number(id));
     const { token } = ContextProvider.getAuthUser();
+
+    if (status === StoryCharacterStatus.Approved) {
+      const queryCharactersResult = await this.storyEventGraphql.getCharacters({
+        ids: arrIds,
+      });
+      if (queryCharactersResult.errors) return queryCharactersResult;
+      const characters = queryCharactersResult.data.story_character;
+      for (const character of characters) {
+        const jobData = {
+          name: character.name,
+          user_id: character.user_id,
+          metadata_ipfs: character.ipfs_url,
+          charater_id: character.id,
+          submission_id: character.story_event_submission_id,
+          user_wallet_address: character.authorizer_user.active_evm_address,
+        };
+
+        // create job
+        await this.storyEventQueue.add(
+          'event',
+          {
+            type: SubmissionType.Character,
+            data: jobData,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: 10,
+            attempts: 5,
+            backoff: 5000,
+          }
+        );
+      }
+    }
+
     return this.storyEventGraphql.updateStoryCharacterStatus(
       {
-        ids,
+        ids: arrIds,
         status,
       },
       token
