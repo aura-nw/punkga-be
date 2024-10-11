@@ -6,6 +6,11 @@
           "internalType": "address",
           "name": "_owner",
           "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_storyProtocolGateway",
+          "type": "address"
         }
       ],
       "stateMutability": "nonpayable",
@@ -80,6 +85,19 @@
       ],
       "name": "SetOperator",
       "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "SPG_ADDRESS",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
     },
     {
       "inputs": [],
@@ -250,9 +268,31 @@
           "type": "address"
         },
         {
-          "internalType": "string",
-          "name": "uri",
-          "type": "string"
+          "components": [
+            {
+              "internalType": "string",
+              "name": "ipMetadataURI",
+              "type": "string"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "ipMetadataHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "string",
+              "name": "nftMetadataURI",
+              "type": "string"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "nftMetadataHash",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct IStoryProtocolGateway.IPMetadata",
+          "name": "ipMetadata",
+          "type": "tuple"
         },
         {
           "components": [
@@ -614,6 +654,32 @@
     {
       "inputs": [
         {
+          "internalType": "uint256",
+          "name": "_maxIpasset",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMaxIpasset",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_maxParents",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMaxParents",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "address",
           "name": "_operator",
           "type": "address"
@@ -651,6 +717,19 @@
         }
       ],
       "name": "setRoyaltyModule",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_addr",
+          "type": "address"
+        }
+      ],
+      "name": "setStoryProtocolGateway",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

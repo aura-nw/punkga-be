@@ -175,10 +175,14 @@ export class StoryEventService {
       if (queryCharactersResult.errors) return queryCharactersResult;
       const characters = queryCharactersResult.data.story_character;
       for (const character of characters) {
+        const cid = character.ipfs_url.split('/');
+        const metaDatahash = getBytes32FromIpfsHash(cid[cid.length - 1]);
+
         const jobData = {
           name: character.name,
           user_id: character.user_id,
           metadata_ipfs: character.ipfs_url,
+          nft_metadata_hash: metaDatahash,
           charater_id: character.id,
           submission_id: character.story_event_submission_id,
           user_wallet_address: character.authorizer_user.active_evm_address,
