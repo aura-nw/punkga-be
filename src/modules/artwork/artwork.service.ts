@@ -326,7 +326,7 @@ export class ArtworkService implements OnModuleInit {
     } catch (error) {
       return {
         errors: {
-          message: JSON.stringify(error),
+          message: error.message,
         },
       };
     }
@@ -347,7 +347,7 @@ export class ArtworkService implements OnModuleInit {
     } catch (error) {
       return {
         errors: {
-          message: JSON.stringify(error),
+          message: error.message,
         },
       };
     }
@@ -376,7 +376,7 @@ export class ArtworkService implements OnModuleInit {
       this.logger.error(`cannot get image from url: ${url}`);
       return {
         errors: {
-          message: JSON.stringify(error),
+          message: error.message,
         },
       };
     }
@@ -403,7 +403,7 @@ export class ArtworkService implements OnModuleInit {
       this.logger.error(`cannot get image from url: ${url}`);
       return {
         errors: {
-          message: JSON.stringify(error),
+          message: error.message,
         },
       };
     }

@@ -27,6 +27,9 @@ import { ChainGateWayModule } from './chain-gateway/chain-gateway.module';
 import { ArtworkModule } from './modules/artwork/artwork.module';
 import { AlbumModule } from './modules/album/album.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
+import { CreatorRequestModule } from './modules/creator-request/creator-request.module';
+import { StoryEventModule } from './modules/story-event/story-event.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -53,6 +56,7 @@ import { TelegramModule } from './modules/telegram/telegram.module';
       ttl: 5,
       max: 20,
     }),
+    AuthModule,
     ChapterModule,
     MangaModule,
     CreatorModule,
@@ -77,6 +81,8 @@ import { TelegramModule } from './modules/telegram/telegram.module';
     ArtworkModule,
     AlbumModule,
     TelegramModule,
+    CreatorRequestModule,
+    StoryEventModule,
   ],
   controllers: [],
   providers: [

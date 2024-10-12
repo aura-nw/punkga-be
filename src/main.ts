@@ -15,7 +15,7 @@ async function bootstrap() {
       transform: true,
       skipNullProperties: true,
       skipMissingProperties: true,
-    }),
+    })
   );
   app.enableCors();
 

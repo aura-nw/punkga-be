@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsNumber, IsString } from 'class-validator';
 import { MangaStatus } from '../../../common/enum';
 
@@ -33,9 +33,6 @@ export class MangaLanguage {
 }
 
 export class CreateMangaRequestDto {
-  @ApiProperty({ enum: MangaStatus, enumName: 'MangaStatus' })
-  status: MangaStatus;
-
   @ApiProperty({ type: [MangaTag] })
   manga_tags: string;
 
@@ -59,4 +56,12 @@ export class CreateMangaRequestDto {
 
   // @ApiProperty({ type: ['string'], format: 'binary' })
   // files: Express.Multer.File[];
+  @ApiPropertyOptional({ enum: MangaStatus, enumName: 'MangaStatus' })
+  status: MangaStatus;
+
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  finished: number;
+
+  @ApiProperty({ type: Number, enum: [0, 1], example: 0 })
+  age_limit: number;
 }
