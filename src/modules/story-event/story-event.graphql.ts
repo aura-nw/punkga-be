@@ -269,9 +269,9 @@ export class StoryEventGraphql {
             count
           }
         }
-        story_character(where: {status: {_eq: "Approved"}}, order_by: {${orderBy.join(
+        story_character(where: {status: {_eq: "Approved"}}, order_by: [${orderBy.join(
           ','
-        )}}, limit: $limit, offset: $offset) {
+        )}], limit: $limit, offset: $offset) {
           id
           avatar_url
           descripton_url

@@ -77,7 +77,12 @@ export class StoryEventConsumer implements OnModuleInit {
       // mint nft & create ipa
       const args = [
         data.user_wallet_address,
-        data.metadata_ipfs,
+        [
+          '',
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+          data.metadata_ipfs,
+          data.nft_metadata_hash,
+        ],
         [
           defaultPILTerms.transferable,
           defaultPILTerms.royaltyPolicy,

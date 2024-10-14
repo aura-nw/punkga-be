@@ -175,10 +175,14 @@ export class StoryEventService {
       if (queryCharactersResult.errors) return queryCharactersResult;
       const characters = queryCharactersResult.data.story_character;
       for (const character of characters) {
+        const cid = character.ipfs_url.split('/');
+        const metaDatahash = getBytes32FromIpfsHash(cid[cid.length - 1]);
+
         const jobData = {
           name: character.name,
           user_id: character.user_id,
           metadata_ipfs: character.ipfs_url,
+          nft_metadata_hash: metaDatahash,
           charater_id: character.id,
           submission_id: character.story_event_submission_id,
           user_wallet_address: character.authorizer_user.active_evm_address,
@@ -429,19 +433,19 @@ export class StoryEventService {
 
   async queryCharacter(data: QueryApprovedCharacterParamDto) {
     const { user_id, limit, offset, order_by } = data;
-    const orderBy = ['is_default_character: desc'];
+    const orderBy = ['{is_default_character: desc}'];
     switch (order_by) {
       case CharacterSortType.Created_At_Asc:
-        orderBy.push('created_at: asc');
+        orderBy.push('{created_at: asc}');
         break;
       case CharacterSortType.Created_At_Desc:
-        orderBy.push('created_at: desc');
+        orderBy.push('{created_at: desc}');
         break;
       case CharacterSortType.User_Collect_Asc:
-        orderBy.push('user_collect_characters_aggregate: {count: asc}');
+        orderBy.push('{user_collect_characters_aggregate: {count: asc}}');
         break;
       case CharacterSortType.User_Collect_Desc:
-        orderBy.push('user_collect_characters_aggregate: {count: desc}');
+        orderBy.push('{user_collect_characters_aggregate: {count: desc}}');
         break;
       default:
         break;
