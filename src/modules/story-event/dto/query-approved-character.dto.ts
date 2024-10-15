@@ -16,6 +16,9 @@ export class QueryApprovedCharacterParamDto {
   order_by: CharacterSortType;
 
   @ApiPropertyOptional()
+  is_default: string;
+
+  @ApiPropertyOptional()
   limit: number;
 
   @ApiPropertyOptional()

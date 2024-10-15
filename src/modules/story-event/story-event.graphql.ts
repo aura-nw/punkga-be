@@ -243,6 +243,7 @@ export class StoryEventGraphql {
           id
           name
           type
+          status
           created_at
         }
       }
@@ -253,7 +254,11 @@ export class StoryEventGraphql {
     );
   }
 
-  async queryApprovedCharacters(variables: any, orderBy: string[]) {
+  async queryApprovedCharacters(
+    variables: any,
+    where: string[],
+    orderBy: string[]
+  ) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
@@ -264,14 +269,14 @@ export class StoryEventGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query story_character($user_id: bpchar = "", $limit: Int = 10, $offset: Int = 0) {
-        story_character_aggregate(where: {status: {_eq: "Approved"}}) {
+        story_character_aggregate(where: {${where.join(',')}}) {
           aggregate {
             count
           }
         }
-        story_character(where: {status: {_eq: "Approved"}}, order_by: [${orderBy.join(
-          ','
-        )}], limit: $limit, offset: $offset) {
+        story_character(where: {${where.join(',')}}, order_by: [${orderBy.join(
+        ','
+      )}], limit: $limit, offset: $offset) {
           id
           avatar_url
           descripton_url

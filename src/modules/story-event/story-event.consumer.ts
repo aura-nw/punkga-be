@@ -9,6 +9,7 @@ import {
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
 import { abi as storyEventAbi } from './../../abi/StoryEvent.json';
+import { abi as storyEventDerivativeAbi } from './../../abi/StoryEventDerivative.json';
 import { IJob } from './interfaces/job.interface';
 import { SubmissionStatus, SubmissionType } from './story-event.enum';
 import { StoryEventGraphql } from './story-event.graphql';
@@ -198,6 +199,7 @@ export class StoryEventConsumer implements OnModuleInit {
       const args = [
         [
           data.ip_asset_ids,
+          '0x8bb1ade72e21090fc891e1d4b88ac5e57b27cb31',
           defaultPILTerms.licenseTermsIds,
           defaultPILTerms.royaltyContext,
         ],
@@ -211,10 +213,10 @@ export class StoryEventConsumer implements OnModuleInit {
       ];
 
       const address =
-        `${this.storyChain.contracts.story_event_contract}` as any;
+        `${this.storyChain.contracts.story_event_derivative_contract}` as any;
 
       const hash = await this.walletClient.writeContract({
-        abi: storyEventAbi,
+        abi: storyEventDerivativeAbi,
         address,
         functionName: 'mintAndRegisterIpAndMakeDerivative',
         args,

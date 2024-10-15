@@ -432,7 +432,7 @@ export class StoryEventService {
   }
 
   async queryCharacter(data: QueryApprovedCharacterParamDto) {
-    const { user_id, limit, offset, order_by } = data;
+    const { user_id, limit, offset, order_by, is_default } = data;
     const orderBy = ['{is_default_character: desc}'];
     switch (order_by) {
       case CharacterSortType.Created_At_Asc:
@@ -451,12 +451,21 @@ export class StoryEventService {
         break;
     }
 
+    const where = ['status: {_eq: "Approved"}'];
+    if (is_default)
+      where.push(
+        `is_default_character: {_eq: ${
+          is_default.toLocaleLowerCase() === 'true'
+        }}`
+      );
+
     return this.storyEventGraphql.queryApprovedCharacters(
       {
         user_id,
         limit,
         offset,
       },
+      where,
       orderBy
     );
   }

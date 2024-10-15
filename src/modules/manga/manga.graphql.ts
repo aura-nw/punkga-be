@@ -570,6 +570,11 @@ export class MangaGraphql {
             }
           }
         }
+        manga_aggregate(where: {_or: [{manga_languages: {title: {_ilike: $keyword}}}, {manga_creators: {creator: {pen_name: {_ilike: $keyword}}}}], manga_creators: {creator: {id: {_eq: $creator_id}}}}) {
+          aggregate {
+            count(columns: id)
+          }
+        }
       }
       `,
       'manga',
@@ -636,6 +641,11 @@ export class MangaGraphql {
           is_active
           finished
           age_limit
+        }
+        manga_aggregate(where: {status: {_in: $status}, _or: [{manga_languages: {title: {_ilike: $keyword}}}, {manga_creators: {creator: {pen_name: {_ilike: $keyword}}}}]}) {
+          aggregate {
+            count(columns: id)
+          }
         }
       }
       `,
