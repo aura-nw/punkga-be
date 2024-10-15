@@ -47,7 +47,10 @@ export class CreateChapterRequestDto {
 
   @ApiPropertyOptional({ type: ['string'], format: 'binary' })
   files: Express.Multer.File[];
-  
+
   @ApiPropertyOptional({ type: [Number], example: [1] })
   collection_ids: number[];
+
+  @ApiPropertyOptional()
+  submission_id?: number;
 }

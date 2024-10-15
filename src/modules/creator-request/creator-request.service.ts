@@ -211,6 +211,7 @@ export class CreatorRequestService {
         chapter_images,
         thumbnail,
         files,
+        submission_id: undefined,
       };
       const createChapterResponse = await this.chapterSvc.create(data, files);
       if (
