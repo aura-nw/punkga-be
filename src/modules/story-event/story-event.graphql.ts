@@ -243,6 +243,7 @@ export class StoryEventGraphql {
           id
           name
           type
+          status
           created_at
         }
       }
