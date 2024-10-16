@@ -24,11 +24,12 @@ import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { UserService } from './user.service';
 import { ReadChapterRequestDto } from './dto/read-chapter-request.dto';
 import { ConnectWalletRequestDto } from './dto/connect-wallet-request.dto';
+import { CreateArtistRequestDto } from './dto/create-artist-request.dto';
 
 @Controller('user')
 @ApiTags('user')
 export class UserController {
-  constructor(private readonly userSvc: UserService) { }
+  constructor(private readonly userSvc: UserService) {}
 
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -77,5 +78,18 @@ export class UserController {
   @UseInterceptors(AuthUserInterceptor)
   getAvailableQuests() {
     return this.userSvc.getUserAvailableQuest();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post('artist')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  createArtistProfile(
+    @Body() data: CreateArtistRequestDto,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.userSvc.createArtistProfile(data, files);
   }
 }

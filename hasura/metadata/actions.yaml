@@ -10,12 +10,6 @@ actions:
           email: '{{$body.input.email}}'
         template_engine: Kriti
         version: 2
-      response_transform:
-        body:
-          action: transform
-          template: "{{ if $response.status == 200 }}\r\n  {\r\n    \"error\": {{$body.error}},\r\n    \"message\": {{$body.message}}\r\n  }\r\n{{ elif $response.status == 400 }}\r\n  { \r\n    \"message\": {{$body.error}}\r\n  }\r\n{{ elif $response.status == 500 }}\r\n  { \r\n    \"message\": {{$response}}\r\n  }\r\n{{ else }}\r\n  { \r\n    \"message\" : \"internal error\"\r\n  }\r\n{{ end }}"
-        template_engine: Kriti
-        version: 2
     comment: delete user
 custom_types:
   enums: []

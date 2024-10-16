@@ -289,4 +289,42 @@ export class UserService {
       };
     }
   }
+
+  async createArtistProfile(data: any, files: Array<Express.Multer.File>) {
+    const { userId, token } = ContextProvider.getAuthUser();
+
+    // get user email
+    const user = await this.userGraphql.getUserInfo({
+      id: userId,
+    });
+
+    const { pen_name, bio, avatar_url } = data;
+    let avatarUrl = data.avatar_url;
+    if (!avatar_url) {
+      // upload image
+      const avatar = files.find(
+        (file) => file.fieldname === 'avatar' && file.mimetype.includes('image')
+      );
+
+      // resize
+      const resized = await this.filesService.resize(avatar.buffer);
+      const s3SubFolder =
+        this.configService.get<string>('aws.s3SubFolder') || 'images';
+      const keyName = `${s3SubFolder}/user-${userId}/avatar.png`;
+      await this.filesService.uploadToS3(keyName, resized, 'image/png');
+
+      const s3Endpoint = this.configService.get<string>('aws.queryEndpoint');
+      avatarUrl = new URL(keyName, s3Endpoint).href;
+    }
+
+    // create artist profile
+    return this.userGraphql.createArtistProfile({
+      object: {
+        pen_name,
+        bio,
+        avatar_url: avatarUrl,
+        email: user.email,
+      },
+    });
+  }
 }
