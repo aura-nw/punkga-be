@@ -228,10 +228,10 @@ export class StoryEventService {
     try {
       const { userId } = ContextProvider.getAuthUser();
       const { cover_url, banner_url } = data;
-      const manga_tags = plainToInstance(
-        MangaTag,
-        JSON.parse(data.manga_tags) as any[]
-      );
+      // const manga_tags = plainToInstance(
+      //   MangaTag,
+      //   JSON.parse(data.manga_tags) as any[]
+      // );
 
       const manga_languages = plainToInstance(
         MangaLanguage,
@@ -257,7 +257,7 @@ export class StoryEventService {
             name: defaultLanguage.title,
             cover_url,
             banner_url,
-            manga_tags,
+            // manga_tags,
             manga_languages,
             manga_characters,
           },
@@ -265,7 +265,7 @@ export class StoryEventService {
         },
       });
 
-      if (result.errors) return result;
+      return result;
 
       // return
     } catch (error) {

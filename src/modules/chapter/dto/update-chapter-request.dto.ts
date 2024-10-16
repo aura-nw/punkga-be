@@ -45,6 +45,9 @@ export class UpdateChapterRequestDto {
 
   @ApiPropertyOptional({ type: [Number], example: [1] })
   collection_ids: number[];
+
+  @ApiPropertyOptional({ type: Number, example: 1 })
+  submission_id?: number;
 }
 
 export class UpdateChapterParamDto {

@@ -71,9 +71,10 @@ export class StoryEventController {
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  // @UseInterceptors(AuthUserInterceptor)
   @SetRequestTimeout()
   @Roles(Role.User)
-  submitManga(@Query() data: SubmitMangaRequestDto) {
+  submitManga(@Body() data: SubmitMangaRequestDto) {
     return this.storyEventSvc.submitManga(data);
   }
 

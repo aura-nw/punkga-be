@@ -102,6 +102,7 @@ export class ChapterService {
         pushlish_date,
         status,
         collection_ids,
+        submission_id,
       } = data;
       const chapter_images = plainToInstance(
         ChapterImage,
@@ -127,6 +128,7 @@ export class ChapterService {
         chapter_type,
         pushlish_date,
         status,
+        submission_id,
         thumbnail_url: newThumbnailUrl,
       });
 
@@ -248,6 +250,7 @@ export class ChapterService {
         pushlish_date,
         status,
         collection_ids,
+        submission_id,
       } = data;
 
       // get chapter info
@@ -373,6 +376,7 @@ export class ChapterService {
           chapter_type,
           pushlish_date,
           status,
+          submission_id,
           thumbnail_url:
             newThumbnailUrl !== '' ? newThumbnailUrl : thumbnail_url,
         },
