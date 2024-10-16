@@ -505,4 +505,11 @@ export class StoryEventService {
       },
     });
   }
+
+  async queryAvailableCharacter() {
+    const { userId } = ContextProvider.getAuthUser();
+    return this.storyEventGraphql.queryAvailableCharacters({
+      user_id: userId,
+    });
+  }
 }

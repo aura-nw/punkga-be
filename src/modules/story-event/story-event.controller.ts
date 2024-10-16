@@ -125,4 +125,14 @@ export class StoryEventController {
   collectCharacter(@Param() param: CollectCharacterParamDto) {
     return this.storyEventSvc.collectCharacter(param.id);
   }
+
+  @Get('character/available')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @SetRequestTimeout()
+  @Roles(Role.User)
+  queryAvailableCharacter() {
+    return this.storyEventSvc.queryAvailableCharacter();
+  }
 }
