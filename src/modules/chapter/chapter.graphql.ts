@@ -433,4 +433,31 @@ export class ChapterGraphql {
       headers
     );
   }
+
+  async queryMangaMainTitle(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query manga_by_pk($id: Int!) {
+        manga_by_pk(id: $id) {
+          manga_languages(where: {is_main_language: {_eq: true}}) {
+            title
+          }
+        }
+      }
+      `,
+      'manga_by_pk',
+      variables,
+      headers
+    );
+
+    return (
+      result.data?.manga_by_pk?.manga_languages[0]?.title || 'Punkga Manga'
+    );
+  }
 }

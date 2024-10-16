@@ -588,4 +588,31 @@ export class StoryEventGraphql {
       headers
     );
   }
+
+  async getSubmissionDetail(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_event_submission_by_pk($id: Int!) {
+        story_event_submission_by_pk(id: $id) {
+          id
+          data
+          name
+          status
+          type
+        }
+      }`,
+      'story_event_submission_by_pk',
+      variables,
+      headers
+    );
+
+    return result.data.story_event_submission_by_pk;
+  }
 }

@@ -29,6 +29,9 @@ import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
 import { UploadChapterService } from './upload-chapter.service';
 import { mkdirp, writeFilesToFolder } from './utils';
 import { CreatorService } from '../creator/creator.service';
+import { StoryEventGraphql } from '../story-event/story-event.graphql';
+import { IPFSService } from '../files/ipfs.service';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class ChapterService {
@@ -39,7 +42,10 @@ export class ChapterService {
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService,
     private configSvc: ConfigService,
-    private creatorService: CreatorService
+    private creatorService: CreatorService,
+    private storyEventService: StoryEventGraphql,
+    private ipfsService: IPFSService,
+    private fileService: FilesService
   ) {}
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
@@ -148,6 +154,55 @@ export class ChapterService {
           chapterImages: chapter_images,
         });
 
+      if (submission_id) {
+        // query submission
+        const submission = await this.storyEventService.getSubmissionDetail({
+          id: submission_id,
+        });
+
+        // upload chapter images to ipfs
+        const ipfsDisplayUrl = this.configSvc.get<string>('network.ipfsQuery');
+
+        const ipfsImageFolder = `/punkga-manga-${manga_id}-chapter-${chapterId}/images`;
+        const { cid: chapterImagesCid } =
+          await this.ipfsService.uploadLocalFolderToIpfs(
+            storageFolder,
+            ipfsImageFolder
+          );
+        const ipfsFolderUrl = `${ipfsDisplayUrl}/${chapterImagesCid}`;
+
+        // upload nft image to ipfs
+        const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
+        const { cid: thumbnailCid } = await this.fileService.uploadFileToIpfs(
+          thumbnail.buffer,
+          thumbnail.originalname
+        );
+        const thumbnailIpfs = `${ipfsDisplayUrl}/${thumbnailCid}`;
+
+        // query manga main title
+        const mangaMainTitle = await this.chapterGraphql.queryMangaMainTitle({
+          id: manga_id,
+        });
+
+        const metadata = {
+          name: mangaMainTitle,
+          description: `Punkga Story Event Manga - ${mangaMainTitle}`,
+          attributes: [
+            {
+              chapter_images: ipfsFolderUrl,
+            },
+          ],
+          image: thumbnailIpfs,
+        };
+        const { cid: metadataCID } =
+          await this.fileService.uploadMetadataToIpfs(
+            metadata,
+            `/metadata-${new Date().getTime()}`
+          );
+
+        // create job to mint and register ip_asset
+      }
+
       // remove files
       rimraf.sync(storageFolder);
 
@@ -195,6 +250,7 @@ export class ChapterService {
           }
         }
       }
+
       return result.data;
     } catch (errors) {
       return {
@@ -519,4 +575,6 @@ export class ChapterService {
 
     return this.chapterGraphql.deactiveChapter(id);
   }
+
+  private uploadChapterImagesToIpfs() {}
 }
