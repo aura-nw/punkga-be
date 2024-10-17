@@ -278,6 +278,11 @@ export class StoryEventService {
     }
   }
 
+  async getSubmittedManga() {
+    const { token } = ContextProvider.getAuthUser();
+    return this.storyEventGraphql.getSubmittedManga(token);
+  }
+
   async submitArtwork(
     data: SubmitArtworkRequestDto,
     files: Array<Express.Multer.File>

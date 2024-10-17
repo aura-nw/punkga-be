@@ -161,6 +161,23 @@ export class StoryEventGraphql {
       {}
     );
   }
+  async getSubmittedManga(token: string) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `query story_event_submission {
+        story_event_submission(where: {type: {_eq: "manga"}, status: {_eq: "Submitted"}}) {
+          id
+          name
+          status
+          created_at
+          data
+        }
+      }`,
+      'story_character',
+      {}
+    );
+  }
 
   async updateStoryArtwork(variables: any) {
     const headers = {
@@ -617,7 +634,7 @@ export class StoryEventGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       '',
       `query availableCharacter($user_id: bpchar) {
-        default: story_character(where: {is_default_character: {_eq: true}}) {
+        default: story_character(where: {is_default_character: {_eq: true}, status: {_eq: "Approved"}}) {
           id
           avatar_url
           descripton_url
@@ -633,7 +650,7 @@ export class StoryEventGraphql {
             ip_asset_id
           }
         }
-        collected: story_character(where: {user_collect_characters: {user_id: {_eq: $user_id}}}) {
+        collected: story_character(where: {user_collect_characters: {user_id: {_eq: $user_id}}, , status: {_eq: "Approved"}}) {
           id
           avatar_url
           descripton_url
@@ -649,7 +666,7 @@ export class StoryEventGraphql {
             ip_asset_id
           }
         }
-        user_ip: story_character(where: {user_id: {_eq: $user_id}}) {
+        user_ip: story_character(where: {user_id: {_eq: $user_id}, status: {_eq: "Approved"}}) {
           id
           avatar_url
           descripton_url

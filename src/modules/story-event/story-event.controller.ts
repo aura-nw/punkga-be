@@ -56,6 +56,16 @@ export class StoryEventController {
     return this.storyEventSvc.getSubmittedCharacter();
   }
 
+  @Get('submission/manga/submitted')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @SetRequestTimeout()
+  @Roles(Role.Admin)
+  getPendingManga() {
+    return this.storyEventSvc.getSubmittedManga();
+  }
+
   @Post('submission/character/approve')
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
