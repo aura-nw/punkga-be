@@ -399,20 +399,21 @@ export class StoryEventService {
         metadata_hash: getBytes32FromIpfsHash(metadataCID),
       };
 
-      await this.storyEventQueue.add(
-        'event',
-        {
-          type: SubmissionType.Artwork,
-          data: jobData,
-        },
-        {
-          removeOnComplete: true,
-          removeOnFail: 10,
-          attempts: 5,
-          backoff: 5000,
-        }
-      );
+      // await this.storyEventQueue.add(
+      //   'event',
+      //   {
+      //     type: SubmissionType.Artwork,
+      //     data: jobData,
+      //   },
+      //   {
+      //     removeOnComplete: true,
+      //     removeOnFail: 10,
+      //     attempts: 5,
+      //     backoff: 5000,
+      //   }
+      // );
 
+      await this.addEventJob(SubmissionType.Artwork, jobData);
       // return
       return result;
     } catch (error) {
@@ -511,5 +512,21 @@ export class StoryEventService {
     return this.storyEventGraphql.queryAvailableCharacters({
       user_id: userId,
     });
+  }
+
+  addEventJob(type: SubmissionType, jobData: any) {
+    return this.storyEventQueue.add(
+      'event',
+      {
+        type,
+        data: jobData,
+      },
+      {
+        removeOnComplete: true,
+        removeOnFail: 10,
+        attempts: 5,
+        backoff: 5000,
+      }
+    );
   }
 }

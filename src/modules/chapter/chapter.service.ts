@@ -32,6 +32,9 @@ import { CreatorService } from '../creator/creator.service';
 import { StoryEventGraphql } from '../story-event/story-event.graphql';
 import { IPFSService } from '../files/ipfs.service';
 import { FilesService } from '../files/files.service';
+import { StoryEventService } from '../story-event/story-event.service';
+import { SubmissionType } from '../story-event/story-event.enum';
+import { getBytes32FromIpfsHash } from '../story-event/utils';
 
 @Injectable()
 export class ChapterService {
@@ -43,7 +46,8 @@ export class ChapterService {
     private uploadChapterService: UploadChapterService,
     private configSvc: ConfigService,
     private creatorService: CreatorService,
-    private storyEventService: StoryEventGraphql,
+    private storyEventGrapqh: StoryEventGraphql,
+    private storyEventService: StoryEventService,
     private ipfsService: IPFSService,
     private fileService: FilesService
   ) {}
@@ -134,7 +138,7 @@ export class ChapterService {
         chapter_type,
         pushlish_date,
         status,
-        submission_id,
+        story_submission_id: submission_id,
         thumbnail_url: newThumbnailUrl,
       });
 
@@ -155,21 +159,24 @@ export class ChapterService {
         });
 
       if (submission_id) {
-        // query submission
-        const submission = await this.storyEventService.getSubmissionDetail({
-          id: submission_id,
-        });
-
         // upload chapter images to ipfs
         const ipfsDisplayUrl = this.configSvc.get<string>('network.ipfsQuery');
 
-        const ipfsImageFolder = `/punkga-manga-${manga_id}-chapter-${chapterId}/images`;
-        const { cid: chapterImagesCid } =
-          await this.ipfsService.uploadLocalFolderToIpfs(
-            storageFolder,
-            ipfsImageFolder
-          );
-        const ipfsFolderUrl = `${ipfsDisplayUrl}/${chapterImagesCid}`;
+        let viChapterImagesIpfsUrl;
+        let enChapterImagesIpfsUrl;
+        for (const chapter_language of chapter_images.chapter_languages) {
+          const ipfsImageFolder = `/punkga-manga-${manga_id}-chapter-${chapterId}/${chapter_language.language_id}/images`;
+          const { cid: chapterImagesCid } =
+            await this.ipfsService.uploadLocalFolderToIpfs(
+              `${storageFolder}/unzip/1`,
+              ipfsImageFolder
+            );
+          const ipfsFolderUrl = `${ipfsDisplayUrl}/${chapterImagesCid}`;
+          if (chapter_language.language_id === 1)
+            enChapterImagesIpfsUrl = ipfsFolderUrl;
+          if (chapter_language.language_id === 2)
+            viChapterImagesIpfsUrl = ipfsFolderUrl;
+        }
 
         // upload nft image to ipfs
         const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
@@ -189,7 +196,10 @@ export class ChapterService {
           description: `Punkga Story Event Manga - ${mangaMainTitle}`,
           attributes: [
             {
-              chapter_images: ipfsFolderUrl,
+              chapter_images: {
+                vi: viChapterImagesIpfsUrl,
+                en: enChapterImagesIpfsUrl,
+              },
             },
           ],
           image: thumbnailIpfs,
@@ -200,7 +210,47 @@ export class ChapterService {
             `/metadata-${new Date().getTime()}`
           );
 
+        const insertStoryMangaResult =
+          await this.storyEventGrapqh.insertStoryManga({
+            object: {
+              manga_id: manga_id,
+              ipfs_url: metadataCID,
+            },
+          });
+        if (insertStoryMangaResult.errors) return insertStoryMangaResult;
+        const storyMangaId =
+          insertStoryMangaResult.data.insert_story_manga_one.id;
+
         // create job to mint and register ip_asset
+        // --- query submission
+        const submission = await this.storyEventGrapqh.getSubmissionDetail({
+          id: submission_id,
+        });
+        const character_ids = submission.data.manga_characters;
+        const queryStoryCharactersResult =
+          await this.storyEventGrapqh.queryStoryCharacters({
+            story_character_ids: character_ids.map(
+              (character) => character.story_character_id
+            ),
+          });
+        const ipAssetIds = queryStoryCharactersResult.data.story_character.map(
+          (character) => character.story_ip_asset.ip_asset_id
+        );
+
+        const userWalletAddress =
+          await this.chapterGraphql.queryUserAddressById(userId);
+        const jobData = {
+          name: mangaMainTitle,
+          user_id: userId,
+          metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
+          // story_artwork_id: storyArtworkId,
+          submission_id: submission_id,
+          user_wallet_address: userWalletAddress,
+          ip_asset_ids: ipAssetIds,
+          metadata_hash: getBytes32FromIpfsHash(metadataCID),
+        };
+
+        await this.storyEventService.addEventJob(SubmissionType.Manga, jobData);
       }
 
       // remove files
@@ -432,7 +482,7 @@ export class ChapterService {
           chapter_type,
           pushlish_date,
           status,
-          submission_id,
+          story_submission_id: submission_id,
           thumbnail_url:
             newThumbnailUrl !== '' ? newThumbnailUrl : thumbnail_url,
         },

@@ -497,6 +497,27 @@ export class StoryEventGraphql {
     );
   }
 
+  async insertStoryManga(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_story_manga($object: story_manga_insert_input = {}) {
+        insert_story_manga_one(object: $object) {
+          id
+        }
+      }`,
+      'insert_story_manga',
+      variables,
+      headers
+    );
+  }
+
   async queryStoryCharacters(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(

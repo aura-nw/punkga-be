@@ -319,6 +319,35 @@ export class ChapterGraphql {
     }
   }
 
+  async queryUserAddressById(userId: string): Promise<string> {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query authorizer_users($id: bpchar!) {
+        authorizer_users(limit: 1, where: {id: {_eq: $id}}) {
+          active_wallet_address: active_evm_address
+        }
+      }`,
+      'authorizer_users',
+      {
+        id: userId,
+      },
+      headers
+    );
+
+    if (result.data.authorizer_users[0]?.active_wallet_address) {
+      return result.data.authorizer_users[0]?.active_wallet_address;
+    } else {
+      throw new NotFoundException('wallet address not found');
+    }
+  }
+
   async adminCreateChapter(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configService.get<string>(
