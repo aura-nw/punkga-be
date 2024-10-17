@@ -380,6 +380,18 @@ export class StoryEventGraphql {
             slug
             banner
             poster
+            manga_total_likes {
+              likes
+            }
+            manga_creators {
+              id
+              creator {
+                id
+                slug
+                pen_name
+                avatar_url
+              }
+            }
             manga_languages {
               id
               title
