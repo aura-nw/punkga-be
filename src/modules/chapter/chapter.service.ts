@@ -180,11 +180,12 @@ export class ChapterService {
 
         // upload nft image to ipfs
         const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
-        const { cid: thumbnailCid } = await this.fileService.uploadFileToIpfs(
-          thumbnail.buffer,
-          thumbnail.originalname
-        );
-        const thumbnailIpfs = `${ipfsDisplayUrl}/${thumbnailCid}`;
+        const { cid: thumbnailCid, originalname } =
+          await this.fileService.uploadFileToIpfs(
+            thumbnail.buffer,
+            thumbnail.originalname
+          );
+        const thumbnailIpfs = `${ipfsDisplayUrl}/${thumbnailCid}/${originalname}`;
 
         // query manga main title
         const mangaMainTitle = await this.chapterGraphql.queryMangaMainTitle({
