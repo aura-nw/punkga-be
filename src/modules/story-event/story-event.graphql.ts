@@ -174,7 +174,7 @@ export class StoryEventGraphql {
           data
         }
       }`,
-      'story_character',
+      'story_event_submission',
       {}
     );
   }
