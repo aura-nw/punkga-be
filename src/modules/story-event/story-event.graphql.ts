@@ -396,11 +396,16 @@ export class StoryEventGraphql {
               id
               title
               description
+              language_id
               is_main_language
             }
           }
           story_ip_asset {
             ip_asset_id
+            story_characters {
+              avatar_url
+              descripton_url
+            }
           }
           created_at
         }
