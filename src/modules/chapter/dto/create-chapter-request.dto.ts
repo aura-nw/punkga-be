@@ -52,5 +52,5 @@ export class CreateChapterRequestDto {
   collection_ids: number[];
 
   @ApiPropertyOptional()
-  submission_id?: number;
+  story_submission_id?: number;
 }

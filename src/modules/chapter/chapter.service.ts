@@ -112,7 +112,7 @@ export class ChapterService {
         pushlish_date,
         status,
         collection_ids,
-        submission_id,
+        story_submission_id,
       } = data;
       const chapter_images = plainToInstance(
         ChapterImage,
@@ -138,7 +138,7 @@ export class ChapterService {
         chapter_type,
         pushlish_date,
         status,
-        story_submission_id: submission_id,
+        story_submission_id,
         thumbnail_url: newThumbnailUrl,
       });
 
@@ -158,7 +158,7 @@ export class ChapterService {
           chapterImages: chapter_images,
         });
 
-      if (submission_id) {
+      if (story_submission_id) {
         // upload chapter images to ipfs
         const ipfsDisplayUrl = this.configSvc.get<string>('network.ipfsQuery');
 
@@ -225,7 +225,7 @@ export class ChapterService {
         // create job to mint and register ip_asset
         // --- query submission
         const submission = await this.storyEventGrapqh.getSubmissionDetail({
-          id: submission_id,
+          id: story_submission_id,
         });
         const character_ids = submission.data.manga_characters;
         const queryStoryCharactersResult =
@@ -245,7 +245,7 @@ export class ChapterService {
           user_id: userId,
           metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
           story_manga_id: storyMangaId,
-          submission_id: submission_id,
+          submission_id: story_submission_id,
           user_wallet_address: userWalletAddress,
           ip_asset_ids: ipAssetIds,
           metadata_hash: getBytes32FromIpfsHash(metadataCID),
@@ -357,7 +357,7 @@ export class ChapterService {
         pushlish_date,
         status,
         collection_ids,
-        submission_id,
+        story_submission_id,
       } = data;
 
       // get chapter info
@@ -483,7 +483,7 @@ export class ChapterService {
           chapter_type,
           pushlish_date,
           status,
-          story_submission_id: submission_id,
+          story_submission_id,
           thumbnail_url:
             newThumbnailUrl !== '' ? newThumbnailUrl : thumbnail_url,
         },
