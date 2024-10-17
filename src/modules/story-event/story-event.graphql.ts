@@ -381,8 +381,10 @@ export class StoryEventGraphql {
             banner
             poster
             manga_languages {
+              id
               title
               description
+              is_main_language
             }
           }
           story_ip_asset {
