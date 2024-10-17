@@ -340,6 +340,47 @@ export class StoryEventGraphql {
     );
   }
 
+  async queryMangas(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_manga($limit: Int = 10, $offset: Int = 0) {
+        story_manga_aggregate(where: {manga: {status: {_eq: "On-Going"}}}) {
+          aggregate {
+            count
+          }
+        }
+        story_manga(where: {manga: {status: {_eq: "On-Going"}}}, limit: $limit, offset: $offset) {
+          id
+          manga {
+            id
+            slug
+            banner
+            poster
+            manga_languages {
+              title
+              description
+            }
+          }
+          story_ip_asset {
+            ip_asset_id
+          }
+          created_at
+        }
+      }
+      `,
+      'story_manga',
+      variables,
+      headers
+    );
+  }
+
   async queryCollectedCharacters(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(

@@ -25,6 +25,7 @@ import { SubmitCharacterRequestDto } from './dto/submit-character.dto';
 import { SubmitMangaRequestDto } from './dto/submit-manga.dto';
 import { StoryEventService } from './story-event.service';
 import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
+import { QueryMangaParamDto } from './dto/query-manga.dto';
 
 @Controller('story-event')
 @ApiTags('story-event')
@@ -105,6 +106,11 @@ export class StoryEventController {
   @Get('character')
   getCharacter(@Query() query: QueryApprovedCharacterParamDto) {
     return this.storyEventSvc.queryCharacter(query);
+  }
+
+  @Get('manga')
+  getManga(@Query() query: QueryMangaParamDto) {
+    return this.storyEventSvc.queryManga(query);
   }
 
   @Get('character/collected')

@@ -27,6 +27,7 @@ import {
 import { StoryEventGraphql } from './story-event.graphql';
 import { getBytes32FromIpfsHash } from './utils';
 import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
+import { QueryMangaParamDto } from './dto/query-manga.dto';
 
 @Injectable()
 export class StoryEventService {
@@ -469,6 +470,15 @@ export class StoryEventService {
       where,
       orderBy
     );
+  }
+
+  async queryManga(data: QueryMangaParamDto) {
+    const { limit, offset } = data;
+
+    return this.storyEventGraphql.queryMangas({
+      limit,
+      offset,
+    });
   }
 
   async queryCollectedCharacter() {
