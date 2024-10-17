@@ -244,7 +244,7 @@ export class ChapterService {
           name: mangaMainTitle,
           user_id: userId,
           metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
-          // story_artwork_id: storyArtworkId,
+          story_manga_id: storyMangaId,
           submission_id: submission_id,
           user_wallet_address: userWalletAddress,
           ip_asset_ids: ipAssetIds,

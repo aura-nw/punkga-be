@@ -193,24 +193,23 @@ export class StoryEventConsumer implements OnModuleInit {
   async createStoryMangaIpAsset(data: any) {
     try {
       // mint nft & create ipa
-      const { ipAssetId, nftId, hash } =
+      const { ipAssetId, nftId, hash, storyIPAId } =
         await this.mintAndRegisterIpAndMakeDerivative(data);
 
-      // // --- update story artwork set story_ip_id
-      // const updateStoryArtworkResult =
-      //   await this.storyEventGraphql.updateStoryArtwork({
-      //     id: data.story_artwork_id,
-      //     story_ip_asset_id:
-      //       insertStoryIPAResult.data.insert_story_ip_asset_one.id,
-      //   });
-      // if (updateStoryArtworkResult.errors) {
-      //   this.logger.error(
-      //     `Update story artwork error: ${JSON.stringify(
-      //       updateStoryArtworkResult
-      //     )}`
-      //   );
-      //   throw new InternalServerErrorException('Update story artwork failed ');
-      // }
+      // --- update story artwork set story_ip_id
+      const updateStoryArtworkResult =
+        await this.storyEventGraphql.updateStoryManga({
+          id: data.story_manga_id,
+          story_ip_asset_id: storyIPAId,
+        });
+      if (updateStoryArtworkResult.errors) {
+        this.logger.error(
+          `Update story artwork error: ${JSON.stringify(
+            updateStoryArtworkResult
+          )}`
+        );
+        throw new InternalServerErrorException('Update story artwork failed ');
+      }
 
       this.logger.log(
         `Create Artwork IP Asset Done: ipid ${ipAssetId} hash ${hash}`
@@ -366,6 +365,7 @@ export class StoryEventConsumer implements OnModuleInit {
       ipAssetId,
       nftId,
       hash,
+      storyIPAId: insertStoryIPAResult.data.insert_story_ip_asset_one.id,
     };
   }
 }
