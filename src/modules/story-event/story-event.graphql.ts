@@ -367,7 +367,7 @@ export class StoryEventGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query story_manga($limit: Int = 10, $offset: Int = 0) {
+      `query story_manga($limit: Int = 100, $offset: Int = 0) {
         story_manga_aggregate(where: {manga: {status: {_eq: "On-Going"}}}) {
           aggregate {
             count
@@ -400,9 +400,9 @@ export class StoryEventGraphql {
               is_main_language
             }
           }
-          story_ip_asset {
-            ip_asset_id
-            story_characters {
+          story_manga_characters {
+            story_character {
+              id
               avatar_url
               descripton_url
             }

@@ -197,18 +197,18 @@ export class StoryEventConsumer implements OnModuleInit {
         await this.mintAndRegisterIpAndMakeDerivative(data);
 
       // --- update story artwork set story_ip_id
-      const updateStoryArtworkResult =
+      const updateStoryMangaResult =
         await this.storyEventGraphql.updateStoryManga({
           id: data.story_manga_id,
           story_ip_asset_id: storyIPAId,
         });
-      if (updateStoryArtworkResult.errors) {
+      if (updateStoryMangaResult.errors) {
         this.logger.error(
           `Update story artwork error: ${JSON.stringify(
-            updateStoryArtworkResult
+            updateStoryMangaResult
           )}`
         );
-        throw new InternalServerErrorException('Update story artwork failed ');
+        throw new InternalServerErrorException('Update story manga failed ');
       }
 
       this.logger.log(

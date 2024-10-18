@@ -489,4 +489,27 @@ export class ChapterGraphql {
       result.data?.manga_by_pk?.manga_languages[0]?.title || 'Punkga Manga'
     );
   }
+
+  async insertMangaCharacters(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_story_manga_character($objects: [story_manga_character_insert_input!] = {}) {
+        insert_story_manga_character(objects: $objects) {
+          affected_rows
+        }
+      }
+      `,
+      'insert_story_manga_character',
+      variables,
+      headers
+    );
+
+    return result;
+  }
 }

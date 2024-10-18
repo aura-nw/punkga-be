@@ -8,3 +8,11 @@ object_relationships:
   - name: story_ip_asset
     using:
       foreign_key_constraint_on: story_ip_asset_id
+array_relationships:
+  - name: story_manga_characters
+    using:
+      foreign_key_constraint_on:
+        column: story_manga_id
+        table:
+          name: story_manga_character
+          schema: public

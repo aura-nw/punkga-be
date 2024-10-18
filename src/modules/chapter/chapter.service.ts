@@ -7,6 +7,7 @@ import rimraf from 'rimraf';
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -238,6 +239,25 @@ export class ChapterService {
           (character) => character.story_ip_asset.ip_asset_id
         );
 
+        // insert manga characters
+        const insertMangaCharacterResult =
+          await this.chapterGraphql.insertMangaCharacters({
+            objects: character_ids.map((character) => ({
+              story_character_id: character.story_character_id,
+              story_manga_id: storyMangaId,
+            })),
+          });
+        if (insertMangaCharacterResult.errors) {
+          this.logger.error(
+            `insert manga characters error: ${JSON.stringify(
+              insertMangaCharacterResult
+            )}`
+          );
+          throw new InternalServerErrorException(
+            'insert story characters failed '
+          );
+        }
+
         const userWalletAddress =
           await this.chapterGraphql.queryUserAddressById(userId);
         const jobData = {
@@ -249,6 +269,7 @@ export class ChapterService {
           user_wallet_address: userWalletAddress,
           ip_asset_ids: ipAssetIds,
           metadata_hash: getBytes32FromIpfsHash(metadataCID),
+          character_ids,
         };
 
         await this.storyEventService.addEventJob(SubmissionType.Manga, jobData);
