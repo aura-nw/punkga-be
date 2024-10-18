@@ -400,6 +400,9 @@ export class StoryEventGraphql {
               is_main_language
             }
           }
+          story_ip_asset {
+            ip_asset_id
+          }
           story_manga_characters {
             story_character {
               id
