@@ -13,7 +13,12 @@ import { abi as storyEventDerivativeAbi } from './../../abi/StoryEventDerivative
 import { IJob } from './interfaces/job.interface';
 import { SubmissionStatus, SubmissionType } from './story-event.enum';
 import { StoryEventGraphql } from './story-event.graphql';
-import { defaultPILTerms, iliad, parseTxIpRegisteredEvent } from './utils';
+import {
+  defaultPILTerms,
+  iliad,
+  parseTxIpRegisteredEvent,
+  sleep,
+} from './utils';
 
 @Processor('story-event')
 export class StoryEventConsumer implements OnModuleInit {
@@ -40,17 +45,22 @@ export class StoryEventConsumer implements OnModuleInit {
 
     switch (type) {
       case SubmissionType.Character:
-        return this.createStoryCharacterIpAsset(data);
+        await this.createStoryCharacterIpAsset(data);
+        break;
       case SubmissionType.Manga:
-        return this.createStoryMangaIpAsset(data);
+        await this.createStoryMangaIpAsset(data);
+        break;
       case SubmissionType.Artwork:
-        return this.createStoryArtworkIpAsset(data);
+        await this.createStoryArtworkIpAsset(data);
+        break;
       default:
         this.logger.error(
           `invalid type of event job ${JSON.stringify(job.data)}`
         );
         break;
     }
+
+    await sleep(1000);
     return {};
   }
 

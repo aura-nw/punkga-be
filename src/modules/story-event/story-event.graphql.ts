@@ -172,8 +172,16 @@ export class StoryEventGraphql {
           status
           created_at
           data
+          authorizer_user {
+            id
+            creator {
+              pen_name
+              id
+            }
+          }
         }
-      }`,
+      }
+      `,
       'story_event_submission',
       {}
     );
