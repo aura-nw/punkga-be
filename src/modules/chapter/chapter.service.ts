@@ -326,7 +326,9 @@ export class ChapterService {
       return result.data;
     } catch (errors) {
       return {
-        errors,
+        error: {
+          message: errors.message,
+        },
       };
     }
   }
