@@ -405,6 +405,9 @@ export class StoryEventGraphql {
               id
               avatar_url
               descripton_url
+              story_ip_asset {
+                ip_asset_id
+              }
             }
           }
           created_at
