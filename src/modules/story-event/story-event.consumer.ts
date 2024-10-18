@@ -294,7 +294,7 @@ export class StoryEventConsumer implements OnModuleInit {
       [
         data.ip_asset_ids,
         '0x8bb1ade72e21090fc891e1d4b88ac5e57b27cb31',
-        defaultPILTerms.licenseTermsIds,
+        data.ip_asset_ids.map(() => defaultPILTerms.licenseTermsIds),
         defaultPILTerms.royaltyContext,
       ],
       [
