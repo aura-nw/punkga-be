@@ -1,3 +1,7 @@
 table:
   name: story_artwork
   schema: public
+object_relationships:
+  - name: story_artwork_story_ip_asset
+    using:
+      foreign_key_constraint_on: story_ip_asset_id
