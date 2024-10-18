@@ -9,9 +9,17 @@ import { ChapterGraphql } from './chapter.graphql';
 import { ChapterService } from './chapter.service';
 import { UploadChapterService } from './upload-chapter.service';
 import { CreatorModule } from '../creator/creator.module';
+import { StoryEventModule } from '../story-event/story-event.module';
 
 @Module({
-  imports: [JwtModule, GraphqlModule, FilesModule, MangaModule, CreatorModule],
+  imports: [
+    JwtModule,
+    GraphqlModule,
+    FilesModule,
+    MangaModule,
+    CreatorModule,
+    StoryEventModule,
+  ],
   providers: [ChapterService, UploadChapterService, ChapterGraphql],
   controllers: [ChapterController],
   exports: [UploadChapterService, ChapterGraphql, ChapterService],

@@ -319,6 +319,35 @@ export class ChapterGraphql {
     }
   }
 
+  async queryUserAddressById(userId: string): Promise<string> {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query authorizer_users($id: bpchar!) {
+        authorizer_users(limit: 1, where: {id: {_eq: $id}}) {
+          active_wallet_address: active_evm_address
+        }
+      }`,
+      'authorizer_users',
+      {
+        id: userId,
+      },
+      headers
+    );
+
+    if (result.data.authorizer_users[0]?.active_wallet_address) {
+      return result.data.authorizer_users[0]?.active_wallet_address;
+    } else {
+      throw new NotFoundException('wallet address not found');
+    }
+  }
+
   async adminCreateChapter(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configService.get<string>(
@@ -328,17 +357,19 @@ export class ChapterGraphql {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       '',
-      `mutation AddChapter($manga_id: Int, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String = "", $status: String = "CREATED", $pushlish_date: timestamptz) {
-      insert_chapters_one(object: {chapter_name: $chapter_name, chapter_number: $chapter_number, chapter_type: $chapter_type, thumbnail_url: $thumbnail_url, manga_id: $manga_id, status: $status, pushlish_date: $pushlish_date}) {
-        id
-        chapter_name
-        chapter_number
-        pushlish_date
-        status
-        thumbnail_url
-        created_at
+      `mutation AddChapter($manga_id: Int, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String = "", $status: String = "CREATED", $pushlish_date: timestamptz, $story_submission_id: Int!) {
+        insert_chapters_one(object: {chapter_name: $chapter_name, chapter_number: $chapter_number, chapter_type: $chapter_type, thumbnail_url: $thumbnail_url, manga_id: $manga_id, status: $status, pushlish_date: $pushlish_date, story_submission_id: $story_submission_id}) {
+          id
+          chapter_name
+          chapter_number
+          pushlish_date
+          status
+          thumbnail_url
+          created_at
+          story_submission_id
+        }
       }
-    }`,
+      `,
       'AddChapter',
       variables,
       headers
@@ -354,17 +385,18 @@ export class ChapterGraphql {
     return this.graphqlSvc.query(
       this.configService.get<string>('graphql.endpoint'),
       '',
-      `mutation UpdateChapterByPK($id: Int!, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String, $status: String = "", $pushlish_date: timestamptz = "") {
-      update_chapters_by_pk(pk_columns: {id: $id}, _set: {chapter_name: $chapter_name, chapter_type: $chapter_type, thumbnail_url: $thumbnail_url, chapter_number: $chapter_number, status: $status, pushlish_date: $pushlish_date}) {
-        id
-        chapter_name
-        chapter_number
-        chapter_type
-        thumbnail_url
-        updated_at
-        manga_id
-      }
-    }`,
+      `mutation UpdateChapterByPK($id: Int!, $chapter_name: String, $chapter_number: Int, $chapter_type: String, $thumbnail_url: String, $status: String = "", $pushlish_date: timestamptz = "", $story_submission_id: Int!) {
+        update_chapters_by_pk(pk_columns: {id: $id}, _set: {chapter_name: $chapter_name, chapter_type: $chapter_type, thumbnail_url: $thumbnail_url, chapter_number: $chapter_number, status: $status, pushlish_date: $pushlish_date, story_submission_id: $story_submission_id}) {
+          id
+          chapter_name
+          chapter_number
+          chapter_type
+          thumbnail_url
+          story_submission_id
+          updated_at
+          manga_id
+        }
+      }`,
       'UpdateChapterByPK',
       variables,
       headers
@@ -429,5 +461,55 @@ export class ChapterGraphql {
       { id: chapterId, status },
       headers
     );
+  }
+
+  async queryMangaMainTitle(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `query manga_by_pk($id: Int!) {
+        manga_by_pk(id: $id) {
+          manga_languages(where: {is_main_language: {_eq: true}}) {
+            title
+          }
+        }
+      }
+      `,
+      'manga_by_pk',
+      variables,
+      headers
+    );
+
+    return (
+      result.data?.manga_by_pk?.manga_languages[0]?.title || 'Punkga Manga'
+    );
+  }
+
+  async insertMangaCharacters(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configService.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    const result = await this.graphqlSvc.query(
+      this.configService.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_story_manga_character($objects: [story_manga_character_insert_input!] = {}) {
+        insert_story_manga_character(objects: $objects) {
+          affected_rows
+        }
+      }
+      `,
+      'insert_story_manga_character',
+      variables,
+      headers
+    );
+
+    return result;
   }
 }

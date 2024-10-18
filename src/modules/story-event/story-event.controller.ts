@@ -25,6 +25,7 @@ import { SubmitCharacterRequestDto } from './dto/submit-character.dto';
 import { SubmitMangaRequestDto } from './dto/submit-manga.dto';
 import { StoryEventService } from './story-event.service';
 import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
+import { QueryMangaParamDto } from './dto/query-manga.dto';
 
 @Controller('story-event')
 @ApiTags('story-event')
@@ -55,6 +56,16 @@ export class StoryEventController {
     return this.storyEventSvc.getSubmittedCharacter();
   }
 
+  @Get('submission/manga/submitted')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @SetRequestTimeout()
+  @Roles(Role.Admin)
+  getPendingManga() {
+    return this.storyEventSvc.getSubmittedManga();
+  }
+
   @Post('submission/character/approve')
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -71,9 +82,10 @@ export class StoryEventController {
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  // @UseInterceptors(AuthUserInterceptor)
   @SetRequestTimeout()
   @Roles(Role.User)
-  submitManga(@Query() data: SubmitMangaRequestDto) {
+  submitManga(@Body() data: SubmitMangaRequestDto) {
     return this.storyEventSvc.submitManga(data);
   }
 
@@ -106,6 +118,11 @@ export class StoryEventController {
     return this.storyEventSvc.queryCharacter(query);
   }
 
+  @Get('manga')
+  getManga(@Query() query: QueryMangaParamDto) {
+    return this.storyEventSvc.queryManga(query);
+  }
+
   @Get('character/collected')
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -124,5 +141,15 @@ export class StoryEventController {
   @Roles(Role.User)
   collectCharacter(@Param() param: CollectCharacterParamDto) {
     return this.storyEventSvc.collectCharacter(param.id);
+  }
+
+  @Get('character/available')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @SetRequestTimeout()
+  @Roles(Role.User)
+  queryAvailableCharacter() {
+    return this.storyEventSvc.queryAvailableCharacter();
   }
 }

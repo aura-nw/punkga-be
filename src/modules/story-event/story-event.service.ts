@@ -27,6 +27,7 @@ import {
 import { StoryEventGraphql } from './story-event.graphql';
 import { getBytes32FromIpfsHash } from './utils';
 import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
+import { QueryMangaParamDto } from './dto/query-manga.dto';
 
 @Injectable()
 export class StoryEventService {
@@ -228,10 +229,10 @@ export class StoryEventService {
     try {
       const { userId } = ContextProvider.getAuthUser();
       const { cover_url, banner_url } = data;
-      const manga_tags = plainToInstance(
-        MangaTag,
-        JSON.parse(data.manga_tags) as any[]
-      );
+      // const manga_tags = plainToInstance(
+      //   MangaTag,
+      //   JSON.parse(data.manga_tags) as any[]
+      // );
 
       const manga_languages = plainToInstance(
         MangaLanguage,
@@ -257,7 +258,7 @@ export class StoryEventService {
             name: defaultLanguage.title,
             cover_url,
             banner_url,
-            manga_tags,
+            // manga_tags,
             manga_languages,
             manga_characters,
           },
@@ -265,7 +266,7 @@ export class StoryEventService {
         },
       });
 
-      if (result.errors) return result;
+      return result;
 
       // return
     } catch (error) {
@@ -275,6 +276,11 @@ export class StoryEventService {
         },
       };
     }
+  }
+
+  async getSubmittedManga() {
+    const { token } = ContextProvider.getAuthUser();
+    return this.storyEventGraphql.getSubmittedManga(token);
   }
 
   async submitArtwork(
@@ -399,20 +405,21 @@ export class StoryEventService {
         metadata_hash: getBytes32FromIpfsHash(metadataCID),
       };
 
-      await this.storyEventQueue.add(
-        'event',
-        {
-          type: SubmissionType.Artwork,
-          data: jobData,
-        },
-        {
-          removeOnComplete: true,
-          removeOnFail: 10,
-          attempts: 5,
-          backoff: 5000,
-        }
-      );
+      // await this.storyEventQueue.add(
+      //   'event',
+      //   {
+      //     type: SubmissionType.Artwork,
+      //     data: jobData,
+      //   },
+      //   {
+      //     removeOnComplete: true,
+      //     removeOnFail: 10,
+      //     attempts: 5,
+      //     backoff: 5000,
+      //   }
+      // );
 
+      await this.addEventJob(SubmissionType.Artwork, jobData);
       // return
       return result;
     } catch (error) {
@@ -470,6 +477,15 @@ export class StoryEventService {
     );
   }
 
+  async queryManga(data: QueryMangaParamDto) {
+    const { limit, offset } = data;
+
+    return this.storyEventGraphql.queryMangas({
+      limit,
+      offset,
+    });
+  }
+
   async queryCollectedCharacter() {
     const { userId } = ContextProvider.getAuthUser();
     return this.storyEventGraphql.queryCollectedCharacters({
@@ -504,5 +520,28 @@ export class StoryEventService {
         story_character_id: id,
       },
     });
+  }
+
+  async queryAvailableCharacter() {
+    const { userId } = ContextProvider.getAuthUser();
+    return this.storyEventGraphql.queryAvailableCharacters({
+      user_id: userId,
+    });
+  }
+
+  addEventJob(type: SubmissionType, jobData: any) {
+    return this.storyEventQueue.add(
+      'event',
+      {
+        type,
+        data: jobData,
+      },
+      {
+        removeOnComplete: true,
+        removeOnFail: 10,
+        attempts: 5,
+        backoff: 5000,
+      }
+    );
   }
 }
