@@ -222,7 +222,7 @@ export class StoryEventConsumer implements OnModuleInit {
       }
 
       this.logger.log(
-        `Create Artwork IP Asset Done: ipid ${ipAssetId} hash ${hash}`
+        `Create Manga IP Asset Done: ipid ${ipAssetId} hash ${hash}`
       );
     } catch (error) {
       this.logger.error(error.message);
