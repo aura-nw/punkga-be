@@ -28,6 +28,7 @@ import { StoryEventGraphql } from './story-event.graphql';
 import { getBytes32FromIpfsHash } from './utils';
 import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
 import { QueryMangaParamDto } from './dto/query-manga.dto';
+import _ from 'lodash';
 
 @Injectable()
 export class StoryEventService {
@@ -244,6 +245,11 @@ export class StoryEventService {
         JSON.parse(data.manga_characters) as any[]
       );
 
+      const uniq_manga_characters = _.uniqBy(
+        manga_characters,
+        'story_character_id'
+      );
+
       // insert story_event_submission type pending
       const defaultLanguage =
         manga_languages.find((manga) => manga.is_main_language === true) ||
@@ -260,7 +266,7 @@ export class StoryEventService {
             banner_url,
             // manga_tags,
             manga_languages,
-            manga_characters,
+            manga_characters: uniq_manga_characters,
           },
           status: SubmissionStatus.Submitted,
         },
