@@ -161,6 +161,31 @@ export class StoryEventGraphql {
       {}
     );
   }
+  async getSubmittedManga(token: string) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `query story_event_submission {
+        story_event_submission(where: {type: {_eq: "manga"}, status: {_eq: "Submitted"}}, order_by: {id: asc}) {
+          id
+          name
+          status
+          created_at
+          data
+          authorizer_user {
+            id
+            creator {
+              pen_name
+              id
+            }
+          }
+        }
+      }
+      `,
+      'story_event_submission',
+      {}
+    );
+  }
 
   async updateStoryArtwork(variables: any) {
     const headers = {
@@ -180,6 +205,28 @@ export class StoryEventGraphql {
       }
       `,
       'update_story_artwork_by_pk',
+      variables,
+      headers
+    );
+  }
+
+  async updateStoryManga(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_story_manga_by_pk($id: Int!, $story_ip_asset_id: Int!) {
+        update_story_manga_by_pk(pk_columns: {id: $id}, _set: {story_ip_asset_id: $story_ip_asset_id}) {
+          id
+          story_ip_asset_id
+        }
+      }`,
+      'update_story_manga_by_pk',
       variables,
       headers
     );
@@ -313,6 +360,90 @@ export class StoryEventGraphql {
       }
       `,
       'story_character',
+      variables,
+      headers
+    );
+  }
+
+  async queryMangas(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_manga($limit: Int = 100, $offset: Int = 0) {
+        story_manga_aggregate(where: {manga: {status: {_eq: "On-Going"}}}) {
+          aggregate {
+            count
+          }
+        }
+        story_manga(where: {manga: {status: {_eq: "On-Going"}}}, limit: $limit, offset: $offset) {
+          id
+          manga {
+            id
+            slug
+            banner
+            poster
+            manga_total_likes {
+              likes
+            }
+            manga_creators {
+              id
+              creator {
+                id
+                slug
+                pen_name
+                avatar_url
+              }
+            }
+            manga_languages {
+              id
+              title
+              description
+              language_id
+              is_main_language
+            }
+          }
+          story_ip_asset {
+            ip_asset_id
+          }
+          story_manga_characters {
+            story_character {
+              id
+              avatar_url
+              descripton_url
+              is_default_character
+              name
+              status
+              authorizer_user {
+                id
+                nickname
+              }
+              story_ip_asset {
+                id
+                ip_asset_id
+              }
+              likes_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_collect_characters_aggregate {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+          created_at
+        }
+      }
+      `,
+      'story_manga',
       variables,
       headers
     );
@@ -497,6 +628,27 @@ export class StoryEventGraphql {
     );
   }
 
+  async insertStoryManga(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_story_manga($object: story_manga_insert_input = {}) {
+        insert_story_manga_one(object: $object) {
+          id
+        }
+      }`,
+      'insert_story_manga',
+      variables,
+      headers
+    );
+  }
+
   async queryStoryCharacters(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
@@ -520,5 +672,99 @@ export class StoryEventGraphql {
       variables,
       headers
     );
+  }
+
+  async queryAvailableCharacters(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query availableCharacter($user_id: bpchar) {
+        default: story_character(where: {is_default_character: {_eq: true}, status: {_eq: "Approved"}}) {
+          id
+          avatar_url
+          descripton_url
+          is_default_character
+          name
+          status
+          authorizer_user {
+            id
+            nickname
+          }
+          story_ip_asset {
+            id
+            ip_asset_id
+          }
+        }
+        collected: story_character(where: {user_collect_characters: {user_id: {_eq: $user_id}}, , status: {_eq: "Approved"}}) {
+          id
+          avatar_url
+          descripton_url
+          is_default_character
+          name
+          status
+          authorizer_user {
+            id
+            nickname
+          }
+          story_ip_asset {
+            id
+            ip_asset_id
+          }
+        }
+        user_ip: story_character(where: {user_id: {_eq: $user_id}, status: {_eq: "Approved"}}) {
+          id
+          avatar_url
+          descripton_url
+          is_default_character
+          name
+          status
+          authorizer_user {
+            id
+            nickname
+          }
+          story_ip_asset {
+            id
+            ip_asset_id
+          }
+        }
+      }
+      `,
+      'availableCharacter',
+      variables,
+      headers
+    );
+  }
+
+  async getSubmissionDetail(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_event_submission_by_pk($id: Int!) {
+        story_event_submission_by_pk(id: $id) {
+          id
+          data
+          name
+          status
+          type
+        }
+      }`,
+      'story_event_submission_by_pk',
+      variables,
+      headers
+    );
+
+    return result.data.story_event_submission_by_pk;
   }
 }

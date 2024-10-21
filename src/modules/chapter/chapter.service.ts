@@ -7,6 +7,7 @@ import rimraf from 'rimraf';
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -29,6 +30,12 @@ import { ViewProtectedChapterRequestDto } from './dto/view-chapter-request.dto';
 import { UploadChapterService } from './upload-chapter.service';
 import { mkdirp, writeFilesToFolder } from './utils';
 import { CreatorService } from '../creator/creator.service';
+import { StoryEventGraphql } from '../story-event/story-event.graphql';
+import { IPFSService } from '../files/ipfs.service';
+import { FilesService } from '../files/files.service';
+import { StoryEventService } from '../story-event/story-event.service';
+import { SubmissionType } from '../story-event/story-event.enum';
+import { getBytes32FromIpfsHash } from '../story-event/utils';
 
 @Injectable()
 export class ChapterService {
@@ -39,7 +46,11 @@ export class ChapterService {
     private chapterGraphql: ChapterGraphql,
     private uploadChapterService: UploadChapterService,
     private configSvc: ConfigService,
-    private creatorService: CreatorService
+    private creatorService: CreatorService,
+    private storyEventGrapqh: StoryEventGraphql,
+    private storyEventService: StoryEventService,
+    private ipfsService: IPFSService,
+    private fileService: FilesService
   ) {}
 
   async upload(data: UploadInputDto, file: Express.Multer.File) {
@@ -102,6 +113,7 @@ export class ChapterService {
         pushlish_date,
         status,
         collection_ids,
+        story_submission_id,
       } = data;
       const chapter_images = plainToInstance(
         ChapterImage,
@@ -127,6 +139,7 @@ export class ChapterService {
         chapter_type,
         pushlish_date,
         status,
+        story_submission_id,
         thumbnail_url: newThumbnailUrl,
       });
 
@@ -145,6 +158,122 @@ export class ChapterService {
           storageFolder,
           chapterImages: chapter_images,
         });
+
+      if (story_submission_id) {
+        // upload chapter images to ipfs
+        const ipfsDisplayUrl = this.configSvc.get<string>('network.ipfsQuery');
+
+        let viChapterImagesIpfsUrl;
+        let enChapterImagesIpfsUrl;
+        for (const chapter_language of chapter_images.chapter_languages) {
+          const ipfsImageFolder = `/punkga-manga-${manga_id}-chapter-${chapterId}/${chapter_language.language_id}/images`;
+          const { cid: chapterImagesCid } =
+            await this.ipfsService.uploadLocalFolderToIpfs(
+              `${storageFolder}/unzip/1`,
+              ipfsImageFolder
+            );
+          const ipfsFolderUrl = `${ipfsDisplayUrl}/${chapterImagesCid}`;
+          if (chapter_language.language_id === 1)
+            enChapterImagesIpfsUrl = ipfsFolderUrl;
+          if (chapter_language.language_id === 2)
+            viChapterImagesIpfsUrl = ipfsFolderUrl;
+        }
+
+        // upload nft image to ipfs
+        const thumbnail = files.filter((f) => f.fieldname === 'thumbnail')[0];
+        const { cid: thumbnailCid, originalname } =
+          await this.fileService.uploadFileToIpfs(
+            thumbnail.buffer,
+            thumbnail.originalname
+          );
+        const thumbnailIpfs = `${ipfsDisplayUrl}/${thumbnailCid}/${originalname}`;
+
+        // query manga main title
+        const mangaMainTitle = await this.chapterGraphql.queryMangaMainTitle({
+          id: manga_id,
+        });
+
+        const metadata = {
+          name: mangaMainTitle,
+          description: `Punkga Story Event Manga - ${mangaMainTitle}`,
+          attributes: [
+            {
+              chapter_images: {
+                vi: viChapterImagesIpfsUrl,
+                en: enChapterImagesIpfsUrl,
+              },
+            },
+          ],
+          image: thumbnailIpfs,
+        };
+        const { cid: metadataCID } =
+          await this.fileService.uploadMetadataToIpfs(
+            metadata,
+            `/metadata-${new Date().getTime()}`
+          );
+
+        const insertStoryMangaResult =
+          await this.storyEventGrapqh.insertStoryManga({
+            object: {
+              manga_id: manga_id,
+              ipfs_url: metadataCID,
+            },
+          });
+        if (insertStoryMangaResult.errors) return insertStoryMangaResult;
+        const storyMangaId =
+          insertStoryMangaResult.data.insert_story_manga_one.id;
+
+        // create job to mint and register ip_asset
+        // --- query submission
+        const submission = await this.storyEventGrapqh.getSubmissionDetail({
+          id: story_submission_id,
+        });
+        const character_ids = submission.data.manga_characters;
+        const queryStoryCharactersResult =
+          await this.storyEventGrapqh.queryStoryCharacters({
+            story_character_ids: character_ids.map(
+              (character) => character.story_character_id
+            ),
+          });
+        const ipAssetIds = queryStoryCharactersResult.data.story_character.map(
+          (character) => character.story_ip_asset.ip_asset_id
+        );
+
+        // insert manga characters
+        const insertMangaCharacterResult =
+          await this.chapterGraphql.insertMangaCharacters({
+            objects: character_ids.map((character) => ({
+              story_character_id: character.story_character_id,
+              story_manga_id: storyMangaId,
+            })),
+          });
+        if (insertMangaCharacterResult.errors) {
+          this.logger.error(
+            `insert manga characters error: ${JSON.stringify(
+              insertMangaCharacterResult
+            )}`
+          );
+          throw new InternalServerErrorException(
+            'insert story characters failed '
+          );
+        }
+
+        const userWalletAddress =
+          await this.chapterGraphql.queryUserAddressById(userId);
+        const jobData = {
+          name: mangaMainTitle,
+          user_id: userId,
+          metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
+          story_manga_id: storyMangaId,
+          submission_id: story_submission_id,
+          user_wallet_address: userWalletAddress,
+          ip_asset_ids: ipAssetIds,
+          metadata_hash: getBytes32FromIpfsHash(metadataCID),
+          character_ids,
+        };
+
+        await this.storyEventService.addEventJob(SubmissionType.Manga, jobData);
+      }
 
       // remove files
       rimraf.sync(storageFolder);
@@ -193,10 +322,13 @@ export class ChapterService {
           }
         }
       }
+
       return result.data;
     } catch (errors) {
       return {
-        errors,
+        error: {
+          message: errors.message,
+        },
       };
     }
   }
@@ -248,6 +380,7 @@ export class ChapterService {
         pushlish_date,
         status,
         collection_ids,
+        story_submission_id,
       } = data;
 
       // get chapter info
@@ -373,6 +506,7 @@ export class ChapterService {
           chapter_type,
           pushlish_date,
           status,
+          story_submission_id,
           thumbnail_url:
             newThumbnailUrl !== '' ? newThumbnailUrl : thumbnail_url,
         },
@@ -515,4 +649,6 @@ export class ChapterService {
 
     return this.chapterGraphql.deactiveChapter(id);
   }
+
+  private uploadChapterImagesToIpfs() {}
 }

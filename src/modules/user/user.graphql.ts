@@ -379,4 +379,51 @@ export class UserGraphql {
       headers
     );
   }
+
+  createArtistProfile(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_creators_one($object: creators_insert_input = {}) {
+        insert_creators_one(object: $object) {
+          id
+          email
+          gender
+        }
+      }
+      `,
+      'insert_creators_one',
+      variables,
+      headers
+    );
+  }
+
+  async getUserInfo(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query authorizer_users_by_pk($id: bpchar!) {
+        authorizer_users_by_pk(id: $id) {
+          email
+        }
+      }`,
+      'authorizer_users_by_pk',
+      variables,
+      headers
+    );
+
+    return result.data.authorizer_users_by_pk;
+  }
 }

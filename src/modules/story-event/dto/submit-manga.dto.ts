@@ -42,8 +42,8 @@ export class SubmitMangaRequestDto {
   @ApiProperty()
   banner_url: string;
 
-  @ApiProperty({ type: [MangaTag] })
-  manga_tags: string;
+  // @ApiProperty({ type: [MangaTag] })
+  // manga_tags: string;
 
   @ApiProperty({ type: [MangaLanguage] })
   manga_languages: string;

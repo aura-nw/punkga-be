@@ -22,6 +22,6 @@ import { StoryEventConsumer } from './story-event.consumer';
   ],
   providers: [StoryEventService, StoryEventGraphql, StoryEventConsumer],
   controllers: [StoryEventController],
-  exports: [],
+  exports: [StoryEventService, StoryEventGraphql],
 })
 export class StoryEventModule {}
