@@ -416,8 +416,26 @@ export class StoryEventGraphql {
               id
               avatar_url
               descripton_url
+              is_default_character
+              name
+              status
+              authorizer_user {
+                id
+                nickname
+              }
               story_ip_asset {
+                id
                 ip_asset_id
+              }
+              likes_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_collect_characters_aggregate {
+                aggregate {
+                  count
+                }
               }
             }
           }
