@@ -166,7 +166,7 @@ export class StoryEventGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       token,
       `query story_event_submission {
-        story_event_submission(where: {type: {_eq: "manga"}, status: {_eq: "Submitted"}}) {
+        story_event_submission(where: {type: {_eq: "manga"}, status: {_eq: "Submitted"}}, order_by: {id: asc}) {
           id
           name
           status
