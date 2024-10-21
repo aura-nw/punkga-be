@@ -9,6 +9,12 @@ export enum StoryCharacterStatus {
   Rejected = 'Rejected',
 }
 
+export enum StoryArtworkStatus {
+  Submitted = 'Submitted',
+  Approved = 'Approved',
+  Rejected = 'Rejected',
+}
+
 export enum SubmissionType {
   Character = 'character',
   Manga = 'manga',

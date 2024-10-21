@@ -237,6 +237,7 @@ export class StoryEventConsumer implements OnModuleInit {
   async createStoryArtworkIpAsset(data: any) {
     try {
       // mint nft & create ipa
+      // TODO: need call another contract to mint artwork nft
       const { ipAssetId, nftId, hash } =
         await this.mintAndRegisterIpAndMakeDerivative(data);
 
@@ -258,21 +259,43 @@ export class StoryEventConsumer implements OnModuleInit {
         throw new InternalServerErrorException('Insert story IP Asset failed ');
       }
 
-      // // --- update story artwork set story_ip_id
-      // const updateStoryArtworkResult =
-      //   await this.storyEventGraphql.updateStoryArtwork({
-      //     id: data.story_artwork_id,
-      //     story_ip_asset_id:
-      //       insertStoryIPAResult.data.insert_story_ip_asset_one.id,
-      //   });
-      // if (updateStoryArtworkResult.errors) {
-      //   this.logger.error(
-      //     `Update story artwork error: ${JSON.stringify(
-      //       updateStoryArtworkResult
-      //     )}`
-      //   );
-      //   throw new InternalServerErrorException('Update story artwork failed ');
-      // }
+      // insert artwork
+      const { name, display_url } = data;
+      const insertArtwork = await this.storyEventGraphql.insertArtwork({
+        object: {
+          name,
+          url: display_url,
+          creator_id: data.creator_id,
+        },
+      });
+      if (insertArtwork.errors) {
+        this.logger.error(
+          `Insert artwork error: ${JSON.stringify(insertArtwork)}`
+        );
+        throw new InternalServerErrorException('Insert artwork failed ');
+      }
+      const artworkId = Number(insertArtwork.data.insert_artworks_one.id);
+
+      // update story artwork
+      const updateStoryArtworkResult =
+        await this.storyEventGraphql.updateStoryArtwork({
+          id: data.story_artwork_id,
+          _set: {
+            artwork_id: artworkId,
+            story_ip_asset_id:
+              insertStoryIPAResult.data.insert_story_ip_asset_one.id,
+          },
+        });
+
+      if (updateStoryArtworkResult.errors) {
+        this.logger.error(
+          `Update story artwork error: ${JSON.stringify(
+            updateStoryArtworkResult
+          )}`
+        );
+        throw new InternalServerErrorException('Update story artwork failed ');
+      }
+
       // --- update submission set status = done
       const updateSubmissionResult =
         await this.storyEventGraphql.updateSubmission({

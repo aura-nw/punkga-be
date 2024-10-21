@@ -24,8 +24,9 @@ import { SubmitArtworkRequestDto } from './dto/submit-artwork.dto';
 import { SubmitCharacterRequestDto } from './dto/submit-character.dto';
 import { SubmitMangaRequestDto } from './dto/submit-manga.dto';
 import { StoryEventService } from './story-event.service';
-import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
+import { UpdateStoryArtworkStatusRequestDto } from './dto/approve-story-artwork.dto';
 import { QueryMangaParamDto } from './dto/query-manga.dto';
+import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
 
 @Controller('story-event')
 @ApiTags('story-event')
@@ -75,6 +76,17 @@ export class StoryEventController {
   @Roles(Role.Admin)
   approveCharacter(@Body() data: UpdateCharacterStatusRequestDto) {
     return this.storyEventSvc.approveCharacter(data);
+  }
+
+  @Post('submission/artwork/approve')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @SetRequestTimeout()
+  @Roles(Role.Admin)
+  approveArtwork(@Body() data: UpdateStoryArtworkStatusRequestDto) {
+    return this.storyEventSvc.approveArtwork(data);
   }
 
   @Post('submission/manga')
