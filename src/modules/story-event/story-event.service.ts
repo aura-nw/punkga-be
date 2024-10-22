@@ -29,6 +29,7 @@ import { getBytes32FromIpfsHash } from './utils';
 import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
 import { QueryMangaParamDto } from './dto/query-manga.dto';
 import _ from 'lodash';
+import { RejectMangaSubmissionRequestDto } from './dto/reject-manga-submission.dto';
 
 @Injectable()
 export class StoryEventService {
@@ -287,6 +288,15 @@ export class StoryEventService {
   async getSubmittedManga() {
     const { token } = ContextProvider.getAuthUser();
     return this.storyEventGraphql.getSubmittedManga(token);
+  }
+
+  async rejectMangaSubmission(data: RejectMangaSubmissionRequestDto) {
+    return this.storyEventGraphql.updateSubmissions({
+      ids: data.ids.split(',').map((id) => Number(id)),
+      _set: {
+        status: SubmissionStatus.Rejected,
+      },
+    });
   }
 
   async submitArtwork(

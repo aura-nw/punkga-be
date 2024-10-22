@@ -99,6 +99,28 @@ export class StoryEventGraphql {
     );
   }
 
+  async updateSubmissions(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_story_event_submission($ids: [Int!] = 10, $_set: story_event_submission_set_input = {}) {
+        update_story_event_submission(where: {id: {_in: $ids}}, _set: $_set) {
+          affected_rows
+        }
+      }
+      `,
+      'update_story_event_submission',
+      variables,
+      headers
+    );
+  }
+
   async updateCharacter(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
