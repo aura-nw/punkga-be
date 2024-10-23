@@ -18,6 +18,7 @@ import { DeleteUserRequest } from './dto/delete-user-request.dto';
 import { UpdateProfileRequestDto } from './dto/update-profile-request.dto';
 import { IUpdateProfile } from './interfaces/update-profile.interface';
 import { UserGraphql } from './user.graphql';
+import { generateSlug } from '../manga/util';
 
 @Injectable()
 export class UserService {
@@ -299,6 +300,24 @@ export class UserService {
     });
 
     const { pen_name, bio, avatar_url } = data;
+
+    // create artist profile
+    const result = await this.userGraphql.createArtistProfile({
+      object: {
+        pen_name,
+        bio,
+        // avatar_url: avatarUrl,
+        email: user.email,
+      },
+    });
+
+    if (result.errors) {
+      this.logger.error(result.errors);
+      return result;
+    }
+
+    const creator = result.data.insert_creator_one;
+
     let avatarUrl = data.avatar_url;
     if (!avatar_url) {
       // upload image
@@ -310,21 +329,25 @@ export class UserService {
       const resized = await this.filesService.resize(avatar.buffer);
       const s3SubFolder =
         this.configService.get<string>('aws.s3SubFolder') || 'images';
-      const keyName = `${s3SubFolder}/user-${userId}/avatar.png`;
+      const keyName = `${s3SubFolder}/creator-${creator}/avatar.png`;
       await this.filesService.uploadToS3(keyName, resized, 'image/png');
 
       const s3Endpoint = this.configService.get<string>('aws.queryEndpoint');
       avatarUrl = new URL(keyName, s3Endpoint).href;
     }
 
-    // create artist profile
-    return this.userGraphql.createArtistProfile({
-      object: {
-        pen_name,
-        bio,
+    const updateResult = await this.userGraphql.updateArtistProfile({
+      id: creator.id,
+      _set: {
         avatar_url: avatarUrl,
-        email: user.email,
+        slug: generateSlug(pen_name, creator.id),
       },
     });
+    if (updateResult.errors) {
+      this.logger.error(updateResult.errors);
+      return updateResult;
+    }
+
+    return result;
   }
 }

@@ -30,6 +30,8 @@ import { getBytes32FromIpfsHash } from './utils';
 import { QueryMangaParamDto } from './dto/query-manga.dto';
 import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
 import { UpdateStoryArtworkStatusRequestDto } from './dto/approve-story-artwork.dto';
+import _ from 'lodash';
+import { RejectMangaSubmissionRequestDto } from './dto/reject-manga-submission.dto';
 
 @Injectable()
 export class StoryEventService {
@@ -246,6 +248,11 @@ export class StoryEventService {
         JSON.parse(data.manga_characters) as any[]
       );
 
+      const uniq_manga_characters = _.uniqBy(
+        manga_characters,
+        'story_character_id'
+      );
+
       // insert story_event_submission type pending
       const defaultLanguage =
         manga_languages.find((manga) => manga.is_main_language === true) ||
@@ -262,7 +269,7 @@ export class StoryEventService {
             banner_url,
             // manga_tags,
             manga_languages,
-            manga_characters,
+            manga_characters: uniq_manga_characters,
           },
           status: SubmissionStatus.Submitted,
         },
@@ -283,6 +290,15 @@ export class StoryEventService {
   async getSubmittedManga() {
     const { token } = ContextProvider.getAuthUser();
     return this.storyEventGraphql.getSubmittedManga(token);
+  }
+
+  async rejectMangaSubmission(data: RejectMangaSubmissionRequestDto) {
+    return this.storyEventGraphql.updateSubmissions({
+      ids: data.ids.split(',').map((id) => Number(id)),
+      _set: {
+        status: SubmissionStatus.Rejected,
+      },
+    });
   }
 
   async submitArtwork(
