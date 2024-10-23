@@ -32,6 +32,7 @@ import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.d
 import { UpdateStoryArtworkStatusRequestDto } from './dto/approve-story-artwork.dto';
 import _ from 'lodash';
 import { RejectMangaSubmissionRequestDto } from './dto/reject-manga-submission.dto';
+import { QueryArtworkParamDto } from './dto/query-artwork.dto';
 
 @Injectable()
 export class StoryEventService {
@@ -569,6 +570,15 @@ export class StoryEventService {
     const { limit, offset } = data;
 
     return this.storyEventGraphql.queryMangas({
+      limit,
+      offset,
+    });
+  }
+
+  async queryArtwork(data: QueryArtworkParamDto) {
+    const { limit, offset } = data;
+
+    return this.storyEventGraphql.queryArtworks({
       limit,
       offset,
     });

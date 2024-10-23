@@ -472,6 +472,66 @@ export class StoryEventGraphql {
     );
   }
 
+  async queryArtworks(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_artwork($limit: Int = 10, $offset: Int = 0) {
+        story_artwork_aggregate(where: {status: {_eq: "Approved"}}) {
+          aggregate {
+            count
+          }
+        }
+        story_artwork(limit: $limit, offset: $offset, where: {status: {_eq: "Approved"}}) {
+          id
+          name
+          display_url
+          story_ip_asset {
+            ip_asset_id
+          }
+          story_artwork_characters {
+            story_character {
+              id
+              avatar_url
+              descripton_url
+              is_default_character
+              name
+              status
+              authorizer_user {
+                id
+                nickname
+              }
+              story_ip_asset {
+                id
+                ip_asset_id
+              }
+              likes_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_collect_characters_aggregate {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+        }
+      }
+      `,
+      'story_artwork',
+      variables,
+      headers
+    );
+  }
+
   async queryCollectedCharacters(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(

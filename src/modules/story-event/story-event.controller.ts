@@ -28,6 +28,7 @@ import { UpdateStoryArtworkStatusRequestDto } from './dto/approve-story-artwork.
 import { QueryMangaParamDto } from './dto/query-manga.dto';
 import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
 import { RejectMangaSubmissionRequestDto } from './dto/reject-manga-submission.dto';
+import { QueryArtworkParamDto } from './dto/query-artwork.dto';
 
 @Controller('story-event')
 @ApiTags('story-event')
@@ -145,6 +146,11 @@ export class StoryEventController {
   @Get('manga')
   getManga(@Query() query: QueryMangaParamDto) {
     return this.storyEventSvc.queryManga(query);
+  }
+
+  @Get('artwork')
+  getArtwork(@Query() query: QueryArtworkParamDto) {
+    return this.storyEventSvc.queryArtwork(query);
   }
 
   @Get('character/collected')
