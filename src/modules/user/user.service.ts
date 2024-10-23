@@ -316,7 +316,7 @@ export class UserService {
       return result;
     }
 
-    const creator = result.data.insert_creator_one;
+    const creator = result.data.insert_creators_one;
 
     let avatarUrl = data.avatar_url;
     if (!avatar_url) {
@@ -329,7 +329,7 @@ export class UserService {
       const resized = await this.filesService.resize(avatar.buffer);
       const s3SubFolder =
         this.configService.get<string>('aws.s3SubFolder') || 'images';
-      const keyName = `${s3SubFolder}/creator-${creator}/avatar.png`;
+      const keyName = `${s3SubFolder}/creator-${creator.id}/avatar.png`;
       await this.filesService.uploadToS3(keyName, resized, 'image/png');
 
       const s3Endpoint = this.configService.get<string>('aws.queryEndpoint');
