@@ -1,9 +1,16 @@
 export enum SubmissionStatus {
   Submitted = 'Submitted',
   Approved = 'Approved',
+  Rejected = 'Rejected',
 }
 
 export enum StoryCharacterStatus {
+  Submitted = 'Submitted',
+  Approved = 'Approved',
+  Rejected = 'Rejected',
+}
+
+export enum StoryArtworkStatus {
   Submitted = 'Submitted',
   Approved = 'Approved',
   Rejected = 'Rejected',
