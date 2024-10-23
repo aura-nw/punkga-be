@@ -84,8 +84,8 @@ export class StoryProtocolGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `query story_artwork($id: [Int!] = [], $limit: Int = 20, $offset: Int = 0) {
-        story_artwork(where: {id: {_in: $id}}, limit: $limit, offset: $offset, order_by: {updated_at: desc}) {
+      `query story_artwork($id: [Int!] = []) {
+        story_artwork(where: {id: {_in: $id}}) {
           artwork_id
           created_at
           id
@@ -100,11 +100,6 @@ export class StoryProtocolGraphql {
             user_id
             updated_at
             created_at
-          }
-        }
-        story_artwork_aggregate(where: {id: {_in: $id}}) {
-          aggregate {
-            count(columns: id)
           }
         }
       }

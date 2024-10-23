@@ -20,34 +20,55 @@ import { SetRequestTimeout } from '../../decorators/set-timeout.decorator';
 import { AuthUserInterceptor } from '../../interceptors/auth-user.interceptor';
 import { StoryProtocolService } from './story-protocol.service';
 import { GetStoryArtworkQueryDto } from './dto/get-story-artwork-request.dto';
+import { CreateCollection } from './dto/create-collection-request.dto';
+import { MintNFT } from './dto/mint-nft-request.dto';
+import { Address } from 'viem';
+import { MintNFTAndRegisterDerivative } from './dto/mint-nft-and-register-derivative-request.dto';
 
 @Controller('story-protocol')
 @ApiTags('story-protocol')
 export class StoryProtocolController {
   constructor(private readonly storyProtocolSvc: StoryProtocolService) {}
 
-
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin,Role.User)
+  @Roles(Role.Admin, Role.User)
   @Get('/artwork')
   @UseInterceptors(AuthUserInterceptor)
   getMangaListForAdmin(@Query() query: GetStoryArtworkQueryDto) {
     return this.storyProtocolSvc.getStoryArtwork(query);
   }
 
-  // @Post('submission/character')
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @ApiBearerAuth()
-  // @ApiConsumes('multipart/form-data')
-  // @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
-  // @SetRequestTimeout()
-  // @Roles(Role.User)
-  // submitCharacter(
-  //   @Body() data: SubmitCharacterRequestDto,
-  //   @UploadedFiles() files: Array<Express.Multer.File>
-  // ) {
-  //   // return this.storyProtocolSvc.submitCharacter(data, files);
-  // }
+  @Post('create-collection')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @Roles(Role.Admin)
+  createCollection(@Body() data: CreateCollection) {
+    return this.storyProtocolSvc.createNewCollection(data.name, data.symbol);
+  }
 
+  @Post('mint-nft')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @Roles(Role.Admin)
+  mintNFT(@Body() data: MintNFT) {
+    return this.storyProtocolSvc.mintNFT(
+      data.contractAddress as Address,
+      data.to as Address,
+      data.uri
+    );
+  }
+
+  @Post('artwork-mint-nft-and-register-derivative')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(AuthUserInterceptor)
+  @Roles(Role.Admin)
+  artworkMintAndRegisterDerivative(@Body() data: MintNFTAndRegisterDerivative) {
+    return this.storyProtocolSvc.artworkMintNFTAndRegisterDerivativeNonCommercial(
+      data.id
+    );
+  }
 }
