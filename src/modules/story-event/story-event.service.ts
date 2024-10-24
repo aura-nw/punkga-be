@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bull';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bull';
 import { plainToInstance } from 'class-transformer';
@@ -36,6 +36,8 @@ import { QueryArtworkParamDto } from './dto/query-artwork.dto';
 
 @Injectable()
 export class StoryEventService {
+  private readonly logger = new Logger(StoryEventService.name);
+
   constructor(
     private storyEventGraphql: StoryEventGraphql,
     private fileService: FilesService,
@@ -625,6 +627,60 @@ export class StoryEventService {
     return this.storyEventGraphql.queryAvailableCharacters({
       user_id: userId,
     });
+  }
+
+  async migrateCharactersToOdyssey() {
+    // get all minted characters
+    let offset = 0;
+    const getCharactersResult =
+      await this.storyEventGraphql.queryMintedCharacters({
+        offset,
+      });
+    if (getCharactersResult.errors) return getCharactersResult;
+
+    const characters: any[] = {
+      ...getCharactersResult.data.story_character,
+    };
+
+    while (characters.length > 0) {
+      for (const character of characters) {
+        const cid = character.ipfs_url.split('/');
+        const metaDatahash = getBytes32FromIpfsHash(cid[cid.length - 1]);
+
+        const jobData = {
+          metadata_ipfs: character.ipfs_url,
+          metadata_hash: metaDatahash,
+          story_ip_asset_id: character.story_ip_asset.id,
+          user_wallet_address: character.authorizer_user.active_evm_address,
+        };
+
+        // create job
+        await this.storyEventQueue.add(
+          'migrate',
+          {
+            type: SubmissionType.Character,
+            data: jobData,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: 10,
+            attempts: 5,
+            backoff: 5000,
+          }
+        );
+      }
+      this.logger.log(`offset: ${offset}`);
+
+      offset += characters.length;
+      const getCharactersResult =
+        await this.storyEventGraphql.queryMintedCharacters({
+          offset,
+        });
+      if (getCharactersResult.errors) return getCharactersResult;
+      characters.push(...getCharactersResult.data.story_character);
+    }
+
+    this.logger.log('add job migrate characters done');
   }
 
   addEventJob(type: SubmissionType, jobData: any) {

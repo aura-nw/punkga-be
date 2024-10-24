@@ -933,4 +933,49 @@ export class StoryEventGraphql {
       variables
     );
   }
+
+  async queryMintedCharacters(variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_character($offset: Int = 0, $limit: Int = 50) {
+        story_character(where: {status: {_eq: "Approved"}}, limit: $limit, offset: $offset) {
+          id
+          ipfs_url
+          authorizer_user {
+            active_evm_address
+          }
+          story_ip_asset {
+            id
+            ip_asset_id
+            nft_contract_address
+            nft_token_id
+          }
+        }
+      }
+      `,
+      'story_character',
+      variables
+    );
+  }
+
+  async updateStoryIPA(variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_story_ip_asset_by_pk($id: Int!, $_set: story_ip_asset_set_input = {}) {
+        update_story_ip_asset_by_pk(pk_columns: {id: $id}, _set: $_set) {
+          id
+          ip_asset_id
+          nft_contract_address
+          nft_token_id
+          tx_hash
+          updated_at
+        }
+      }
+      `,
+      'update_story_ip_asset_by_pk',
+      variables
+    );
+  }
 }
