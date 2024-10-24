@@ -2,5 +2,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class MintNFTAndRegisterDerivative {
   @ApiProperty({ type: [Number], example: [5, 6, 7] })
-  id: number[];
+  storyArtworkIPIds: number[];
+
+  @ApiProperty({ example: 4 })
+  storyCollectionId: number;
 }

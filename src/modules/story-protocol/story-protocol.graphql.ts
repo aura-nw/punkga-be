@@ -110,4 +110,79 @@ export class StoryProtocolGraphql {
     );
   }
 
+  async insertStoryCollection(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_story_collection_for_access_protocol($objects: [story_collection_for_access_protocol_insert_input!] = {}) {
+        insert_story_collection_for_access_protocol(objects: $objects) {
+          affected_rows
+          returning {
+            id
+            }
+            }
+            }`,
+      'insert_story_collection_for_access_protocol',
+      variables,
+      headers
+    );
+  }
+  async queryStoryCollectionByPK(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_collection_for_access_protocol_by_pk($id: Int!) {
+        story_collection_for_access_protocol_by_pk(id: $id) {
+          avatar
+          contract_address
+          created_at
+          description
+          id
+          name
+          symbol
+          updated_at
+        }
+      }
+      `,
+      'story_collection_for_access_protocol_by_pk',
+      variables,
+      headers
+    );
+  }
+
+  async insertStoryIP(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_story_ip_for_access_protocol($objects: [story_ip_for_access_protocol_insert_input!] = {}) {
+        insert_story_ip_for_access_protocol(objects: $objects) {
+          affected_rows
+          returning {
+            id
+          }
+        }
+      }`,
+      'insert_story_ip_for_access_protocol',
+      variables,
+      headers
+    );
+  }
 }

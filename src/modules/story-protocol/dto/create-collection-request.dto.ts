@@ -14,5 +14,8 @@ export class CreateCollection {
 
   @ApiProperty()
   @IsString()
-  symbol: string;
+  description: string;
+
+  @ApiProperty({ type: 'string', format: 'binary' })
+  logo: Express.Multer.File;
 }

@@ -8,6 +8,7 @@ import { BullModule } from '@nestjs/bull';
 import { FilesModule } from '../files/files.module';
 import { UserWalletModule } from '../user-wallet/user-wallet.module';
 import { JwtModule } from '@nestjs/jwt';
+import { StoryProtocolTask } from './story-protocol.task';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { JwtModule } from '@nestjs/jwt';
     UserWalletModule,
     JwtModule,
   ],
-  providers: [StoryProtocolService, StoryProtocolGraphql],
+  providers: [StoryProtocolService, StoryProtocolGraphql, StoryProtocolTask],
   controllers: [StoryProtocolController],
   exports: [],
 })

@@ -42,10 +42,14 @@ export class StoryProtocolController {
   @Post('create-collection')
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @UseInterceptors(AuthUserInterceptor)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
   @Roles(Role.Admin)
-  createCollection(@Body() data: CreateCollection) {
-    return this.storyProtocolSvc.createNewCollection(data.name, data.symbol);
+  createCollection(
+    @Body() data: CreateCollection,
+    @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    return this.storyProtocolSvc.createNewCollection(data, files);
   }
 
   @Post('mint-nft')
@@ -67,8 +71,9 @@ export class StoryProtocolController {
   @UseInterceptors(AuthUserInterceptor)
   @Roles(Role.Admin)
   artworkMintAndRegisterDerivative(@Body() data: MintNFTAndRegisterDerivative) {
-    return this.storyProtocolSvc.artworkMintNFTAndRegisterDerivativeNonCommercial(
-      data.id
+    return this.storyProtocolSvc.artworkMintNFTAndRegisterDerivativeNonCommercialTask(
+      data.storyArtworkIPIds,
+      data.storyCollectionId
     );
   }
 }

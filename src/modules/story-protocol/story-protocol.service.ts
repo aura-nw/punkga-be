@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bull';
 import { FilesService } from '../files/files.service';
@@ -25,12 +25,13 @@ import { GetStoryArtworkQueryDto } from './dto/get-story-artwork-request.dto';
 import { MasterWalletService } from '../../modules/user-wallet/master-wallet.service';
 import { abi as nftContractAbi } from '../../abi/nftContractAbi.json';
 import { NonCommercialSocialRemixingTermsId } from './utils';
+import { CreateCollection } from './dto/create-collection-request.dto';
+import { STORY_IP_STATUS } from '../../common/constant';
 
 @Injectable()
 export class StoryProtocolService {
-  // private client: StoryClient;
+  private logger = new Logger(StoryProtocolService.name);
   storyChain: any;
-  // storyEventGraphql: any;
   private publicClient;
   private account: any;
   private storyClient: StoryClient;
@@ -38,25 +39,48 @@ export class StoryProtocolService {
   constructor(
     private storyProtocolGraphql: StoryProtocolGraphql,
     private configService: ConfigService,
-    private masterWalletSerivce: MasterWalletService // @InjectQueue('story-Protocol') private storyProtocolQueue: Queue
+    private filesService: FilesService,
+    private masterWalletSerivce: MasterWalletService,
+    @InjectQueue('story-protocol') private storyProtocolQueue: Queue
   ) {}
 
   async onModuleInit() {
     await this.buildStoryClient();
   }
 
-  async createNewCollection(name: string, symbol: string) {
+  async createNewCollection(
+    data: CreateCollection,
+    files: Array<Express.Multer.File>
+  ) {
     try {
-      // if (!this.client) {
-      //   this.getStoryClient();
-      // }
+      const { name, description } = data;
       const newCollection =
         await this.storyClient.nftClient.createNFTCollection({
           name,
-          symbol,
+          symbol: 'SCL',
           txOptions: { waitForTransaction: true },
         });
-      return newCollection;
+      var timestamp = Date.now() / 1000;
+      let logoUrl = '';
+      const logoFile = files.filter((f) => f.fieldname === 'logo')[0];
+      if (logoFile)
+        logoUrl = await this.filesService.uploadImageToS3(
+          `story-collection-${name}-${timestamp}`,
+          logoFile
+        );
+      const variables = {
+        objects: [
+          {
+            name,
+            symbol: 'SCL',
+            description,
+            contract_address: newCollection.nftContract,
+            avatar: logoUrl,
+          },
+        ],
+      };
+      return this.storyProtocolGraphql.insertStoryCollection(variables);
+      // return newCollection;
     } catch (error) {
       return {
         errors: {
@@ -66,19 +90,33 @@ export class StoryProtocolService {
     }
   }
 
+  async artworkMintNFTAndRegisterDerivativeNonCommercialTask(
+    storyArtworkIPIds: number[],
+    storyCollectionId: number
+  ): Promise<any> {
+    this.addJob({ storyArtworkIPIds, storyCollectionId });
+    return true;
+  }
   async artworkMintNFTAndRegisterDerivativeNonCommercial(
-    id: number[]
+    storyArtworkIPIds: number[],
+    storyCollectionId: number
   ): Promise<any> {
     try {
-      const artworkList =
-        (await this.storyProtocolGraphql.queryStoryArtworkByIds({
-          id,
-        })).data.story_artwork;
-      const ipIDList = [];
+      const collectionInfo =
+        await this.storyProtocolGraphql.queryStoryCollectionByPK({
+          id: storyCollectionId,
+        });
+      const artworkList = (
+        await this.storyProtocolGraphql.queryStoryArtworkByIds({
+          id: storyArtworkIPIds,
+        })
+      ).data.story_artwork;
+      const ipList = [];
       for await (const artwork of artworkList) {
         const response = await this.mintNFTAndRegisterDerivativeNonCommercial(
           //getfrom DB
-          '0x7841Ae6Bd690144149f0783eCE34e5F3A39CF24c' as Address,
+          collectionInfo.data.story_collection_for_access_protocol_by_pk
+            .contract_address as Address,
           this.account.address,
           artwork.story_artwork_story_ip_asset.ip_asset_id,
           '',
@@ -86,10 +124,37 @@ export class StoryProtocolService {
           '',
           artwork.ipfs_url
         );
-        ipIDList.push(response.ipId);
+        const ip = {
+          collection_id: storyCollectionId,
+          status: STORY_IP_STATUS.MINTED,
+          contract_address:
+            collectionInfo.data.story_collection_for_access_protocol_by_pk
+              .contract_address,
+          nft_id: response.nftId.toString(),
+          parent_ipid: artwork.story_artwork_story_ip_asset.ip_asset_id,
+          ip_metadata_uri: '',
+          ip_meatadata_hash: '',
+          nft_metadata_uri: artwork.ipfs_url,
+          nft_metadata_hash: '',
+          ipid: response.ipId,
+          txhash: response.hash,
+          owner: this.account.address,
+        };
+        ipList.push(ip);
+        this.logger.debug('response.ipId', response.ipId);
       }
-      return { ipIDList };
+      this.logger.debug(
+        'artworkMintNFTAndRegisterDerivativeNonCommercial ipIDList',
+        ipList
+      );
+
+      return this.storyProtocolGraphql.insertStoryIP({ objects: ipList });
     } catch (error) {
+      this.logger.error(
+        'artworkMintNFTAndRegisterDerivativeNonCommercial error',
+        error
+      );
+
       return {
         errors: {
           message: error.message,
@@ -114,7 +179,7 @@ export class StoryProtocolService {
       nftMetadataURI
     );
     //register Derivative
-    return this.registerIpAndMakeDerivative(
+    const response = await this.registerIpAndMakeDerivative(
       parentIpIds,
       nftID.nftId,
       derivativeContractAddess,
@@ -123,6 +188,11 @@ export class StoryProtocolService {
       nftMetadataHash,
       nftMetadataURI
     );
+    return {
+      nftId: nftID.nftId,
+      hash: response.hash,
+      ipId: response.ipId,
+    };
   }
 
   async mintNFT(
@@ -220,5 +290,20 @@ export class StoryProtocolService {
         transport: http(this.storyChain.rpc),
         account: this.account,
       });
+  }
+
+  addJob(jobData: any) {
+    return this.storyProtocolQueue.add(
+      'access-protocol',
+      {
+        data: jobData,
+      },
+      {
+        removeOnComplete: true,
+        removeOnFail: 10,
+        attempts: 5,
+        backoff: 5000,
+      }
+    );
   }
 }

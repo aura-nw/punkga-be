@@ -1,0 +1,3 @@
+table:
+  name: story_ip_for_access_protocol
+  schema: public
