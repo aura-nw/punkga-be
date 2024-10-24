@@ -495,6 +495,13 @@ export class StoryEventGraphql {
           story_ip_asset {
             ip_asset_id
           }
+          artwork {
+            creator {
+              id
+              pen_name
+              slug
+            }
+          }
           story_artwork_characters {
             story_character {
               id
