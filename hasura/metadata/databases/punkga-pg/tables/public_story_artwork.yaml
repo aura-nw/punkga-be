@@ -5,3 +5,17 @@ object_relationships:
   - name: story_artwork_story_ip_asset
     using:
       foreign_key_constraint_on: story_ip_asset_id
+  - name: authorizer_user
+    using:
+      foreign_key_constraint_on: user_id
+  - name: story_ip_asset
+    using:
+      foreign_key_constraint_on: story_ip_asset_id
+array_relationships:
+  - name: story_artwork_characters
+    using:
+      foreign_key_constraint_on:
+        column: story_artwork_id
+        table:
+          name: story_artwork_character
+          schema: public

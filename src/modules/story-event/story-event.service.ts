@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bull';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bull';
 import { plainToInstance } from 'class-transformer';
@@ -20,17 +20,24 @@ import {
 } from './dto/submit-manga.dto';
 import {
   CharacterSortType,
+  StoryArtworkStatus,
   StoryCharacterStatus,
   SubmissionStatus,
   SubmissionType,
 } from './story-event.enum';
 import { StoryEventGraphql } from './story-event.graphql';
 import { getBytes32FromIpfsHash } from './utils';
-import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
 import { QueryMangaParamDto } from './dto/query-manga.dto';
+import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
+import { UpdateStoryArtworkStatusRequestDto } from './dto/approve-story-artwork.dto';
+import _ from 'lodash';
+import { RejectMangaSubmissionRequestDto } from './dto/reject-manga-submission.dto';
+import { QueryArtworkParamDto } from './dto/query-artwork.dto';
 
 @Injectable()
 export class StoryEventService {
+  private readonly logger = new Logger(StoryEventService.name);
+
   constructor(
     private storyEventGraphql: StoryEventGraphql,
     private fileService: FilesService,
@@ -244,6 +251,11 @@ export class StoryEventService {
         JSON.parse(data.manga_characters) as any[]
       );
 
+      const uniq_manga_characters = _.uniqBy(
+        manga_characters,
+        'story_character_id'
+      );
+
       // insert story_event_submission type pending
       const defaultLanguage =
         manga_languages.find((manga) => manga.is_main_language === true) ||
@@ -260,7 +272,7 @@ export class StoryEventService {
             banner_url,
             // manga_tags,
             manga_languages,
-            manga_characters,
+            manga_characters: uniq_manga_characters,
           },
           status: SubmissionStatus.Submitted,
         },
@@ -281,6 +293,15 @@ export class StoryEventService {
   async getSubmittedManga() {
     const { token } = ContextProvider.getAuthUser();
     return this.storyEventGraphql.getSubmittedManga(token);
+  }
+
+  async rejectMangaSubmission(data: RejectMangaSubmissionRequestDto) {
+    return this.storyEventGraphql.updateSubmissions({
+      ids: data.ids.split(',').map((id) => Number(id)),
+      _set: {
+        status: SubmissionStatus.Rejected,
+      },
+    });
   }
 
   async submitArtwork(
@@ -359,67 +380,79 @@ export class StoryEventService {
       if (result.errors) return result;
       const submissionId = result.data.insert_story_event_submission_one.id;
 
-      // insert artwork
-      // TODO: creator_id???
-      // TODO: add status submitted
-      // const insertArtwork = await this.storyEventGraphql.insertArtwork({
-      //   object: {
-      //     name,
-      //     url: artworkObj.displayUrl,
-      //   },
-      // });
-      // if (insertArtwork.errors) return insertArtwork;
-      // const artworkId = Number(insertArtwork.data.insert_artworks_one.id);
+      const metadataIpfsUrl = `${ipfsDisplayUrl}/${metadataCID}`;
+      const insertStoryArtworkResult =
+        await this.storyEventGraphql.insertStoryArtwork({
+          object: {
+            name,
+            display_url: artworkObj.displayUrl,
+            ipfs_url: metadataIpfsUrl,
+            story_submission_id: submissionId,
+            user_id: userId,
+            status: StoryArtworkStatus.Submitted,
+          },
+        });
+      if (insertStoryArtworkResult.errors) return insertStoryArtworkResult;
+      const storyArtworkId =
+        insertStoryArtworkResult.data.insert_story_artwork_one.id;
 
-      // const insertStoryArtworkResult =
-      //   await this.storyEventGraphql.insertStoryArtwork({
-      //     object: {
-      //       artwork_id: artworkId,
-      //       ipfs_url: artworkObj.ipfs,
-      //     },
-      //   });
-      // if (insertStoryArtworkResult.errors) return insertStoryArtworkResult;
-      // const storyArtworkId =
-      //   insertStoryArtworkResult.data.insert_story_artwork_one.id;
+      // insert artwork characters
+      const insertArtworkCharactersResult =
+        await this.storyEventGraphql.insertArtworkCharacters({
+          objects: artwork_characters.map((character) => ({
+            story_artwork_id: storyArtworkId,
+            story_character_id: character.story_character_id,
+          })),
+        });
+
+      if (insertArtworkCharactersResult.errors)
+        return insertArtworkCharactersResult;
+
+      return insertStoryArtworkResult;
 
       // create job
-      const queryStoryCharactersResult =
-        await this.storyEventGraphql.queryStoryCharacters({
-          story_character_ids: artwork_characters.map(
-            (character) => character.story_character_id
-          ),
-        });
-      if (queryStoryCharactersResult.errors) return queryStoryCharactersResult;
-      const ipAssetIds = queryStoryCharactersResult.data.story_character.map(
-        (character) => character.story_ip_asset.ip_asset_id
-      );
-
-      const jobData = {
-        name,
-        user_id: userId,
-        metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
-        // story_artwork_id: storyArtworkId,
-        submission_id: submissionId,
-        user_wallet_address: userWalletAddress,
-        ip_asset_ids: ipAssetIds,
-        metadata_hash: getBytes32FromIpfsHash(metadataCID),
-      };
-
-      // await this.storyEventQueue.add(
-      //   'event',
-      //   {
-      //     type: SubmissionType.Artwork,
-      //     data: jobData,
-      //   },
-      //   {
-      //     removeOnComplete: true,
-      //     removeOnFail: 10,
-      //     attempts: 5,
-      //     backoff: 5000,
-      //   }
+      // const queryStoryCharactersResult =
+      //   await this.storyEventGraphql.queryStoryCharacters({
+      //     story_character_ids: artwork_characters.map(
+      //       (character) => character.story_character_id
+      //     ),
+      //   });
+      // if (queryStoryCharactersResult.errors) return queryStoryCharactersResult;
+      // const ipAssetIds = queryStoryCharactersResult.data.story_character.map(
+      //   (character) => character.story_ip_asset.ip_asset_id
       // );
 
-      await this.addEventJob(SubmissionType.Artwork, jobData);
+      // const jobData = {
+      //   name,
+      //   user_id: userId,
+      //   metadata_ipfs: `${ipfsDisplayUrl}/${metadataCID}`,
+      //   // story_artwork_id: storyArtworkId,
+      //   submission_id: submissionId,
+      //   user_wallet_address: userWalletAddress,
+      //   ip_asset_ids: ipAssetIds,
+      //   metadata_hash: getBytes32FromIpfsHash(metadataCID),
+      //   artwork_data: {
+      //     name,
+      //     artwork: artworkObj,
+      //     artwork_characters,
+      //   },
+      // };
+
+      // // await this.storyEventQueue.add(
+      // //   'event',
+      // //   {
+      // //     type: SubmissionType.Artwork,
+      // //     data: jobData,
+      // //   },
+      // //   {
+      // //     removeOnComplete: true,
+      // //     removeOnFail: 10,
+      // //     attempts: 5,
+      // //     backoff: 5000,
+      // //   }
+      // // );
+
+      // await this.addEventJob(SubmissionType.Artwork, jobData);
       // return
       return result;
     } catch (error) {
@@ -429,6 +462,64 @@ export class StoryEventService {
         },
       };
     }
+  }
+
+  async approveArtwork(data: UpdateStoryArtworkStatusRequestDto) {
+    const { ids, status } = data;
+    const arrIds = ids.split(',').map((id) => Number(id));
+    const { token } = ContextProvider.getAuthUser();
+
+    if (status === StoryArtworkStatus.Approved) {
+      const queryArtworksResult = await this.storyEventGraphql.getStoryArtworks(
+        {
+          story_artwork_ids: arrIds,
+        }
+      );
+      if (queryArtworksResult.errors) return queryArtworksResult;
+      const storyArtworks = queryArtworksResult.data.story_artwork;
+      for (const storyArtwork of storyArtworks) {
+        const cid = storyArtwork.ipfs_url.split('/');
+        const metaDatahash = getBytes32FromIpfsHash(cid[cid.length - 1]);
+
+        const jobData = {
+          name: storyArtwork.name,
+          story_artwork_id: storyArtwork.id,
+          submission_id: storyArtwork.story_submission_id,
+          metadata_ipfs: storyArtwork.ipfs_url,
+          metadata_hash: metaDatahash,
+          ip_asset_ids: storyArtwork.story_artwork_characters.map(
+            (character) => character.story_character.story_ip_asset.ip_asset_id
+          ),
+          user_wallet_address: storyArtwork.authorizer_user.active_evm_address,
+          user_id: storyArtwork.user_id,
+          display_url: storyArtwork.display_url,
+          creator_id: storyArtwork.authorizer_user.creator.id,
+        };
+
+        // create job
+        await this.storyEventQueue.add(
+          'event',
+          {
+            type: SubmissionType.Artwork,
+            data: jobData,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: 10,
+            attempts: 5,
+            backoff: 5000,
+          }
+        );
+      }
+    }
+
+    return this.storyEventGraphql.updateArtworkStatus(
+      {
+        ids: arrIds,
+        status,
+      },
+      token
+    );
   }
 
   async queryUserSubmission() {
@@ -486,6 +577,15 @@ export class StoryEventService {
     });
   }
 
+  async queryArtwork(data: QueryArtworkParamDto) {
+    const { limit, offset } = data;
+
+    return this.storyEventGraphql.queryArtworks({
+      limit,
+      offset,
+    });
+  }
+
   async queryCollectedCharacter() {
     const { userId } = ContextProvider.getAuthUser();
     return this.storyEventGraphql.queryCollectedCharacters({
@@ -527,6 +627,60 @@ export class StoryEventService {
     return this.storyEventGraphql.queryAvailableCharacters({
       user_id: userId,
     });
+  }
+
+  async migrateCharactersToOdyssey() {
+    // get all minted characters
+    let offset = 0;
+    const getCharactersResult =
+      await this.storyEventGraphql.queryMintedCharacters({
+        offset,
+      });
+    if (getCharactersResult.errors) return getCharactersResult;
+
+    const characters: any[] = {
+      ...getCharactersResult.data.story_character,
+    };
+
+    while (characters.length > 0) {
+      for (const character of characters) {
+        const cid = character.ipfs_url.split('/');
+        const metaDatahash = getBytes32FromIpfsHash(cid[cid.length - 1]);
+
+        const jobData = {
+          metadata_ipfs: character.ipfs_url,
+          metadata_hash: metaDatahash,
+          story_ip_asset_id: character.story_ip_asset.id,
+          user_wallet_address: character.authorizer_user.active_evm_address,
+        };
+
+        // create job
+        await this.storyEventQueue.add(
+          'migrate',
+          {
+            type: SubmissionType.Character,
+            data: jobData,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: 10,
+            attempts: 5,
+            backoff: 5000,
+          }
+        );
+      }
+      this.logger.log(`offset: ${offset}`);
+
+      offset += characters.length;
+      const getCharactersResult =
+        await this.storyEventGraphql.queryMintedCharacters({
+          offset,
+        });
+      if (getCharactersResult.errors) return getCharactersResult;
+      characters.push(...getCharactersResult.data.story_character);
+    }
+
+    this.logger.log('add job migrate characters done');
   }
 
   addEventJob(type: SubmissionType, jobData: any) {

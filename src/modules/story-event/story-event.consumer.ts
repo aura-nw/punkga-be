@@ -13,7 +13,12 @@ import { abi as storyEventDerivativeAbi } from './../../abi/StoryEventDerivative
 import { IJob } from './interfaces/job.interface';
 import { SubmissionStatus, SubmissionType } from './story-event.enum';
 import { StoryEventGraphql } from './story-event.graphql';
-import { defaultPILTerms, iliad, parseTxIpRegisteredEvent } from './utils';
+import {
+  defaultPILTerms,
+  iliad,
+  parseTxIpRegisteredEvent,
+  sleep,
+} from './utils';
 
 @Processor('story-event')
 export class StoryEventConsumer implements OnModuleInit {
@@ -40,17 +45,49 @@ export class StoryEventConsumer implements OnModuleInit {
 
     switch (type) {
       case SubmissionType.Character:
-        return this.createStoryCharacterIpAsset(data);
+        await this.createStoryCharacterIpAsset(data);
+        break;
       case SubmissionType.Manga:
-        return this.createStoryMangaIpAsset(data);
+        await this.createStoryMangaIpAsset(data);
+        break;
       case SubmissionType.Artwork:
-        return this.createStoryArtworkIpAsset(data);
+        await this.createStoryArtworkIpAsset(data);
+        break;
       default:
         this.logger.error(
           `invalid type of event job ${JSON.stringify(job.data)}`
         );
         break;
     }
+
+    await sleep(1000);
+    return {};
+  }
+
+  @Process({ name: 'migrate', concurrency: 1 })
+  async migrate(job: Job<IJob>) {
+    const { type, data } = job.data;
+
+    await this.buildStoryClient();
+
+    switch (type) {
+      case SubmissionType.Character:
+        await this.createStoryCharacterIpAsset(data);
+        break;
+      case SubmissionType.Manga:
+        await this.createStoryMangaIpAsset(data);
+        break;
+      case SubmissionType.Artwork:
+        await this.createStoryArtworkIpAsset(data);
+        break;
+      default:
+        this.logger.error(
+          `invalid type of event job ${JSON.stringify(job.data)}`
+        );
+        break;
+    }
+
+    await sleep(1000);
     return {};
   }
 
@@ -212,7 +249,7 @@ export class StoryEventConsumer implements OnModuleInit {
       }
 
       this.logger.log(
-        `Create Artwork IP Asset Done: ipid ${ipAssetId} hash ${hash}`
+        `Create Manga IP Asset Done: ipid ${ipAssetId} hash ${hash}`
       );
     } catch (error) {
       this.logger.error(error.message);
@@ -227,6 +264,7 @@ export class StoryEventConsumer implements OnModuleInit {
   async createStoryArtworkIpAsset(data: any) {
     try {
       // mint nft & create ipa
+      // TODO: need call another contract to mint artwork nft
       const { ipAssetId, nftId, hash } =
         await this.mintAndRegisterIpAndMakeDerivative(data);
 
@@ -248,21 +286,43 @@ export class StoryEventConsumer implements OnModuleInit {
         throw new InternalServerErrorException('Insert story IP Asset failed ');
       }
 
-      // // --- update story artwork set story_ip_id
-      // const updateStoryArtworkResult =
-      //   await this.storyEventGraphql.updateStoryArtwork({
-      //     id: data.story_artwork_id,
-      //     story_ip_asset_id:
-      //       insertStoryIPAResult.data.insert_story_ip_asset_one.id,
-      //   });
-      // if (updateStoryArtworkResult.errors) {
-      //   this.logger.error(
-      //     `Update story artwork error: ${JSON.stringify(
-      //       updateStoryArtworkResult
-      //     )}`
-      //   );
-      //   throw new InternalServerErrorException('Update story artwork failed ');
-      // }
+      // insert artwork
+      const { name, display_url } = data;
+      const insertArtwork = await this.storyEventGraphql.insertArtwork({
+        object: {
+          name,
+          url: display_url,
+          creator_id: data.creator_id,
+        },
+      });
+      if (insertArtwork.errors) {
+        this.logger.error(
+          `Insert artwork error: ${JSON.stringify(insertArtwork)}`
+        );
+        throw new InternalServerErrorException('Insert artwork failed ');
+      }
+      const artworkId = Number(insertArtwork.data.insert_artworks_one.id);
+
+      // update story artwork
+      const updateStoryArtworkResult =
+        await this.storyEventGraphql.updateStoryArtwork({
+          id: data.story_artwork_id,
+          _set: {
+            artwork_id: artworkId,
+            story_ip_asset_id:
+              insertStoryIPAResult.data.insert_story_ip_asset_one.id,
+          },
+        });
+
+      if (updateStoryArtworkResult.errors) {
+        this.logger.error(
+          `Update story artwork error: ${JSON.stringify(
+            updateStoryArtworkResult
+          )}`
+        );
+        throw new InternalServerErrorException('Update story artwork failed ');
+      }
+
       // --- update submission set status = done
       const updateSubmissionResult =
         await this.storyEventGraphql.updateSubmission({
@@ -294,7 +354,7 @@ export class StoryEventConsumer implements OnModuleInit {
       [
         data.ip_asset_ids,
         '0x8bb1ade72e21090fc891e1d4b88ac5e57b27cb31',
-        defaultPILTerms.licenseTermsIds,
+        data.ip_asset_ids.map(() => defaultPILTerms.licenseTermsIds),
         defaultPILTerms.royaltyContext,
       ],
       [
@@ -367,5 +427,93 @@ export class StoryEventConsumer implements OnModuleInit {
       hash,
       storyIPAId: insertStoryIPAResult.data.insert_story_ip_asset_one.id,
     };
+  }
+
+  async migrateStoryCharacters(data: any) {
+    try {
+      // mint nft & create ipa
+      const args = [
+        data.user_wallet_address,
+        [
+          '',
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+          data.metadata_ipfs,
+          data.nft_metadata_hash,
+        ],
+        [
+          defaultPILTerms.transferable,
+          defaultPILTerms.royaltyPolicy,
+          defaultPILTerms.mintingFee,
+          defaultPILTerms.expiration,
+          defaultPILTerms.commercialUse,
+          defaultPILTerms.commercialAttribution,
+          defaultPILTerms.commercializerChecker,
+          defaultPILTerms.commercializerCheckerData,
+          defaultPILTerms.commercialRevShare,
+          defaultPILTerms.commercialRevCelling,
+          defaultPILTerms.derivativesAllowed,
+          defaultPILTerms.derivativesAttribution,
+          defaultPILTerms.derivativesApproval,
+          defaultPILTerms.derivativesReciprocal,
+          defaultPILTerms.derivativeRevCelling,
+          defaultPILTerms.currency,
+          defaultPILTerms.uri,
+        ],
+      ];
+
+      const address =
+        `${this.storyChain.contracts.story_event_contract}` as any;
+
+      const hash = await this.walletClient.writeContract({
+        abi: storyEventAbi,
+        address,
+        functionName: 'mintAndRegisterIpAndAttach',
+        args,
+        chain: iliad,
+        account: this.account,
+      });
+      const txReceipt = (await this.publicClient.waitForTransactionReceipt({
+        hash,
+      })) as any;
+
+      const targetLogs = parseTxIpRegisteredEvent(txReceipt);
+
+      let nftId = 0;
+      let ipAssetId = targetLogs[0].ipId;
+
+      if (txReceipt.logs[0].topics[3]) {
+        nftId = parseInt(txReceipt.logs[0].topics[3], 16);
+      }
+
+      // update offchain data
+      // --- update story ip asset
+      const updateStoryIPAResult = await this.storyEventGraphql.updateStoryIPA({
+        id: data.story_ip_asset_id,
+        _set: {
+          ip_asset_id: ipAssetId,
+          nft_contract_address:
+            this.storyChain.contracts.story_odyssey_event_contract,
+          nft_token_id: nftId.toString(),
+          tx_hash: hash,
+        },
+      });
+      if (updateStoryIPAResult.errors) {
+        this.logger.error(
+          `Update story IP Asset error: ${JSON.stringify(updateStoryIPAResult)}`
+        );
+        throw new InternalServerErrorException('Update story IP Asset failed ');
+      }
+
+      this.logger.log(
+        `Update Character IP Asset Done: ipid ${ipAssetId} hash ${hash}`
+      );
+    } catch (error) {
+      this.logger.error(error.message);
+      return {
+        errors: {
+          message: error.message,
+        },
+      };
+    }
   }
 }

@@ -85,3 +85,7 @@ export const defaultPILTerms = {
 export const getBytes32FromIpfsHash = (ipfsListing: string) => {
   return '0x' + Buffer.from(bs58.decode(ipfsListing).slice(2)).toString('hex');
 };
+
+export function sleep(millis) {
+  return new Promise((resolve) => setTimeout(resolve, millis));
+}
