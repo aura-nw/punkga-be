@@ -99,6 +99,28 @@ export class StoryEventGraphql {
     );
   }
 
+  async updateSubmissions(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_story_event_submission($ids: [Int!] = 10, $_set: story_event_submission_set_input = {}) {
+        update_story_event_submission(where: {id: {_in: $ids}}, _set: $_set) {
+          affected_rows
+        }
+      }
+      `,
+      'update_story_event_submission',
+      variables,
+      headers
+    );
+  }
+
   async updateCharacter(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
@@ -166,14 +188,22 @@ export class StoryEventGraphql {
       this.configSvc.get<string>('graphql.endpoint'),
       token,
       `query story_event_submission {
-        story_event_submission(where: {type: {_eq: "manga"}, status: {_eq: "Submitted"}}) {
+        story_event_submission(where: {type: {_eq: "manga"}, status: {_eq: "Submitted"}}, order_by: {id: asc}) {
           id
           name
           status
           created_at
           data
+          authorizer_user {
+            id
+            creator {
+              pen_name
+              id
+            }
+          }
         }
-      }`,
+      }
+      `,
       'story_event_submission',
       {}
     );
@@ -189,9 +219,10 @@ export class StoryEventGraphql {
     return this.graphqlSvc.query(
       this.configSvc.get<string>('graphql.endpoint'),
       '',
-      `mutation update_story_artwork_by_pk($id: Int!, $story_ip_asset_id: Int!) {
-        update_story_artwork_by_pk(pk_columns: {id: $id}, _set: {story_ip_asset_id: $story_ip_asset_id}) {
+      `mutation update_story_artwork_by_pk($id: Int!, $_set: story_artwork_set_input = {}) {
+        update_story_artwork_by_pk(pk_columns: {id: $id}, _set: $_set) {
           id
+          artwork_id
           story_ip_asset_id
         }
       }
@@ -408,8 +439,26 @@ export class StoryEventGraphql {
               id
               avatar_url
               descripton_url
+              is_default_character
+              name
+              status
+              authorizer_user {
+                id
+                nickname
+              }
               story_ip_asset {
+                id
                 ip_asset_id
+              }
+              likes_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_collect_characters_aggregate {
+                aggregate {
+                  count
+                }
               }
             }
           }
@@ -418,6 +467,66 @@ export class StoryEventGraphql {
       }
       `,
       'story_manga',
+      variables,
+      headers
+    );
+  }
+
+  async queryArtworks(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_artwork($limit: Int = 10, $offset: Int = 0) {
+        story_artwork_aggregate(where: {status: {_eq: "Approved"}}) {
+          aggregate {
+            count
+          }
+        }
+        story_artwork(limit: $limit, offset: $offset, where: {status: {_eq: "Approved"}}) {
+          id
+          name
+          display_url
+          story_ip_asset {
+            ip_asset_id
+          }
+          story_artwork_characters {
+            story_character {
+              id
+              avatar_url
+              descripton_url
+              is_default_character
+              name
+              status
+              authorizer_user {
+                id
+                nickname
+              }
+              story_ip_asset {
+                id
+                ip_asset_id
+              }
+              likes_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_collect_characters_aggregate {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+        }
+      }
+      `,
+      'story_artwork',
       variables,
       headers
     );
@@ -740,5 +849,133 @@ export class StoryEventGraphql {
     );
 
     return result.data.story_event_submission_by_pk;
+  }
+
+  async getStoryArtworks(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_artwork($story_artwork_ids: [Int!]!) {
+        story_artwork(where: {id: {_in: $story_artwork_ids}}) {
+          id
+          name
+          ipfs_url
+          display_url
+          story_submission_id
+          story_artwork_characters {
+            story_character {
+              story_ip_asset {
+                ip_asset_id
+              }
+            }
+          }
+          authorizer_user {
+            active_evm_address
+            creator {
+              id
+            }
+          }
+          user_id
+          story_ip_asset {
+            ip_asset_id
+            id
+          }
+        }
+      }
+      `,
+      'story_artwork',
+      variables,
+      headers
+    );
+
+    return result;
+  }
+
+  async insertArtworkCharacters(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation insert_story_artwork_characters($objects: [story_artwork_character_insert_input!] = {}) {
+        insert_story_artwork_character(objects: $objects) {
+          affected_rows
+        }
+      }
+      `,
+      'insert_story_artwork_characters',
+      variables,
+      headers
+    );
+  }
+
+  async updateArtworkStatus(variables: any, token: string) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `mutation update_story_artwork($ids: [Int!]!, $status: String!) {
+        update_story_artwork(where: {id: {_in: $ids}}, _set: {status: $status}) {
+          affected_rows
+        }
+      }
+      `,
+      'update_story_artwork',
+      variables
+    );
+  }
+
+  async queryMintedCharacters(variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_character($offset: Int = 0, $limit: Int = 50) {
+        story_character(where: {status: {_eq: "Approved"}}, limit: $limit, offset: $offset) {
+          id
+          ipfs_url
+          authorizer_user {
+            active_evm_address
+          }
+          story_ip_asset {
+            id
+            ip_asset_id
+            nft_contract_address
+            nft_token_id
+          }
+        }
+      }
+      `,
+      'story_character',
+      variables
+    );
+  }
+
+  async updateStoryIPA(variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `mutation update_story_ip_asset_by_pk($id: Int!, $_set: story_ip_asset_set_input = {}) {
+        update_story_ip_asset_by_pk(pk_columns: {id: $id}, _set: $_set) {
+          id
+          ip_asset_id
+          nft_contract_address
+          nft_token_id
+          tx_hash
+          updated_at
+        }
+      }
+      `,
+      'update_story_ip_asset_by_pk',
+      variables
+    );
   }
 }

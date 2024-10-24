@@ -24,8 +24,11 @@ import { SubmitArtworkRequestDto } from './dto/submit-artwork.dto';
 import { SubmitCharacterRequestDto } from './dto/submit-character.dto';
 import { SubmitMangaRequestDto } from './dto/submit-manga.dto';
 import { StoryEventService } from './story-event.service';
-import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
+import { UpdateStoryArtworkStatusRequestDto } from './dto/approve-story-artwork.dto';
 import { QueryMangaParamDto } from './dto/query-manga.dto';
+import { UpdateCharacterStatusRequestDto } from './dto/approve-story-character.dto';
+import { RejectMangaSubmissionRequestDto } from './dto/reject-manga-submission.dto';
+import { QueryArtworkParamDto } from './dto/query-artwork.dto';
 
 @Controller('story-event')
 @ApiTags('story-event')
@@ -77,6 +80,17 @@ export class StoryEventController {
     return this.storyEventSvc.approveCharacter(data);
   }
 
+  @Post('submission/artwork/approve')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @SetRequestTimeout()
+  @Roles(Role.Admin)
+  approveArtwork(@Body() data: UpdateStoryArtworkStatusRequestDto) {
+    return this.storyEventSvc.approveArtwork(data);
+  }
+
   @Post('submission/manga')
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
@@ -87,6 +101,17 @@ export class StoryEventController {
   @Roles(Role.User)
   submitManga(@Body() data: SubmitMangaRequestDto) {
     return this.storyEventSvc.submitManga(data);
+  }
+
+  @Post('submission/manga/reject')
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor, AnyFilesInterceptor())
+  @SetRequestTimeout()
+  @Roles(Role.Admin)
+  rejectMangaSubmission(@Body() data: RejectMangaSubmissionRequestDto) {
+    return this.storyEventSvc.rejectMangaSubmission(data);
   }
 
   @Post('submission/artwork')
@@ -121,6 +146,11 @@ export class StoryEventController {
   @Get('manga')
   getManga(@Query() query: QueryMangaParamDto) {
     return this.storyEventSvc.queryManga(query);
+  }
+
+  @Get('artwork')
+  getArtwork(@Query() query: QueryArtworkParamDto) {
+    return this.storyEventSvc.queryArtwork(query);
   }
 
   @Get('character/collected')
