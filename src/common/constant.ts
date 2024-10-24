@@ -19,3 +19,7 @@ export const CHAPTER_STATUS = {
   PUBLISHED: 'Published',
 };
 
+export const STORY_IP_STATUS = {
+  MINTED: 'MINTED',
+};
+

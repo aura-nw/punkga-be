@@ -9,7 +9,7 @@ export class SystemCustodialWalletGraphql {
     private graphqlSvc: GraphqlService
   ) {}
 
-  async insertGranterWallet(variables: any) {
+  async insertSystemCustodialWallet(variables: any) {
     const headers = {
       'x-hasura-admin-secret': this.configSvc.get<string>(
         'graphql.adminSecret'
@@ -43,6 +43,30 @@ export class SystemCustodialWalletGraphql {
       '',
       `query system_custodial_wallet {
         system_custodial_wallet(where: {type: {_eq: "GRANTER"}}) {
+          address
+          data
+        }
+      }
+      `,
+      'system_custodial_wallet',
+      {},
+      headers
+    );
+
+    return result.data.system_custodial_wallet[0];
+  }
+
+  async getSSPWallet() {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+    const result = await this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query system_custodial_wallet {
+        system_custodial_wallet(where: {type: {_eq: "SSP"}}) {
           address
           data
         }

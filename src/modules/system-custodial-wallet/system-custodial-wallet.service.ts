@@ -5,12 +5,16 @@ import { SysKeyService } from '../keys/syskey.service';
 import { SystemCustodialWalletGraphql } from './system-custodial-wallet.graphql';
 import { HDNodeWallet, JsonRpcProvider, Wallet, parseEther } from 'ethers';
 import { MasterWalletService } from '../user-wallet/master-wallet.service';
+import { HDAccount, mnemonicToAccount } from 'viem/accounts';
 
 @Injectable()
 export class SystemCustodialWalletService implements OnModuleInit {
   private readonly logger = new Logger(SystemCustodialWalletService.name);
   private granterWallet: HDNodeWallet = null;
   private granterWalletAddress: string;
+  private sspWallet: HDNodeWallet = null;
+  private sspWalletAddress: string;
+  private sspAccount: HDAccount;
 
   constructor(
     private configService: ConfigService,
@@ -21,6 +25,7 @@ export class SystemCustodialWalletService implements OnModuleInit {
 
   async onModuleInit() {
     await this.initGranterWallet();
+    await this.initSystemStoryProtocolWallet();
   }
 
   async initGranterWallet() {
@@ -43,7 +48,7 @@ export class SystemCustodialWalletService implements OnModuleInit {
       this.granterWalletAddress = address;
 
       // store db
-      const result = await this.walletGraphql.insertGranterWallet({
+      const result = await this.walletGraphql.insertSystemCustodialWallet({
         objects: [
           {
             address,
@@ -53,6 +58,39 @@ export class SystemCustodialWalletService implements OnModuleInit {
         ],
       });
       this.logger.debug(`Insert granter wallet: ${JSON.stringify(result)}`);
+    }
+  }
+
+  async initSystemStoryProtocolWallet() {
+    // get from db
+    const sspWalletData = await this.walletGraphql.getSSPWallet();
+
+    if (sspWalletData) {
+      const phrase = this.masterWalletService.decryptPhrase(sspWalletData.data);
+      const wallet = Wallet.fromPhrase(phrase);
+      this.sspAccount = mnemonicToAccount(phrase);
+
+      this.sspWallet = wallet;
+      this.sspWalletAddress = wallet.address;
+    } else {
+      const { wallet, address, cipherPhrase, account } =
+        await this.sysKeyService.randomWallet();
+
+      this.sspWallet = wallet;
+      this.sspWalletAddress = address;
+      this.sspAccount = account;
+
+      // store db
+      const result = await this.walletGraphql.insertSystemCustodialWallet({
+        objects: [
+          {
+            address,
+            data: cipherPhrase,
+            type: 'SSP',
+          },
+        ],
+      });
+      this.logger.debug(`Insert ssp wallet: ${JSON.stringify(result)}`);
     }
   }
 
@@ -70,5 +108,9 @@ export class SystemCustodialWalletService implements OnModuleInit {
 
   get granterAddress() {
     return this.granterWalletAddress;
+  }
+
+  getSSPAccount(): HDAccount {
+    return this.sspAccount;
   }
 }

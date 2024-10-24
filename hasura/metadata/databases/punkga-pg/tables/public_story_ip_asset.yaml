@@ -2,14 +2,21 @@ table:
   name: story_ip_asset
   schema: public
 array_relationships:
-  - name: story_characters
+  - name: story_ip_asset_story_artworks
+    using:
+      foreign_key_constraint_on:
+        column: story_ip_asset_id
+        table:
+          name: story_artwork
+          schema: public
+  - name: story_ip_asset_story_characters
     using:
       foreign_key_constraint_on:
         column: story_ip_asset_id
         table:
           name: story_character
           schema: public
-  - name: story_mangas
+  - name: story_ip_asset_story_mangas
     using:
       foreign_key_constraint_on:
         column: story_ip_asset_id

@@ -8,6 +8,7 @@ import { KMSBuilderService } from './kms.service';
 import { randomSeed } from './util';
 import { JsonRpcProvider, Wallet } from 'ethers';
 import { Crypter } from '../../utils/crypto';
+import { mnemonicToAccount } from 'viem/accounts';
 
 @Injectable()
 export class SysKeyService implements OnModuleInit {
@@ -67,10 +68,12 @@ export class SysKeyService implements OnModuleInit {
 
     const cipherPhrase = Crypter.encrypt(phrase, this.originalSeed);
 
+    const account = mnemonicToAccount(phrase);
     return {
       wallet,
       cipherPhrase,
       address: wallet.address,
+      account,
     };
   }
 
