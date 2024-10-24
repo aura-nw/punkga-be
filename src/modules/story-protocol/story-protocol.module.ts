@@ -9,6 +9,7 @@ import { FilesModule } from '../files/files.module';
 import { UserWalletModule } from '../user-wallet/user-wallet.module';
 import { JwtModule } from '@nestjs/jwt';
 import { StoryProtocolTask } from './story-protocol.task';
+import { SystemCustodialWalletModule } from '../../modules/system-custodial-wallet/system-custodial-wallet.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { StoryProtocolTask } from './story-protocol.task';
     FilesModule,
     UserWalletModule,
     JwtModule,
+    SystemCustodialWalletModule,
   ],
   providers: [StoryProtocolService, StoryProtocolGraphql, StoryProtocolTask],
   controllers: [StoryProtocolController],

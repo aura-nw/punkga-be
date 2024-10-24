@@ -22,11 +22,15 @@ import {
   toHex,
 } from 'viem';
 import { GetStoryArtworkQueryDto } from './dto/get-story-artwork-request.dto';
-import { MasterWalletService } from '../../modules/user-wallet/master-wallet.service';
 import { abi as nftContractAbi } from '../../abi/nftContractAbi.json';
-import { NonCommercialSocialRemixingTermsId } from './utils';
+import {
+  NonCommercialSocialRemixingTermsId,
+  REGISTER_IP_BATCH_AMOUNT,
+} from './utils';
 import { CreateCollection } from './dto/create-collection-request.dto';
 import { STORY_IP_STATUS } from '../../common/constant';
+import { SystemCustodialWalletService } from '../../modules/system-custodial-wallet/system-custodial-wallet.service';
+import { GetIPStoryCollectionQueryDto } from './dto/get-ip-story-by-pk-request.dto';
 
 @Injectable()
 export class StoryProtocolService {
@@ -40,13 +44,45 @@ export class StoryProtocolService {
     private storyProtocolGraphql: StoryProtocolGraphql,
     private configService: ConfigService,
     private filesService: FilesService,
-    private masterWalletSerivce: MasterWalletService,
+    private systemCustodialWalletService: SystemCustodialWalletService,
     @InjectQueue('story-protocol') private storyProtocolQueue: Queue
   ) {}
 
   async onModuleInit() {
     await this.buildStoryClient();
   }
+
+  
+  async getStoryArtwork(params: GetStoryArtworkQueryDto) {
+    try {
+      const { limit, offset } = params;
+      const result = await this.storyProtocolGraphql.queryStoryArtwork({
+        limit,
+        offset,
+      });
+
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+  
+  async getIPStoryByPK(params: GetIPStoryCollectionQueryDto) {
+    try {
+      const result = await this.storyProtocolGraphql.queryIPOfStoryCollectionByPK({
+        id:params.id
+      });
+
+      return result;
+    } catch (errors) {
+      return {
+        errors,
+      };
+    }
+  }
+
 
   async createNewCollection(
     data: CreateCollection,
@@ -94,7 +130,20 @@ export class StoryProtocolService {
     storyArtworkIPIds: number[],
     storyCollectionId: number
   ): Promise<any> {
-    this.addJob({ storyArtworkIPIds, storyCollectionId });
+    if (storyArtworkIPIds.length > REGISTER_IP_BATCH_AMOUNT) {
+      let start = 0;
+      let end = 0;
+      while (start < storyArtworkIPIds.length) {
+        start = end;
+        end += REGISTER_IP_BATCH_AMOUNT;
+        const subIPArray = storyArtworkIPIds.slice(start, end);
+        if (subIPArray.length > 0) {
+          this.addJob({ storyArtworkIPIds: subIPArray, storyCollectionId });
+        }
+      }
+    } else {
+      this.addJob({ storyArtworkIPIds, storyCollectionId });
+    }
     return true;
   }
   async artworkMintNFTAndRegisterDerivativeNonCommercial(
@@ -141,12 +190,12 @@ export class StoryProtocolService {
           owner: this.account.address,
         };
         ipList.push(ip);
-        this.logger.debug('response.ipId', response.ipId);
+        // this.logger.debug('response.ipId', response.ipId);
       }
-      this.logger.debug(
-        'artworkMintNFTAndRegisterDerivativeNonCommercial ipIDList',
-        ipList
-      );
+      // this.logger.debug(
+      //   'artworkMintNFTAndRegisterDerivativeNonCommercial ipIDList',
+      //   ipList
+      // );
 
       return this.storyProtocolGraphql.insertStoryIP({ objects: ipList });
     } catch (error) {
@@ -240,7 +289,7 @@ export class StoryProtocolService {
         },
         txOptions: { waitForTransaction: true },
       });
-    console.log(
+    this.logger.debug(
       `Derivative IPA created at transaction hash ${registeredIpDerivativeResponse.txHash}, IPA ID: ${registeredIpDerivativeResponse.ipId}`
     );
     return {
@@ -249,27 +298,13 @@ export class StoryProtocolService {
     };
   }
 
-  async getStoryArtwork(params: GetStoryArtworkQueryDto) {
-    try {
-      const { limit, offset } = params;
-      const result = await this.storyProtocolGraphql.queryStoryArtwork({
-        limit,
-        offset,
-      });
-
-      return result;
-    } catch (errors) {
-      return {
-        errors,
-      };
-    }
-  }
-
   async buildStoryClient() {
     if (!this.storyChain)
       this.storyChain = await this.storyProtocolGraphql.getStoryChain();
 
-    if (!this.account) this.account = this.masterWalletSerivce.getAccount();
+    // if (!this.account) this.account = this.masterWalletSerivce.getAccount();
+    if (!this.account)
+      this.account = this.systemCustodialWalletService.getSSPAccount();
     if (!this.publicClient)
       this.publicClient = createPublicClient({
         chain: iliad,

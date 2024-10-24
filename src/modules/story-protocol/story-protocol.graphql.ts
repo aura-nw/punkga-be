@@ -185,4 +185,53 @@ export class StoryProtocolGraphql {
       headers
     );
   }
+
+  async queryIPOfStoryCollectionByPK(variables: any) {
+    const headers = {
+      'x-hasura-admin-secret': this.configSvc.get<string>(
+        'graphql.adminSecret'
+      ),
+    };
+
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      '',
+      `query story_collection_for_access_protocol_by_pk($id: Int!) {
+        story_collection_for_access_protocol_by_pk(id: $id) {
+          contract_address
+          avatar
+          created_at
+          description
+          id
+          name
+          symbol
+          updated_at
+          story_collection_ip {
+            collection_id
+            contract_address
+            id
+            ip_meatadata_hash
+            ip_metadata_uri
+            ipid
+            nft_id
+            nft_metadata_hash
+            nft_metadata_uri
+            parent_ipid
+            owner
+            status
+            txhash
+          }
+          story_collection_ip_aggregate {
+            aggregate {
+              count(columns: id)
+            }
+          }
+        }
+      }
+      `,
+      'story_collection_for_access_protocol_by_pk',
+      variables,
+      headers
+    );
+  }
 }

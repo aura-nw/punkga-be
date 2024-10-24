@@ -87,3 +87,4 @@ export const getBytes32FromIpfsHash = (ipfsListing: string) => {
 };
 
 export const NonCommercialSocialRemixingTermsId = '1'
+export const REGISTER_IP_BATCH_AMOUNT = 10

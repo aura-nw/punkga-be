@@ -24,6 +24,7 @@ import { CreateCollection } from './dto/create-collection-request.dto';
 import { MintNFT } from './dto/mint-nft-request.dto';
 import { Address } from 'viem';
 import { MintNFTAndRegisterDerivative } from './dto/mint-nft-and-register-derivative-request.dto';
+import { GetIPStoryCollectionQueryDto } from './dto/get-ip-story-by-pk-request.dto';
 
 @Controller('story-protocol')
 @ApiTags('story-protocol')
@@ -35,8 +36,17 @@ export class StoryProtocolController {
   @Roles(Role.Admin, Role.User)
   @Get('/artwork')
   @UseInterceptors(AuthUserInterceptor)
-  getMangaListForAdmin(@Query() query: GetStoryArtworkQueryDto) {
+  getArtworkList(@Query() query: GetStoryArtworkQueryDto) {
     return this.storyProtocolSvc.getStoryArtwork(query);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin, Role.User)
+  @Get('/ip-story-collection/:id')
+  @UseInterceptors(AuthUserInterceptor)
+  getIPList(@Param() query: GetIPStoryCollectionQueryDto) {
+    return this.storyProtocolSvc.getIPStoryByPK(query);
   }
 
   @Post('create-collection')
