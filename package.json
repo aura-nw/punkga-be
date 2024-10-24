@@ -46,6 +46,7 @@
     "@nestjs/serve-static": "^4.0.0",
     "@nestjs/swagger": "^7.0.12",
     "@nestjs/typeorm": "^10.0.2",
+    "@story-protocol/core-sdk": "^1.1.0-stable",
     "@types/crypto-js": "^4.2.2",
     "axios": "^1.6.0",
     "bip39": "^3.1.0",
