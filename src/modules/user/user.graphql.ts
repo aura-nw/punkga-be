@@ -451,4 +451,37 @@ export class UserGraphql {
 
     return result.data.authorizer_users_by_pk;
   }
+
+  async likeArtwork(token: string, variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `mutation UserLikeArtwork($artwork_id: Int!) {
+        insert_likes_one(object: {artwork_id: $artwork_id}) {
+          id
+          user_id
+          artwork_id
+          story_character_id
+          created_at
+        }
+      }`,
+      'UserLikeArtwork',
+      variables
+    );
+  }
+
+  async unlikeArtwork(token: string, variables: any) {
+    return this.graphqlSvc.query(
+      this.configSvc.get<string>('graphql.endpoint'),
+      token,
+      `mutation delete_likes($artwork_id: Int!) {
+        delete_likes(where: {artwork_id: {_eq: $artwork_id}}) {
+          affected_rows
+        }
+      }
+      `,
+      'delete_likes',
+      variables
+    );
+  }
 }

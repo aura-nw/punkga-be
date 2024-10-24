@@ -25,6 +25,8 @@ import { UserService } from './user.service';
 import { ReadChapterRequestDto } from './dto/read-chapter-request.dto';
 import { ConnectWalletRequestDto } from './dto/connect-wallet-request.dto';
 import { CreateArtistRequestDto } from './dto/create-artist-request.dto';
+import { LikeArtworkParamDto } from './dto/like-artwork-request.dto';
+import { UnLikeArtworkParamDto } from './dto/unlike-artwork-request.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -91,5 +93,25 @@ export class UserController {
     @UploadedFiles() files: Array<Express.Multer.File>
   ) {
     return this.userSvc.createArtistProfile(data, files);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post('artwork/:artwork_id/like')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor)
+  likeArtwork(@Param() param: LikeArtworkParamDto) {
+    return this.userSvc.likeArtwork(param.artwork_id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.User)
+  @Post('artwork/:artwork_id/unlike')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AuthUserInterceptor)
+  unlikeArtwork(@Param() param: UnLikeArtworkParamDto) {
+    return this.userSvc.unlikeArtwork(param.artwork_id);
   }
 }

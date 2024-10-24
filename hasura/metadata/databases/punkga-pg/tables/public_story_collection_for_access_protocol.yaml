@@ -1,0 +1,11 @@
+table:
+  name: story_collection_for_access_protocol
+  schema: public
+array_relationships:
+  - name: story_collection_ip
+    using:
+      foreign_key_constraint_on:
+        column: collection_id
+        table:
+          name: story_ip_for_access_protocol
+          schema: public

@@ -1038,6 +1038,70 @@
               }
             }
           }
+      - name: User - Get Profile
+        query: |
+          query GetUserProfile {
+            authorizer_users(limit: 1) {
+              id
+              email
+              email_verified_at
+              bio
+              birthdate
+              gender
+              active_wallet_address: active_evm_address
+              wallet_address
+              nickname
+              picture
+              signup_methods
+              levels {
+                xp
+                level
+                user_level_chain {
+                  id
+                  name
+                  punkga_config
+                }
+              }
+              authorizer_users_user_wallet {
+                address
+              }
+              user_quests_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_quests(order_by: {created_at:desc}, limit: 20) {
+                created_at
+                status
+                user_quest_rewards {
+                  tx_hash
+                }
+                quest {
+                  id
+                  name
+                  quests_campaign {
+                    campaign_chain {
+                      punkga_config
+                    }
+                  }
+                  quests_i18n {
+                    id
+                    quest_id
+                    language_id
+                    data
+                    i18n_language {
+                      id
+                      description
+                      icon
+                      is_main
+                      symbol
+                    }
+                  }
+                  reward
+                }
+              }
+            }
+          }
       - name: Public - Get manga by creator
         query: |
           query manga ($id: Int!, $limit: Int = 10, $offset: Int = 0) {
@@ -1234,6 +1298,45 @@
               id
             }
           }
+      - name: Admin - Get chapter detail
+        query: |
+          query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
+            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{id:{_eq:$manga_id}}}}) {
+              id
+              chapter_number
+              chapter_name
+              chapter_type
+              thumbnail_url
+              status
+              pushlish_date
+              chapter_languages {
+                language_id
+                detail
+              }
+              chapter_collections {
+                id
+                chapter_collection {
+                  contract_address
+                  launchpad_creator {
+                    name
+                    slug
+                    id
+                  }
+                  launchpad_i18ns {
+                    data(path: "name")
+                    language_id
+                    id
+                  }
+                  slug
+                  status
+                  updated_at
+                  created_at
+                }
+                chapter_id
+                launchpad_id
+              }
+            }
+          }
       - name: Admin - Insert Chapter Collection
         query: |
           mutation insert_chapter_collection ($objects: [chapter_collection_insert_input!] = {}) {
@@ -1329,6 +1432,71 @@
                 title
                 description
                 language_id
+              }
+            }
+          }
+      - name: User - Get Profile
+        query: |
+          query GetUserProfile {
+            authorizer_users(limit: 1) {
+              id
+              email
+              email_verified_at
+              bio
+              birthdate
+              gender
+              active_wallet_address: active_evm_address
+              wallet_address
+              ton_wallet_address
+              nickname
+              picture
+              signup_methods
+              levels {
+                xp
+                level
+                user_level_chain {
+                  id
+                  name
+                  punkga_config
+                }
+              }
+              authorizer_users_user_wallet {
+                address
+              }
+              user_quests_aggregate {
+                aggregate {
+                  count
+                }
+              }
+              user_quests(order_by: {created_at:desc}, limit: 20) {
+                created_at
+                status
+                user_quest_rewards {
+                  tx_hash
+                }
+                quest {
+                  id
+                  name
+                  quests_campaign {
+                    campaign_chain {
+                      punkga_config
+                    }
+                  }
+                  quests_i18n {
+                    id
+                    quest_id
+                    language_id
+                    data
+                    i18n_language {
+                      id
+                      description
+                      icon
+                      is_main
+                      symbol
+                    }
+                  }
+                  reward
+                }
               }
             }
           }
@@ -1498,113 +1666,14 @@
               created_at
             }
           }
-      - name: User - Get Profile
+      - name: User - Like artwork
         query: |
-          query GetUserProfile {
-            authorizer_users(limit: 1) {
+          mutation UserLikeArtwork ($artwork_id: Int!) {
+            insert_likes_one(object: {artwork_id:$artwork_id}) {
               id
-              email
-              email_verified_at
-              bio
-              birthdate
-              gender
-              active_wallet_address: active_evm_address
-              wallet_address
-              nickname
-              picture
-              signup_methods
-              levels {
-                xp
-                level
-                user_level_chain {
-                  id
-                  name
-                  punkga_config
-                }
-              }
-              authorizer_users_user_wallet {
-                address
-              }
-              creator {
-                id
-                pen_name
-                avatar_url
-                bio
-              }
-              user_quests_aggregate {
-                aggregate {
-                  count
-                }
-              }
-              user_quests(order_by: {created_at:desc}, limit: 20) {
-                created_at
-                status
-                user_quest_rewards {
-                  tx_hash
-                }
-                quest {
-                  id
-                  name
-                  quests_campaign {
-                    campaign_chain {
-                      punkga_config
-                    }
-                  }
-                  quests_i18n {
-                    id
-                    quest_id
-                    language_id
-                    data
-                    i18n_language {
-                      id
-                      description
-                      icon
-                      is_main
-                      symbol
-                    }
-                  }
-                  reward
-                }
-              }
-            }
-          }
-      - name: Admin - Get chapter detail
-        query: |
-          query GetChapterDetail ($manga_id: Int = 18, $chapter_number: Int = 1) {
-            chapters(where: {_and:{chapter_number:{_eq:$chapter_number},manga:{id:{_eq:$manga_id}}}}) {
-              id
-              chapter_number
-              chapter_name
-              story_submission_id
-              chapter_type
-              thumbnail_url
-              status
-              pushlish_date
-              chapter_languages {
-                language_id
-                detail
-              }
-              chapter_collections {
-                id
-                chapter_collection {
-                  contract_address
-                  launchpad_creator {
-                    name
-                    slug
-                    id
-                  }
-                  launchpad_i18ns {
-                    data(path: "name")
-                    language_id
-                    id
-                  }
-                  slug
-                  status
-                  updated_at
-                  created_at
-                }
-                chapter_id
-                launchpad_id
-              }
+              user_id
+              artwork_id
+              story_character_id
+              created_at
             }
           }

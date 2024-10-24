@@ -5,6 +5,9 @@ object_relationships:
   - name: authorizer_user
     using:
       foreign_key_constraint_on: user_id
+  - name: story_artwork_story_ip_asset
+    using:
+      foreign_key_constraint_on: story_ip_asset_id
   - name: story_ip_asset
     using:
       foreign_key_constraint_on: story_ip_asset_id

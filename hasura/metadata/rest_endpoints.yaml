@@ -506,6 +506,15 @@
   definition:
     query:
       collection_name: allowed-queries
+      query_name: User - Like artwork
+  methods:
+    - POST
+  name: User - Like artwork
+  url: user/artwork/:artwork_id/likes
+- comment: ""
+  definition:
+    query:
+      collection_name: allowed-queries
       query_name: User - Get user campaign rank
   methods:
     - GET

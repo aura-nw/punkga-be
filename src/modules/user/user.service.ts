@@ -350,4 +350,20 @@ export class UserService {
 
     return result;
   }
+
+  async likeArtwork(artwork_id: number) {
+    const { token } = ContextProvider.getAuthUser();
+
+    return this.userGraphql.likeArtwork(token, {
+      artwork_id,
+    });
+  }
+
+  async unlikeArtwork(artwork_id: number) {
+    const { token } = ContextProvider.getAuthUser();
+
+    return this.userGraphql.unlikeArtwork(token, {
+      artwork_id,
+    });
+  }
 }

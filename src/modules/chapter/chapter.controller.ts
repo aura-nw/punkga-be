@@ -45,7 +45,7 @@ export class ChapterController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AuthUserInterceptor, FileInterceptor('file'))
   @SetRequestTimeout()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.Creator)
   upload(
     @Body() data: UploadInputDto,
     @UploadedFile() file: Express.Multer.File
@@ -66,7 +66,7 @@ export class ChapterController {
   ) {
     return this.chapterSvc.create(data, files);
   }
- 
+
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin)
